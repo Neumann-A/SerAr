@@ -21,9 +21,6 @@
     <ClCompile Include="ArchiveTestMain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\Basic_Library\Code\BasicIncludes.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigFile_Archive.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
