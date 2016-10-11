@@ -161,6 +161,8 @@
     <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
+    <TargetName>$(ProjectName)_D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
@@ -175,6 +177,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
     <EnableCppCoreCheck>false</EnableCppCoreCheck>
+    <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
