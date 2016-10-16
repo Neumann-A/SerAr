@@ -14,7 +14,9 @@ ConfigFile::Parse_error::Parse_error(const error_enum &err) : std::runtime_error
 
 const char * ConfigFile::Parse_error::what() const noexcept
 {
-	return (std::string{ std::runtime_error::what() }+_msg).c_str();
+	static const auto str{ (std::string{ std::runtime_error::what() }+_msg) };
+	static const auto ret{ str.c_str() };
+	return ret;
 }
 
 void ConfigFile::Parse_error::append(std::string&& str)
@@ -325,7 +327,7 @@ std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental
 	}
 
 	std::ifstream& stream = *(new std::ifstream());
-	stream.open(path.string().c_str(), std::fstream::trunc);
+	stream.open(path.string().c_str());
 	if (!stream.is_open())
 	{
 		delete &stream; //Delete created Stream before we throw; If we throw destructor of the class will not be called!

@@ -99,16 +99,16 @@ namespace Archives
 
 		/**************************************************from_string helpers************************************************************************/
 		//Member Function type for converting values to strings
-		template<class T, typename ...Args>
-		using member_from_string_t = decltype(std::declval<T&>().from_string(std::declval<std::string&>(),std::declval<Args&>()...));
+		template<class T, class Convert, typename ...Args>
+		using member_from_string_t = decltype(std::declval<T&>().template from_string<Convert>(std::declval<std::string&>(),std::declval<Args&>()...));
 		//Function type for converting values to strings
-		template<typename ...Args>
-		using func_from_string_t = decltype(from_string(std::declval<std::string&>(),std::declval<Args&>()...));
+		template<class Convert, typename ...Args>
+		using func_from_string_t = decltype(template<> from_string<Convert>(std::declval<std::string&>(),std::declval<Args&>()...));
 		//Std function type for converting values to strings
 
 		//Checks if ToTest has a load function for itself
 		template<typename TypeToTest, typename TypeToConvert>
-		class has_archive_member_from_string : public stdext::is_detected_exact<std::decay_t<TypeToConvert>,member_from_string_t, TypeToTest> {};
+		class has_archive_member_from_string : public stdext::is_detected_exact <std::decay_t<TypeToConvert>, member_from_string_t, TypeToTest, std::decay_t<TypeToConvert> > {};
 		template<typename TypeToTest, typename TypeToConvert>
 		constexpr bool has_archive_member_from_string_v = has_archive_member_from_string<TypeToTest, TypeToConvert>::value;
 
@@ -249,13 +249,13 @@ namespace Archives
 			}
 
 			template<typename T>
-			static inline std::enable_if_t<std::is_same<std::decay_t<T>, std::string>::value, std::decay_t<T>> from_string_selector(std::string& str)
+			static inline std::enable_if_t<std::is_same<std::decay_t<T>, std::string>::value, std::string> from_string(std::string& str)
 			{
 				std::string tmp{ std::move(str) };
 				auto pos = tmp.find_first_of(SpecialCharacters::escapestringidentifier);
 				while (pos != tmp.npos)
 				{
-					tmp.replace(pos, SpecialCharacters::escapestringidentifier.size(), stringidentifier); //Escaping or special characters
+					tmp.replace(pos, SpecialCharacters::escapestringidentifier.size(), SpecialCharacters::stringidentifier); //Remove Escaping of special characters
 				}
 				return tmp;
 			}
@@ -267,10 +267,11 @@ namespace Archives
 			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, std::decay_t<T>> from_string(std::string &str)
 			{
 				std::size_t pos;
-				auto num = BasicTools::stringToNumber<std::decay_t<T>>(str, pos);
+				const auto num{ BasicTools::stringToNumber<std::decay_t<T>>(str, pos) };
 				str.erase(0, pos);
 
 				afterConversionStringCheck(str);
+				return num;
 			};
 
 			/// <summary>	Convert a string into a complex number. </summary>
@@ -460,7 +461,7 @@ namespace Archives
 
 			/// <summary>	Convert containers into a braced string representation. </summary>
 			template<typename T>
-			static inline std::enable_if_t<stdext::is_container<T>::value, T> from_string(std::string& str)
+			static inline std::enable_if_t<stdext::is_container<T>::value && !std::is_same<std::decay_t<T>, std::string>::value, T> from_string(std::string& str)
 			{
 				T resvec;
 				// TODO:: String within Braces
@@ -507,24 +508,26 @@ namespace Archives
 			template <typename Derived>
 			static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<Derived>, Derived>::value, typename Derived::PlainObject> from_string(std::string& str)
 			{
-				try
-				{
-					removeBraces(str);
-				}
-				catch (Parse_error &e)
-				{
-					e.append("Cannot create EigenBase<Derived>. ");
-					throw e;
-				}
+				auto tmpvec = from_string<std::vector<typename Derived::PlainObject::Scalar>>(str);
+				//try
+				//{
+				//	removeBraces(str);
+				//}
+				//catch (Parse_error &e)
+				//{
+				//	e.append("Cannot create EigenBase<Derived>. ");
+				//	throw e;
+				//}
 
 				typename Derived::PlainObject ret;
 
-				auto todel = str.find_first_not_of("+-0.123456789E,iI ");
-				auto substring = str.substr(0, todel);
+				//auto todel = str.find_first_not_of("+-0.123456789E,iI ");
+				//auto substring = str.substr(0, todel);
+				assert(tmpvec.size() == static_cast<std::size_t>(ret.cols()*ret.rows()));
 
-				ret << substring;
+				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), tmpvec.size());
 
-				str.erase(0, todel);
+				//str.erase(0, todel);
 				afterConversionStringCheck(str);
 
 				return ret;
@@ -532,7 +535,7 @@ namespace Archives
 #endif
 
 		private:
-			bool removeBraces(std::string &value)
+			static inline bool removeBraces(std::string &value)
 			{
 				auto startbracket{ value.find_first_of(SpecialCharacters::openbracket, 0) };
 				auto endbracket{ value.find_last_of(SpecialCharacters::closebracket) };
@@ -984,14 +987,16 @@ namespace Archives
 		};
 
 		template<typename T>
-		std::enable_if_t<traits::use_from_string_v<std::decay_t<T>, ConfigFile::fromString, ConfigFile_OutputArchive>> load(T&& val)
+		std::enable_if_t<traits::use_from_string_v<std::decay_t<T> , ConfigFile::fromString, ConfigFile_InputArchive> > load(T&& val)
 		{
-			bool nokey{ false };
-			bool nosec{ false };
-			if (nosec = currentsection.empty())
-			{
-				currentsection = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
-			}
+			const auto& nokey{ currentsection.empty() };
+			const auto& nosec{ currentkey.empty() };
+			
+			////TODO:: Empty Section;
+			//if (nosec = currentsection.empty())
+			//{
+			//	currentsection = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
+			//}
 
 			using type = typename std::decay_t<T>;
 			try
@@ -1000,30 +1005,32 @@ namespace Archives
 				{
 					auto&& sections = mStorage._contents.at(currentsection);
 				}
-				catch (std::out_of_range &e)
+				catch (std::out_of_range &)
 				{
 					throw ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::Section_not_found };
 				}
-				if (nokey = currentkey.empty())
-					currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
-				T = ConfigFile::fromString::from_string_selector((mStorage._contents.at(currentsection)).at(currentkey));
+				//TODO:: Empty Key
+				//if (nokey = currentkey.empty())
+				//	currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
+
+				val = ConfigFile::fromString::from_string_selector<T>((mStorage._contents.at(currentsection)).at(currentkey));
 			}
 			catch (ConfigFile::Parse_error &e)
 			{
 				e.append("Section: "+ currentsection +"! Key: " + currentkey + "! ");
 				throw e;
 			}
-			catch (std::out_of_range &exp)
+			catch (std::out_of_range &)
 			{
-				auto e = ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::Key_not_found }
+				auto e = ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::Key_not_found };
 				e.append("Section: " + currentsection + "! Key: " + currentkey + ". ");
 				throw e;
 			}
 
 			if (nokey)
 				currentkey.clear();
-			if(nosec)
-				currentsection.clear()
+			if (nosec)
+				currentsection.clear();
 		}
 
 		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };

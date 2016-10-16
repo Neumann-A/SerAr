@@ -208,10 +208,10 @@ namespace Archives
 		constexpr bool use_func_serialize_load_v = use_func_serialize_load<ToTest, ArchiveType>::value;
 
 		template<typename ToTest, typename ArchiveType>
-		class no_type_load : public std::negation<std::disjunction<use_func_serialize_load<ToTest, ArchiveType>,
-																   use_member_serialize_load<ToTest, ArchiveType>,
-																   use_func_load< ToTest, ArchiveType>,
-																   use_member_load<ToTest, ArchiveType>>> {};
+		class no_type_load : public std::negation<std::disjunction<has_func_serialize<ToTest, ArchiveType>,
+																   has_member_serialize<ToTest, ArchiveType>,
+																   has_func_load< ToTest, ArchiveType>,
+																   has_member_load<ToTest, ArchiveType>>> {};
 
 		template<typename ToTest, typename ArchiveType>
 		constexpr bool no_type_load_v = no_type_load<ToTest, ArchiveType>::value;

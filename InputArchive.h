@@ -84,7 +84,7 @@ namespace Archives
 		template <typename T> inline
 		std::enable_if_t<traits::use_archive_member_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
 		{
-			self().load(std::forward<T>(value));
+			self().load(std::forward<T&>(value));
 			return self();
 		}
 
@@ -125,6 +125,7 @@ namespace Archives
 		{
 			//Game Over
 			static_assert(!traits::not_any_load_v<T, ArchiveType>, "Type cannot be loaded from Archive. No implementation has been defined for it!");
+			static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
 		}
 
 		//template <typename T> inline
