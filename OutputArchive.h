@@ -3,7 +3,7 @@
 
 //#pragma warning( disable : 4814) // in c++14 does constexpr not implicit const 
 
-#include "BasicMacros.h"
+#include "..\Basic_Library\Headers\BasicMacros.h"
 #include "ArchiveHelper.h"
 
 namespace Archives
@@ -110,7 +110,7 @@ namespace Archives
 
 		//There is an member serialization function which knows how to save T to the Archive
 		template <typename T> inline
-		std::enable_if_t<traits::use_member_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(const T& value)
+		std::enable_if_t<traits::use_member_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
 		{
 			value.serialize(self());
 			return self();
@@ -118,7 +118,7 @@ namespace Archives
 
 		//There is an external serilization function which knows how to save T to the Archive
 		template <typename T> inline
-		std::enable_if_t<traits::use_func_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(const T& value)
+		std::enable_if_t<traits::use_func_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
 		{
 			serialize(value, self());
 			return self();

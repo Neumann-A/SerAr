@@ -106,7 +106,7 @@ namespace Archives
 	/// <returns>	The new named value. </returns>
 	///-------------------------------------------------------------------------------------------------
 	template<typename T>
-	inline NamedValue<T> createNamedValue(std::string name, T&& value)
+	inline NamedValue<T> createNamedValue(const std::string& name, T&& value)
 	{
 		return NamedValue<T>{name.c_str(), std::forward<T>(value)};
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <type_traits>
-#include "std_extensions.h"
+#include "../Basic_Library/Headers/std_extensions.h"
 
 namespace Archives
 {
@@ -160,21 +160,16 @@ namespace Archives
 		constexpr bool use_func_serialize_save_v = use_func_serialize_save<ToTest, ArchiveType>::value;
 
 		template<typename ToTest, typename ArchiveType>
-		class no_type_save : public std::negation<std::disjunction<use_func_serialize_save<ToTest, ArchiveType>,
-																   use_member_serialize_save<ToTest, ArchiveType>,
-																   use_func_save< ToTest, ArchiveType>,
-																   use_member_save<ToTest, ArchiveType>>> {};
-			//(!has_member_save<ToTest, ArchiveType> && !has_func_save<ToTest, ArchiveType> &&
-			//						  !has_member_serialize<ToTest, ArchiveType> && !has_func_serialize<ToTest, ArchiveType>);
-		template<typename ToTest, typename ArchiveType>
-		constexpr bool no_type_save_v = no_type_save<ToTest, ArchiveType>::value;
-
-		template<typename ToTest, typename ArchiveType>
 		class has_type_save : public std::disjunction<has_member_save<ToTest, ArchiveType>,
 			has_func_save< ToTest, ArchiveType>, has_member_serialize<ToTest, ArchiveType>,
 			has_func_serialize<ToTest, ArchiveType> > {};
 		template<typename ToTest, typename ArchiveType>
 		constexpr bool has_type_save_v = has_type_save<ToTest, ArchiveType>::value;
+
+		template<typename ToTest, typename ArchiveType>
+		class no_type_save : public std::negation<has_type_save<ToTest, ArchiveType>> {};
+		template<typename ToTest, typename ArchiveType>
+		constexpr bool no_type_save_v = no_type_save<ToTest, ArchiveType>::value;
 
 		template<typename ToTest, typename ArchiveType>
 		class uses_type_save : public std::conjunction< has_type_save<ToTest, ArchiveType>,	std::negation<use_archive_member_save<ToTest, ArchiveType>>>{};

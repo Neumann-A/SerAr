@@ -17,7 +17,7 @@
 
 #include <exception>
 
-#include <experimental\filesystem>
+#include <cassert>
 
 #include <Eigen\Core>
 
@@ -171,7 +171,7 @@ namespace Archives
 			case MatlabOptions::write_v73:
 				return "w7.3";
 			default:
-				assert(false, "Used invalid enum value");
+				assert(false); //Invalid Enuma!
 				return "";
 			}
 			}() };

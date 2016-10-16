@@ -4,9 +4,7 @@
 #include <type_traits>
 #include <map>
 
-#include <sstream>
-#include <istream>
-#include <ostream>
+#include <iosfwd>
 
 #include <string>
 #include <regex>
@@ -15,20 +13,17 @@
 
 #include <exception>
 
-#include <experimental\filesystem>
-
 #include <Eigen\Core>
 
-#include "std_extensions.h"
+#include "..\Basic_Library\Headers\std_extensions.h"
 
-#include "BasicMacros.h"
-#include "BasicIncludes.h"
+#include "..\Basic_Library\Headers\BasicMacros.h"
+#include "..\Basic_Library\Headers\BasicIncludes.h"
 
 #include "NamedValue.h"
 #include "ArchiveHelper.h"
 #include "InputArchive.h"
 #include "OutputArchive.h"
-
 
 namespace Archives
 {
@@ -174,56 +169,20 @@ namespace Archives
 				Unmatched_Brackets, Missing_open_bracket, Missing_close_bracket,
 				Not_a_complex_number, Empty_string, Invalid_expression, Invalid_characters,
 				Missing_comma_seperator, Missing_string_identifier,
-				Key_not_found, Section_not_found
+				Key_not_found, Section_not_found, First_line_is_not_section
 			};
 
-			Parse_error(const error_enum &err) : std::runtime_error(getErrorInfoString(err)), _err(err) { };
+			Parse_error(const error_enum &err);
 
-			const char * what() const noexcept override
-			{
-				return (std::string{ std::runtime_error::what() }+_msg).c_str();
-			}
+			const char * what() const noexcept override;
 
-			void append(std::string&& str)
-			{
-				_msg.append(str);
-			}
+			void append(std::string&& str);
 
 		private:
 			error_enum _err;
 			std::string _msg{};
 
-			std::string getErrorInfoString(const error_enum &err)
-			{
-				switch (err)
-				{
-				case error_enum::Unmatched_Brackets:
-					return "Unmatched or invalid brackets {}! ";
-				case error_enum::Missing_open_bracket:
-					return "Missing opening bracket ({)! ";
-				case error_enum::Missing_close_bracket:
-					return "Missing closing bracket (})! ";
-				case error_enum::Not_a_complex_number:
-					return "String does no represent a complex number! ";
-				case error_enum::Empty_string:
-					return "Empty string to parse! ";
-				case error_enum::Invalid_expression:
-					return "Invalid expression in string! ";
-				case error_enum::Invalid_characters:
-					return "Invalid characters in string! ";
-				case error_enum::Missing_comma_seperator:
-					return "Missing comma seperator in string! ";
-				case error_enum::Missing_string_identifier:
-					return "Missing string identifier (')! ";
-				case error_enum::Key_not_found:
-					return "Requested key was not found! ";
-				case error_enum::Section_not_found:
-					return "Requested section was not found! ";
-				default:
-					return "Unknown parse error! ";
-				}
-
-			}
+			static std::string getErrorInfoString(const error_enum &err) noexcept;
 		};
 
 		/// <summary>	Class which has all Special Characters used by the logic for Configuration Files  </summary>
@@ -714,7 +673,7 @@ namespace Archives
 		{
 		public:
 
-			static void checkSyntax(std::string section, std::string key, std::string value);
+			static void checkSyntax(const std::string &section, const std::string &key, const std::string &value);
 			///-------------------------------------------------------------------------------------------------
 			/// <summary>	Selects the correct to_string implementation for the given type of value. </summary>
 			///
@@ -768,7 +727,7 @@ namespace Archives
 
 			/// <summary>	Convert complex numbers into a string representation. </summary>
 			template <typename T>
-			static inline std::string to_string(const std::complex<T> &val)
+			static inline std::enable_if_t<std::is_same<T,std::complex<typename T::value_type>>::value, std::string> to_string(const T &val)
 			{
 				std::string sign{ (val.imag() < 0 ? "" : "+") };
 				return to_string_selector(val.real()) + sign + to_string_selector(val.imag()) + "i";
@@ -801,8 +760,8 @@ namespace Archives
 			};
 
 			/// <summary>	Convert pairs into a string representation. </summary>
-			template <typename T1, typename T2>
-			static inline std::string to_string(const std::pair<T1, T2> &val)
+			template <typename T>
+			static inline std::enable_if_t<std::is_same<T, std::pair<typename T::x, typename T::y>>::value, std::string> to_string(const T &val)
 			{
 				std::stringstream sstr;
 				sstr << SpecialCharacters::openbracket << to_string_selector(val.first) << " " << SpecialCharacters::seperator << " " << to_string_selector(val.second) << SpecialCharacters::closebracket;
@@ -822,11 +781,11 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
 			template <typename Derived>
-			static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<Derived>, Derived>::value, std::string> to_string(Derived&& value)
+			static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<Derived>>, std::decay_t<Derived>>::value, std::string> to_string(const Derived& value)
 			{
 				Eigen::IOFormat CommaInitFmt(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "{", "}");
 				std::stringstream sstr;
-				sstr << std::scientific << Position.format(CommaInitFmt);
+				sstr << std::scientific << value.format(CommaInitFmt);
 				return sstr.str();
 			};
 #endif
@@ -858,7 +817,7 @@ namespace Archives
 			sections _contents;	//Contents of the CFG
 		public:
 			void writeContentsToStream(std::ostream &stream) const;
-			sections& accessContents() noexcept { return _contents; };
+			inline sections& accessContents() noexcept { return _contents; };
 		};
 
 		/// <summary>	Used to Parse the Input Stream </summary>
@@ -910,15 +869,15 @@ namespace Archives
 				}
 			};
 		protected:
-			std::string currentsection{}; // Cache for the current Section
-			std::string currentkey{}; //Cache for current key
+			std::string currentsection{""}; // Cache for the current Section
+			std::string currentkey{""}; //Cache for current key
 		public:
 			///-------------------------------------------------------------------------------------------------
 			/// <summary>	Sets current key. </summary>
 			///
 			/// <param name="str">	The key string. </param>
 			///-------------------------------------------------------------------------------------------------
-			void inline setCurrKey(const std::string& str)
+			inline void setCurrKey(const std::string& str)
 			{
 				if (!currentkey.empty())
 				{
@@ -927,7 +886,7 @@ namespace Archives
 				currentkey = str;
 			};
 			/// <summary>	Resets the current key and maybe section. </summary>
-			void inline resetCurrKey()
+			inline void resetCurrKey()
 			{
 				if (currentkey.empty())
 				{
@@ -939,8 +898,8 @@ namespace Archives
 				}
 			};
 
-			inline std::string& getSection() noexcept { return currentsection; };
-			inline std::string& getKey() noexcept { return currentkey; };
+			inline const std::string& getSection() noexcept { return currentsection; };
+			inline const std::string& getKey() noexcept { return currentkey; };
 		};
 	};
 
@@ -953,13 +912,11 @@ namespace Archives
 	class ConfigFile_OutputArchive : public OutputArchive<ConfigFile_OutputArchive> 
 	{
 	public:
-		ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream) {};
-		~ConfigFile_OutputArchive() 
-		{ 
-			mStorage.writeContentsToStream(mOutputstream);
-			mOutputstream << std::flush;
-		}
+		ConfigFile_OutputArchive(std::ostream& stream);
+		ConfigFile_OutputArchive(const std::experimental::filesystem::path &path);
+		~ConfigFile_OutputArchive();
 
+		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_OutputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_OutputArchive)
 
 		template<typename T>
@@ -979,7 +936,7 @@ namespace Archives
 			mStorage._contents[ConfigLogic.getSection()][ConfigLogic.getKey()] = valstr;
 		}
 
-		const ConfigFile::Storage& getStorage() { return mStorage; };
+		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	
@@ -987,11 +944,16 @@ namespace Archives
 		std::string currentsection{}; // Cache for the current Section
 		std::string currentkey{}; //Cache for current key
 
+		//TODO:: for unnamed values!
 		//template <typename T>
 		//std::size_t typecounter{ 0 };
 		std::ostream &mOutputstream;
+		
+		bool mStreamOwner{ false };
+		
 		ConfigFile::Storage mStorage;
 
+		std::ofstream& createFileStream(const std::experimental::filesystem::path &path);
 	};
 
 	
@@ -1005,15 +967,12 @@ namespace Archives
 	{
 		
 	public:
-		ConfigFile_InputArchive(std::istream& stream) : InputArchive(this) ,mInputstream(stream)
-		{
+		ConfigFile_InputArchive(std::istream& stream);
+		ConfigFile_InputArchive(ConfigFile::Storage storage);
+		ConfigFile_InputArchive(const std::experimental::filesystem::path &path);
+		~ConfigFile_InputArchive();
 
-		};
-		
-		ConfigFile_InputArchive(ConfigFile::Storage storage) : InputArchive(this), mInputstream(std::cin), mStorage(std::move(storage))
-		{
-		};
-
+		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
 		template<typename T>
@@ -1067,7 +1026,7 @@ namespace Archives
 				currentsection.clear()
 		}
 
-		const ConfigFile::Storage& getStorage() { return mStorage; };
+		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	private:
@@ -1075,8 +1034,13 @@ namespace Archives
 		std::string currentkey{}; //Cache for current key
 
 		std::istream& mInputstream;
-
+		bool mStreamOwner{ false };
 		ConfigFile::Storage mStorage;
+
+		std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental::filesystem::path &path);
+
+		void parseStream();
+
 	};
 
 	//TODO:: Make this the combined Input/Output Class
