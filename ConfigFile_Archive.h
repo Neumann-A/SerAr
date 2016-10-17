@@ -251,11 +251,37 @@ namespace Archives
 			template<typename T>
 			static inline std::enable_if_t<std::is_same<std::decay_t<T>, std::string>::value, std::string> from_string(std::string& str)
 			{
+				//std::string str{ val };
+				//auto pos = str.find_first_of(SpecialCharacters::stringidentifier);
+				//while (pos != str.npos)
+				//{
+				//	str.replace(pos, SpecialCharacters::stringidentifier.size(), SpecialCharacters::escapestringidentifier); //Escaping or special characters
+				//}
+				//return SpecialCharacters::stringidentifier + str + SpecialCharacters::stringidentifier; //Escaping string
 				std::string tmp{ std::move(str) };
-				auto pos = tmp.find_first_of(SpecialCharacters::escapestringidentifier);
+				auto pos = tmp.find_first_not_of(" \r\v\t\n");
+				if (!(tmp.compare(0, 1, SpecialCharacters::stringidentifier) == 0))
+				{
+					throw Parse_error{ Parse_error::error_enum::Missing_string_identifier };
+				}
+				tmp.erase(pos, SpecialCharacters::stringidentifier.size());
+				pos -= (SpecialCharacters::stringidentifier.size()-1);
 				while (pos != tmp.npos)
 				{
-					tmp.replace(pos, SpecialCharacters::escapestringidentifier.size(), SpecialCharacters::stringidentifier); //Remove Escaping of special characters
+					pos = tmp.find_first_of(SpecialCharacters::stringidentifier, pos+1);
+					if (tmp.compare(pos-SpecialCharacters::escapestringidentifier.size()-1, SpecialCharacters::escapestringidentifier.size(), SpecialCharacters::escapestringidentifier) == 0)
+					{
+						tmp.replace(pos - SpecialCharacters::escapestringidentifier.size() - 1, SpecialCharacters::escapestringidentifier.size(), SpecialCharacters::stringidentifier); //Remove Escaping of special characters
+					}
+					else //Found the end '
+					{
+						tmp.erase(pos, SpecialCharacters::stringidentifier.size());
+						if (tmp.find_first_not_of(" \r\v\t\n",pos) != tmp.npos)
+						{
+							throw Parse_error{ Parse_error::error_enum::Missing_string_identifier };
+						}
+						break;
+					}
 				}
 				return tmp;
 			}
@@ -471,7 +497,7 @@ namespace Archives
 					while (commapos != str.npos)
 					{
 						resvec.push_back(from_string_selector<typename T::value_type>(str.substr(0, commapos - 1)));
-						str.erase(0, commapos);
+						str.erase(0, commapos+ SpecialCharacters::seperator.size());
 						commapos = findNextCommaSeperator(str);
 					};
 					resvec.push_back(from_string_selector<typename T::value_type>(str));
@@ -523,7 +549,7 @@ namespace Archives
 
 				//auto todel = str.find_first_not_of("+-0.123456789E,iI ");
 				//auto substring = str.substr(0, todel);
-				assert(tmpvec.size() == static_cast<std::size_t>(ret.cols()*ret.rows()));
+				assert(tmpvec.size() == Derived::PlainObject::RowsAtCompileTime*Derived::PlainObject::ColsAtCompileTime);
 
 				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), tmpvec.size());
 
@@ -540,15 +566,15 @@ namespace Archives
 				auto startbracket{ value.find_first_of(SpecialCharacters::openbracket, 0) };
 				auto endbracket{ value.find_last_of(SpecialCharacters::closebracket) };
 
-				if (value.find_first_not_of(" ", 0) != startbracket || value.find_last_not_of(" ") != endbracket)
+				if (value.find_first_not_of(" \t\v", 0) != startbracket || value.find_last_not_of(" \t\v") != endbracket)
 					throw Parse_error{ Parse_error::error_enum::Invalid_expression };
 
 				if (startbracket == std::string::npos || endbracket == std::string::npos)
 					throw Parse_error{ Parse_error::error_enum::Unmatched_Brackets };
 
 				//Erase Brackets
-				value.erase(endbracket);
-				value.erase(0, startbracket);
+				value.erase(endbracket, SpecialCharacters::closebracket.size());
+				value.erase(0, SpecialCharacters::openbracket.size());
 
 				return true;
 			}
@@ -944,8 +970,8 @@ namespace Archives
 		ConfigFile::Logic ConfigLogic{};
 	
 	private:
-		std::string currentsection{}; // Cache for the current Section
-		std::string currentkey{}; //Cache for current key
+		//std::string currentsection{}; // Cache for the current Section
+		//std::string currentkey{}; //Cache for current key
 
 		//TODO:: for unnamed values!
 		//template <typename T>
@@ -988,9 +1014,12 @@ namespace Archives
 
 		template<typename T>
 		std::enable_if_t<traits::use_from_string_v<std::decay_t<T> , ConfigFile::fromString, ConfigFile_InputArchive> > load(T&& val)
-		{
-			const auto& nokey{ currentsection.empty() };
-			const auto& nosec{ currentkey.empty() };
+		{			
+			const auto& currentsection{ ConfigLogic.getSection() };
+			const auto& currentkey{ ConfigLogic.getKey() };
+
+			//const auto& nosec{ currentsection.empty() };
+			//const auto& nokey{ currentkey.empty() };
 			
 			////TODO:: Empty Section;
 			//if (nosec = currentsection.empty())
@@ -1003,7 +1032,7 @@ namespace Archives
 			{
 				try
 				{
-					auto&& sections = mStorage._contents.at(currentsection);
+					mStorage._contents.at(currentsection);
 				}
 				catch (std::out_of_range &)
 				{
@@ -1013,7 +1042,7 @@ namespace Archives
 				//if (nokey = currentkey.empty())
 				//	currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
 
-				val = ConfigFile::fromString::from_string_selector<T>((mStorage._contents.at(currentsection)).at(currentkey));
+				val = ConfigFile::fromString::from_string_selector<T>(std::string{ (mStorage._contents.at(currentsection)).at(currentkey) });
 			}
 			catch (ConfigFile::Parse_error &e)
 			{
@@ -1027,18 +1056,18 @@ namespace Archives
 				throw e;
 			}
 
-			if (nokey)
-				currentkey.clear();
-			if (nosec)
-				currentsection.clear();
+			//if (nokey)
+			//	currentkey.clear();
+			//if (nosec)
+			//	currentsection.clear();
 		}
 
 		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	private:
-		std::string currentsection{}; // Cache for the current Section
-		std::string currentkey{}; //Cache for current key
+		//std::string currentsection{}; // Cache for the current Section
+		//std::string currentkey{}; //Cache for current key
 
 		std::istream& mInputstream;
 		bool mStreamOwner{ false };

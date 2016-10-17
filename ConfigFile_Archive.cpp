@@ -139,30 +139,30 @@ void ConfigFile::FileParser::extractKeyValue(const std::smatch &match, std::stri
 
 std::string ConfigFile::FileParser::extractSection(const std::smatch &match)
 {
-	return match.str(1);
+	return std::string{ match.str(1) };
 }
 
-void ConfigFile::FileParser::parseLine(const std::string &line, size_t const lineNo, std::string &currentSection, ConfigFile::Storage &storage)
+void ConfigFile::FileParser::parseLine(const std::string &line, size_t const lineNo,std::string &currentSection, ConfigFile::Storage &storage)
 {
 	// Comments and Whitespace lines are alread ignored / removed
 	// So we should only have either a valid section line or a valid keyvalue line
 	std::smatch match;
 
-	if (validKeyValueLine(line, match))
-	{
-		std::string key, value;
-		extractKeyValue(match, key, value);
-		(storage.accessContents())[currentSection][key] = value;
-		return;
-	}
-
 	if (validSectionLine(line, match))
 	{
 		currentSection = extractSection(match);
-		return;
 	}
-
-	throw std::runtime_error{ "Configuration Archive: Line Number: " + std::to_string(lineNo) + " is not valid. Line is: " + line + "\n" };
+	else if (validKeyValueLine(line, match))
+	{
+		const std::string sec{ currentSection };
+		std::string key, value;
+		extractKeyValue(match, key, value);
+		(storage.accessContents()[sec])[key]= value;
+	}
+	else
+	{
+		throw std::runtime_error{ "Configuration Archive: Line Number: " + std::to_string(lineNo) + " is not valid. Line is: " + line + "\n" };
+	}
 };
 
 void ConfigFile::FileParser::loadIntoStorage(std::istream& stream, ConfigFile::Storage &storage)
@@ -252,6 +252,10 @@ void ConfigFile::toString::checkSyntax(const std::string& section, const std::st
 	}
 	return;
 }
+
+///-------------------------------------------------------------------------------------------------
+///ConfigFile::fromString
+///-------------------------------------------------------------------------------------------------
 
 ///-------------------------------------------------------------------------------------------------
 ///ConfigFile::Output Archive
@@ -381,7 +385,7 @@ void ConfigFile_InputArchive::parseStream()
 		}
 		else
 		{
-			ConfigFile::FileParser::parseLine(temp, lineNo, currentsection, mStorage);
+			ConfigFile::FileParser::parseLine(temp, lineNo, currentSection, mStorage);
 		}
 	}
 };
