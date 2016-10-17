@@ -111,13 +111,6 @@ namespace Archives
 		return NamedValue<T>{name.c_str(), std::forward<T>(value)};
 	}
 
-	//template<typename T>
-	//inline NamedValue<T> createNamedValue(std::string&& str, T&& value)
-	//{
-	//	const std::string name{ str };
-	//	return NamedValue<T>{name.c_str(), std::forward<T>(value)};
-	//}
-
 };
 
 #define BASIC_CREATE_NV(val) Basic::createNamedValue(#val,val)

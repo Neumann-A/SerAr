@@ -173,14 +173,16 @@ namespace Archives
 			};
 
 			Parse_error(const error_enum &err);
+			
 
 			const char * what() const noexcept override;
 
 			void append(std::string&& str);
 
 		private:
+			Parse_error(const error_enum &err, std::string&&);
 			error_enum _err;
-			std::string _msg{};
+			//std::string _msg{};
 
 			static std::string getErrorInfoString(const error_enum &err) noexcept;
 		};
@@ -546,10 +548,10 @@ namespace Archives
 				//}
 
 				typename Derived::PlainObject ret;
-
+				
 				//auto todel = str.find_first_not_of("+-0.123456789E,iI ");
 				//auto substring = str.substr(0, todel);
-				assert(tmpvec.size() == Derived::PlainObject::RowsAtCompileTime*Derived::PlainObject::ColsAtCompileTime);
+				assert(tmpvec.size() == ret.cols()*ret.rows());
 
 				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), tmpvec.size());
 

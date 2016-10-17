@@ -12,47 +12,19 @@ using namespace Archives;
 ///ConfigFile::Exceptions
 ///-------------------------------------------------------------------------------------------------
 
-ConfigFile::Parse_error::Parse_error(const error_enum &err) : std::runtime_error(getErrorInfoString(err)), _err(err) { };
+ConfigFile::Parse_error::Parse_error(const error_enum& err) : std::runtime_error(getErrorInfoString(err)), _err(err) { };
+ConfigFile::Parse_error::Parse_error(const error_enum& err, std::string &&str) : std::runtime_error(str), _err(err) { };
 
 const char * ConfigFile::Parse_error::what() const noexcept
 {
-	const auto str{ (std::string{ std::runtime_error::what() }+_msg) };
-
-	if (str.size() < 125)
-	{
-		const char tmp[128]{ *str.c_str() };
-		return tmp;
-	}
-	if (str.size() < 253)
-	{
-		const char tmp[256]{ *str.c_str() };
-		return tmp;
-	}
-	if (str.size() < 509)
-	{
-		const char tmp[512]{ *str.c_str() };
-		return tmp;
-	}
-	else if (str.size() < 1021)
-	{
-		const char tmp[1024]{ *str.c_str() };
-		return tmp;
-	}
-	else if (str.size() < 4093)
-	{
-		const char tmp[4096]{ *str.c_str() };
-		return tmp;
-	}
-	else
-	{
-		return std::runtime_error::what();
-	}
-	
+	return std::runtime_error::what();
 }
 
 void ConfigFile::Parse_error::append(std::string&& str)
 {
-	_msg.append(str);
+	std::string msg { std::runtime_error::what() } ;
+	msg.append(str);
+	*this = Parse_error(std::move(_err),std::move(msg));
 }
 std::string ConfigFile::Parse_error::getErrorInfoString(const error_enum &err) noexcept
 {
