@@ -63,7 +63,7 @@ namespace Archives
 		/// <param name="name"> 	The name of the value. </param>
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
-		inline constexpr explicit NamedValue(const char * name, T&& value) : valname(name), val(std::forward<T>(value))	{};
+		inline constexpr explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
@@ -111,12 +111,12 @@ namespace Archives
 		return NamedValue<T>{name.c_str(), std::forward<T>(value)};
 	}
 
-	template<typename T>
-	inline NamedValue<T> createNamedValue(std::string&& str, T&& value)
-	{
-		static const std::string name{ str };
-		return NamedValue<T>{name.c_str(), std::forward<T>(value)};
-	}
+	//template<typename T>
+	//inline NamedValue<T> createNamedValue(std::string&& str, T&& value)
+	//{
+	//	const std::string name{ str };
+	//	return NamedValue<T>{name.c_str(), std::forward<T>(value)};
+	//}
 
 };
 
