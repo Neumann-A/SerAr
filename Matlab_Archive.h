@@ -199,6 +199,7 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
+			//TODO check Name for a stupid . these are not allowed in Matlab structs!
 			setNextFieldname(value.getName());
 			this->operator()(value.getValue());
 		};
