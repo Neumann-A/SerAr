@@ -498,7 +498,8 @@ namespace Archives
 					std::size_t commapos{ findNextCommaSeperator(str) };
 					while (commapos != str.npos)
 					{
-						resvec.push_back(from_string_selector<typename T::value_type>(str.substr(0, commapos - 1)));
+						std::string tmpstr{ str.substr(0, commapos - 1) };
+						resvec.push_back(from_string_selector<typename T::value_type>(tmpstr));
 						str.erase(0, commapos+ SpecialCharacters::seperator.size());
 						commapos = findNextCommaSeperator(str);
 					};
@@ -537,25 +538,17 @@ namespace Archives
 			static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<Derived>, Derived>::value, typename Derived::PlainObject> from_string(std::string& str)
 			{
 				auto tmpvec = from_string<std::vector<typename Derived::PlainObject::Scalar>>(str);
-				//try
-				//{
-				//	removeBraces(str);
-				//}
-				//catch (Parse_error &e)
-				//{
-				//	e.append("Cannot create EigenBase<Derived>. ");
-				//	throw e;
-				//}
-
-				typename Derived::PlainObject ret;
 				
-				//auto todel = str.find_first_not_of("+-0.123456789E,iI ");
-				//auto substring = str.substr(0, todel);
-				assert(tmpvec.size() == ret.cols()*ret.rows());
+				typename Derived::PlainObject ret;
 
+				if( (tmpvec.size() != (static_cast<std::size_t>(ret.cols())*static_cast<std::size_t>(ret.rows()))) )
+				{
+					throw std::runtime_error{"Size of request matrix does not match list of extracted values! Requested: " + 
+						std::to_string(ret.cols()*ret.rows()) +" Found: " + std::to_string(tmpvec.size()) + " !" };
+				}
+								
 				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), tmpvec.size());
 
-				//str.erase(0, todel);
 				afterConversionStringCheck(str);
 
 				return ret;
@@ -1043,8 +1036,8 @@ namespace Archives
 				//TODO:: Empty Key
 				//if (nokey = currentkey.empty())
 				//	currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
-
-				val = ConfigFile::fromString::from_string_selector<T>(std::string{ (mStorage._contents.at(currentsection)).at(currentkey) });
+				std::string valstr{ (mStorage._contents.at(currentsection)).at(currentkey) };
+				val = ConfigFile::fromString::from_string_selector<T>(valstr);
 			}
 			catch (ConfigFile::Parse_error &e)
 			{
@@ -1054,8 +1047,14 @@ namespace Archives
 			catch (std::out_of_range &)
 			{
 				auto e = ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::Key_not_found };
-				e.append("Section: " + currentsection + "! Key: " + currentkey + ". ");
+				e.append("Section: " + currentsection + "! Key: " + currentkey + "! ");
 				throw e;
+			}
+			catch (std::runtime_error &e)
+			{
+				const auto str{ std::string{ e.what() }+" Section: " + currentsection + "! Key: " + currentkey + "! " };
+				std::runtime_error exp{ str };
+				throw exp;
 			}
 
 			//if (nokey)
