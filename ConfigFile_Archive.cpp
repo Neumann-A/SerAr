@@ -393,13 +393,13 @@ void ConfigFile_InputArchive::parseStream()
 	}
 };
 
-decltype(auto) ConfigFile_InputArchive::list(Archives::NamedValue<void>& value) 
+decltype(auto) ConfigFile_InputArchive::list(const std::string& value)
 {
 	using type = decltype(mStorage.accessContents().cbegin()->second);
 	type data;
-	ConfigLogic.setCurrKey(value.getName());
+	ConfigLogic.setCurrKey(value);
 
-	if (mStorage.accessContents().find(value.getName()) != mStorage.accessContents().end() )
+	if (mStorage.accessContents().find(value) != mStorage.accessContents().end())
 	{
 		data = mStorage.accessContents().at(ConfigLogic.getSection());
 	}
@@ -410,6 +410,11 @@ decltype(auto) ConfigFile_InputArchive::list(Archives::NamedValue<void>& value)
 	ConfigLogic.resetCurrKey();
 
 	return data;
+};
+
+decltype(auto) ConfigFile_InputArchive::list(const Archives::NamedValue<void*>& value)
+{
+	return list(value.getName());
 };
 
 decltype(auto) ConfigFile_InputArchive::list() 

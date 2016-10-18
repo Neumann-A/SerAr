@@ -129,14 +129,6 @@ namespace Archives
 			static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
 		}
 
-		template <typename T> inline
-		ArchiveType& list()
-		//{
-		//	//Game Over
-		//	static_assert(false, "Logic error! Archive cannot load into an rvalue!");
-		//}
-
-
 	protected:
 		constexpr InputArchive(ArchiveType* const) noexcept {};
 		DISALLOW_COPY_AND_ASSIGN(InputArchive)

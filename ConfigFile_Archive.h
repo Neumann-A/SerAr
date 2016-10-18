@@ -999,7 +999,8 @@ namespace Archives
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
-		decltype(auto) list(Archives::NamedValue<void>& value);
+		decltype(auto) list(const Archives::NamedValue<void*>& value);
+		decltype(auto) list(const std::string& value);
 		decltype(auto) list();
 
 		template<typename T>
