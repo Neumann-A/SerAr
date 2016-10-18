@@ -305,6 +305,7 @@
     <ClInclude Include="CerealAdapter.h" />
     <ClInclude Include="ConfigFile_Archive.h" />
     <ClInclude Include="JSONArchiveWrapper.h" />
+    <ClInclude Include="LoadConstructor.h" />
     <ClInclude Include="Matlab_Archive.h" />
     <ClInclude Include="PortableBinaryArchiveWrapper.h" />
     <ClInclude Include="TestIOArchive.h" />

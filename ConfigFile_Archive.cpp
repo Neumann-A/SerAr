@@ -392,3 +392,28 @@ void ConfigFile_InputArchive::parseStream()
 		}
 	}
 };
+
+decltype(auto) ConfigFile_InputArchive::list(Archives::NamedValue<void>& value) 
+{
+	using type = decltype(mStorage.accessContents().cbegin()->second);
+	type data;
+	ConfigLogic.setCurrKey(value.getName());
+
+	if (mStorage.accessContents().find(value.getName()) != mStorage.accessContents().end() )
+	{
+		data = mStorage.accessContents().at(ConfigLogic.getSection());
+	}
+	else
+	{
+		data = type{};
+	}
+	ConfigLogic.resetCurrKey();
+
+	return data;
+};
+
+decltype(auto) ConfigFile_InputArchive::list() 
+{
+	const auto& tmp = mStorage.accessContents();
+	return tmp;
+};

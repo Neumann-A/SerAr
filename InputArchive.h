@@ -5,6 +5,7 @@
 #pragma warning( disable : 4814) // constexpr is not implicit const Warning
 
 #include "..\Basic_Library\Headers\BasicMacros.h"
+
 #include "ArchiveHelper.h"
 
 namespace Archives
@@ -128,8 +129,8 @@ namespace Archives
 			static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
 		}
 
-		//template <typename T> inline
-		//ArchiveType& dowork(T&& value)
+		template <typename T> inline
+		ArchiveType& list()
 		//{
 		//	//Game Over
 		//	static_assert(false, "Logic error! Archive cannot load into an rvalue!");
@@ -150,63 +151,6 @@ namespace Archives
 		}
 	};
 
-}
-
-#include "NamedValue.h"
-
-namespace Archives
-{
-	///-------------------------------------------------------------------------------------------------
-	/// <summary>	A load constructor interface for archives.
-	/// 			Common helper class to construct not default constructable objects
-	/// 			Use a specialization of this class for not default constructable objects. </summary>
-	///
-	/// <typeparam name="ToConstruct">	Type to construct. </typeparam>
-	///-------------------------------------------------------------------------------------------------
-	template<typename ToConstruct>
-	class LoadConstructor
-	{
-		using type = ToConstruct;
-
-		static_assert(std::is_constructible<type,void>::value,"Type is not constructable without arguments. Archives need specialization of LoadConstructor ");
-		
-		template <typename Archive>
-		static inline type construct(InputArchive<Archive>& ar)
-		{
-			type ConstructedType{};
-			ar(ConstructedType);
-			return ConstructedType;
-		};
-
-		template <typename Archive>
-		static inline type constructWithName(InputArchive<Archive>& ar, char const * const name)
-		{
-			type ConstructedType{};
-			ar(Basic::createNamedValue(name,ConstructedType));
-			return ConstructedType;
-		};
-
-		template <typename Archive>
-		static inline type constructWithName(InputArchive<Archive>& ar, const std::string& name)
-		{
-			type ConstructedType{};
-			ar(Basic::createNamedValue(name, ConstructedType));
-			return ConstructedType;
-		};
-
-		template <typename Archive>
-		static inline type constructWithName(const std::string& name, InputArchive<Archive>& ar)
-		{
-			return constructWithName(ar, name);
-		};
-
-		template <typename Archive>
-		static inline type constructWithName(char const * const name, InputArchive<Archive>& ar)
-		{
-			return constructWithName(ar, name);
-		};
-
-	};
 }
 
 #pragma warning(pop)
