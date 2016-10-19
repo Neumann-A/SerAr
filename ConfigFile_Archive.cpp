@@ -393,7 +393,7 @@ void ConfigFile_InputArchive::parseStream()
 	}
 };
 
-decltype(auto) ConfigFile_InputArchive::list(const std::string& value)
+auto ConfigFile_InputArchive::list(const std::string& value) -> typename ConfigFile::Storage::keyvalues
 {
 	using type = decltype(mStorage.accessContents().cbegin()->second);
 	type data;
@@ -412,12 +412,12 @@ decltype(auto) ConfigFile_InputArchive::list(const std::string& value)
 	return data;
 };
 
-decltype(auto) ConfigFile_InputArchive::list(const Archives::NamedValue<void*>& value)
+auto ConfigFile_InputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues
 {
 	return list(value.getName());
 };
 
-decltype(auto) ConfigFile_InputArchive::list() 
+auto ConfigFile_InputArchive::list() -> typename ConfigFile::Storage::sections
 {
 	const auto& tmp = mStorage.accessContents();
 	return tmp;

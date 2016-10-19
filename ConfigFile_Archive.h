@@ -885,16 +885,20 @@ namespace Archives
 			{
 				if (currentsection.empty())
 				{
-					currentsection = std::move(currentkey);
+					currentsection = NameStack.top();
 				}
 				else
 				{
-					currentsection.append("." + std::move(currentkey));
+					currentsection.append(SectionSeperator + NameStack.top());
 				}
 			};
-		protected:
-			std::string currentsection{""}; // Cache for the current Section
-			std::string currentkey{""}; //Cache for current key
+
+
+			std::stack<std::string> NameStack;
+			std::string currentsection{ "" };	// Cache for the current Section //So that we do not have to build it!
+
+			const std::string SectionSeperator{ "." };
+
 		public:
 			///-------------------------------------------------------------------------------------------------
 			/// <summary>	Sets current key. </summary>
@@ -903,27 +907,29 @@ namespace Archives
 			///-------------------------------------------------------------------------------------------------
 			inline void setCurrKey(const std::string& str)
 			{
-				if (!currentkey.empty())
+				if (!NameStack.empty())
 				{
 					appendCurrKeyToSec();
 				}
-				currentkey = str;
+				NameStack.push(str);
 			};
 			/// <summary>	Resets the current key and maybe section. </summary>
 			inline void resetCurrKey()
 			{
-				if (currentkey.empty())
+				NameStack.pop();
+				if (!NameStack.empty())
 				{
-					currentsection.erase(currentsection.length() - currentkey.length() - 1, currentkey.length());
-				}
-				else
-				{
-					currentkey.clear();
+					const auto& top{ NameStack.top() };
+
+					if (NameStack.size() > 1)
+						currentsection.erase(currentsection.length() - top.length() - SectionSeperator.length(), currentsection.length());
+					else
+						currentsection.clear();
 				}
 			};
 
 			inline const std::string& getSection() noexcept { return currentsection; };
-			inline const std::string& getKey() noexcept { return currentkey; };
+			inline const std::string& getKey() noexcept { return NameStack.top(); };
 		};
 	};
 
@@ -999,9 +1005,9 @@ namespace Archives
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
-		decltype(auto) list(const Archives::NamedValue<void*>& value);
-		decltype(auto) list(const std::string& value);
-		decltype(auto) list();
+		auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
+		auto list(const std::string& value) -> typename ConfigFile::Storage::keyvalues;
+		auto list() -> typename ConfigFile::Storage::sections;
 
 		template<typename T>
 		void load(Archives::NamedValue<T>& value)
