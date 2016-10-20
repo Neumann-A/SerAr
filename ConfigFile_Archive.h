@@ -751,7 +751,7 @@ namespace Archives
 
 			/// <summary>	Convert complex numbers into a string representation. </summary>
 			template <typename T>
-			static inline std::enable_if_t<std::is_same<T,std::complex<typename T::value_type>>::value, std::string> to_string(const T &val)
+			static inline std::enable_if_t<std::is_same<T,std::complex<typename T::value_type>>::value, std::string> to_string(const T& val)
 			{
 				std::string sign{ (val.imag() < 0 ? "" : "+") };
 				return to_string_selector(val.real()) + sign + to_string_selector(val.imag()) + "i";
@@ -761,7 +761,7 @@ namespace Archives
 
 			/// <summary>	Convert containers into a braced string representation. </summary>
 			template<typename T>
-			static inline std::enable_if_t<stdext::is_container<T>::value, std::string> to_string(T&& values)
+			static inline std::enable_if_t<stdext::is_container<T>::value && !std::is_same<T,std::string>::value, std::string> to_string(const T& values)
 			{
 				std::stringstream sstr;
 				sstr << SpecialCharacters::openbracket;

@@ -56,21 +56,23 @@ private:
 
 int main(int, char**)
 {
+	std::vector<double> vector{ 1.3, 2.6,-3.7,-9.5};
 	std::cout << "Build date: " << __DATE__ << " Time: " << __TIME__ << " CPP: " << __cplusplus << std::endl ;
 	std::cout << "Last Source Changes: " << __TIMESTAMP__ << std::endl << std::endl;
 
 	std::experimental::filesystem::path mypath{ "Test.mat" };
 	using namespace Archives;
 	//typedef ConfigFile_OutputArchive ArchiveType;
-	typedef MatlabOutputArchive ArchiveType;
-	//typedef ConfigFile_OutputArchive ArchiveType;
+	//typedef MatlabOutputArchive ArchiveType;
+	typedef ConfigFile_OutputArchive ArchiveType;
 	//typedef ConfigFile_InputArchive InArchiveType;
 	{
-		ArchiveType CFG{ mypath, Archives::MatlabOptions::write_v73 };
+		ArchiveType CFG{ std::cout/*, Archives::MatlabOptions::write_v73*/ };
 		ConfigTestClass CFGTEST{};
 		//NoArchiveClass NoAr{};
+		ConfigFile::toString::to_string(vector);
 
-		//using TestClass = std::complex<double>;
+		//using TestClass = std::vector<double>;//std::complex<double>;
 		//static_assert(Archives::traits::use_archive_member_save_v<TestClass, ArchiveType>, "Archive cannot save the Type");
 		//static_assert(Archives::traits::has_archive_member_to_string_v<ConfigFile::toString, TestClass>, "Helper does not have to string");
 		//static_assert(!Archives::traits::has_type_to_string_v<TestClass>, "Type does not have to_string");
@@ -88,6 +90,9 @@ int main(int, char**)
 
 		std::cout << "Archive Test Begin" << std::endl;
 		CFG(Archives::createNamedValue("FirstSection", CFGTEST));
+		CFG(Archives::createNamedValue("VectorSec",Archives::createNamedValue("SecondSection", vector)));
+
+		static_assert(stdext::is_container<decltype(vector)>::value, "test");
 
 		std::pair<double, double> Pairtest{ 0.215,0.31 };
 
