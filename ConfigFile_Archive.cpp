@@ -393,13 +393,14 @@ void ConfigFile_InputArchive::parseStream()
 	}
 };
 
-auto ConfigFile_InputArchive::list(const std::string& value) -> typename ConfigFile::Storage::keyvalues
+auto ConfigFile_InputArchive::list(std::string value) -> typename ConfigFile::Storage::keyvalues
 {
 	using type = decltype(mStorage.accessContents().cbegin()->second);
 	type data;
-	ConfigLogic.setCurrKey(value);
+	ConfigLogic.setCurrKey(std::move(value));
+	ConfigLogic.setCurrKey("Dummy");
 
-	if (mStorage.accessContents().find(value) != mStorage.accessContents().end())
+	if (mStorage.accessContents().find(ConfigLogic.getSection()) != mStorage.accessContents().end())
 	{
 		data = mStorage.accessContents().at(ConfigLogic.getSection());
 	}
@@ -407,8 +408,9 @@ auto ConfigFile_InputArchive::list(const std::string& value) -> typename ConfigF
 	{
 		data = type{};
 	}
-	ConfigLogic.resetCurrKey();
 
+	ConfigLogic.resetCurrKey();
+	ConfigLogic.resetCurrKey();
 	return data;
 };
 

@@ -102,8 +102,9 @@ namespace Archives
 		template<class T, class Convert, typename ...Args>
 		using member_from_string_t = decltype(std::declval<T&>().template from_string<Convert>(std::declval<std::string&>(),std::declval<Args&>()...));
 		//Function type for converting values to strings
+		
 		template<class Convert, typename ...Args>
-		using func_from_string_t = decltype(template<> from_string<Convert>(std::declval<std::string&>(),std::declval<Args&>()...));
+		using func_from_string_t = decltype(from_string(std::declval<std::string&>(), std::declval<Convert&>(),std::declval<Args&>()...));
 		//Std function type for converting values to strings
 
 		//Checks if ToTest has a load function for itself
@@ -292,7 +293,7 @@ namespace Archives
 
 			/// <summary>	Convert string into number representation. </summary>
 			template <typename T>
-			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, std::decay_t<T>> from_string(std::string &str)
+			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && !std::is_same<std::decay_t<T>, bool>::value, std::decay_t<T>> from_string(std::string &str)
 			{
 				std::size_t pos;
 				const auto num{ BasicTools::stringToNumber<std::decay_t<T>>(str, pos) };
@@ -300,6 +301,13 @@ namespace Archives
 
 				afterConversionStringCheck(str);
 				return num;
+			};
+
+			template <typename T>
+			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::decay_t<T>> from_string(std::string &str)
+			{
+				std::regex rx{ "^\\s*[Tt][Rr][Uu][Ee]\\s*$" };
+				return std::regex_search(str, rx);
 			};
 
 			/// <summary>	Convert a string into a complex number. </summary>
@@ -741,10 +749,17 @@ namespace Archives
 
 			/// <summary>	Convert numbers into a string representation. </summary>
 			template <typename T>
-			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, std::string> to_string(T&& val)
+			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && !std::is_same<std::decay_t<T>,bool>::value, std::string> to_string(T&& val)
 			{
 				return BasicTools::toStringScientific(val);
 				//std::to_string(val); Does a silly rounding to 0.00000 for small doubles (1E-7) 
+			};
+
+			/// <summary>	Convert numbers into a string representation. </summary>
+			template <typename T>
+			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::string> to_string(T&& val)
+			{
+				return (val ? std::string{ "TRUE" } : std::string{ "FALSE" });
 			};
 
 			/***End Simple Arithmetic numbers***/
@@ -1006,7 +1021,7 @@ namespace Archives
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
 		auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
-		auto list(const std::string& value) -> typename ConfigFile::Storage::keyvalues;
+		auto list(std::string value) -> typename ConfigFile::Storage::keyvalues;
 		auto list() -> typename ConfigFile::Storage::sections;
 
 		template<typename T>

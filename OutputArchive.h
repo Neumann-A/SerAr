@@ -96,7 +96,7 @@ namespace Archives
 		template <typename T> inline
 		std::enable_if_t<traits::use_member_save_v<T,ArchiveType>, ArchiveType&> dowork(const T& value)
 		{
-			value.save(self());
+			const_cast<T&>(value).save(self());
 			return self();
 		}
 
@@ -110,17 +110,17 @@ namespace Archives
 
 		//There is an member serialization function which knows how to save T to the Archive
 		template <typename T> inline
-		std::enable_if_t<traits::use_member_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
+		std::enable_if_t<traits::use_member_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(const T& value) //Serialize can not be const!
 		{
-			value.serialize(self());
+			const_cast<T&>(value).serialize(self());
 			return self();
 		}
 
 		//There is an external serilization function which knows how to save T to the Archive
 		template <typename T> inline
-		std::enable_if_t<traits::use_func_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
+		std::enable_if_t<traits::use_func_serialize_save_v<T, ArchiveType>, ArchiveType&> dowork(const T& value) //Serialize can not be const!
 		{
-			serialize(value, self());
+			serialize(const_cast<T&>(value), self());
 			return self();
 		}
 
@@ -142,7 +142,7 @@ namespace Archives
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(OutputArchive)
 		// Serializes all passed in data (only interface)
 		template <typename ... Types>
-		inline ArchiveType& operator()(Types && ... args)
+		inline ArchiveType& operator()(Types&& ... args)
 		{
 			self().worksplitter(std::forward<Types>(args)...);
 			return self();

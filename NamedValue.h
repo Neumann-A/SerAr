@@ -39,7 +39,7 @@ namespace Archives
 												typename std::conditional<std::is_lvalue_reference<T>::value,
 																		T,	typename std::decay<T>::type>::type>::type;
 	private:
-		const char * const valname;
+		const std::string valname;
 		const T val;
 
 		//Disallow assignment of NamedValue; 
@@ -63,22 +63,22 @@ namespace Archives
 		/// <param name="name"> 	The name of the value. </param>
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
-		inline constexpr explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
+		//inline explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
+		inline explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(std::forward<T>(value)) {};
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
 		///
 		/// <returns>	The Value </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline constexpr Type getValue() const noexcept { return val; };
+		inline Type getValue() const noexcept { return val; };
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the name. </summary>
 		///
 		/// <returns>	The name of the value. </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline constexpr const char * getName() const noexcept { return valname; };
-
+		inline std::string getName() const noexcept { return valname; };
 	};
 
 	///-------------------------------------------------------------------------------------------------
@@ -90,11 +90,11 @@ namespace Archives
 	///
 	/// <returns>	The new named value. </returns>
 	///-------------------------------------------------------------------------------------------------
-	template<typename T>
-	inline constexpr NamedValue<T> createNamedValue(const char * const name, T&& value) noexcept
-	{
-		return NamedValue<T>{name, std::forward<T>(value)};
-	}
+	//template<typename T>
+	//inline NamedValue<T> createNamedValue(const char * name, T&& value) noexcept
+	//{
+	//	return NamedValue<T>{name, std::forward<T>(value)};
+	//}
 
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	Creates named value. </summary>
@@ -108,8 +108,14 @@ namespace Archives
 	template<typename T>
 	inline NamedValue<T> createNamedValue(const std::string& name, T&& value)
 	{
-		return NamedValue<T>{name.c_str(), std::forward<T>(value)};
+		return NamedValue<T>{name, std::forward<T>(value)};
 	}
+
+	//template<typename T>
+	//inline NamedValue<T> createNamedValue(std::string&& name, T&& value)
+	//{
+	//	return NamedValue<T>{std::move(name), std::forward<T>(value)};
+	//}
 
 };
 
