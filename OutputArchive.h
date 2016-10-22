@@ -15,8 +15,21 @@ namespace Archives
 	//template <class Archive, class T> 
 	//inline void epilogue(const T& , Archive&)
 	//{ }
+	
+	//TODO:: Define general Options!
+	template <typename OptionClass, typename Archive>
+	class OutputArchive_Options
+	{
+	public:
+		using ArchiveType = Archive;
+		using ArchiveOptions = OptionClass;
 
-
+		inline ArchiveOptions& self() noexcept
+		{
+			return *static_cast<ArchiveOptions * const>(this);
+		}
+	};
+	
 	class IOutputArchive
 	{
 	protected:
@@ -32,6 +45,12 @@ namespace Archives
 	{
 	public:
 		using ArchiveType = Archive;
+		
+		//const OutputArchive_Options& getArchiveOptions()
+		//{
+		//	return mOptions;
+		//}
+
 	private:
 		inline ArchiveType& self() noexcept
 		{

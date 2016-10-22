@@ -21,10 +21,10 @@
 
 #include <Eigen\Core>
 
-#include "std_extensions.h"
+#include "..\Basic_Library\Headers\std_extensions.h"
 
-#include "BasicMacros.h"
-#include "BasicIncludes.h"
+#include "..\Basic_Library\Headers\BasicMacros.h"
+#include "..\Basic_Library\Headers\BasicIncludes.h"
 
 #include "ArchiveHelper.h"
 #include "NamedValue.h"
@@ -184,7 +184,7 @@ namespace Archives
 	{
 		friend class OutputArchive<MatlabOutputArchive>;
 	public:
-		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) 
+		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) 
 			: OutputArchive(this), m_filepath(fpath), m_options(options), m_MatlabFile(getMatlabFile(fpath, options)) {};
 		~MatlabOutputArchive() 
 		{ 
@@ -204,13 +204,11 @@ namespace Archives
 			this->operator()(value.getValue());
 		};
 
-
-
 		template<typename T>
 		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> save(const T& value)
 		{
-			if (nextFieldname.empty()) //We need to create a fieldname 
-				nextFieldname = typeid(T).name();
+			//if (nextFieldname.empty()) //We need to create a fieldname 
+			//	nextFieldname = typeid(T).name();
 
 			auto& arrdata = createMATLABArray<std::decay_t<T>>(value);
 			
@@ -219,6 +217,42 @@ namespace Archives
 			finishMATLABArray();
 		}
 
+
+	private:
+		const std::experimental::filesystem::path m_filepath;
+		MatlabOptions m_options;
+		MATFile &m_MatlabFile;
+		
+		using Field = std::tuple<std::string, mxArray*>;
+		std::stack<Field> Fields;
+	
+		std::string nextFieldname;
+
+		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
+		{	
+			assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
+
+			if(!fpath.has_filename())
+				throw std::runtime_error{ std::string{"Could not open file due to missing filename: "} + fpath.string() };
+
+			MATFile *pMAT = matOpen( fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
+
+			if (pMAT == nullptr)
+				throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
+
+			return *pMAT;
+		};
+		
+		template<typename T>
+		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
+		{
+			startMATLABArray(value);
+		};
+		template<typename T>
+		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > epilogue(const T&)
+		{
+			finishMATLABArray();
+		};
 
 		inline void setNextFieldname(std::string str) noexcept
 		{
@@ -234,16 +268,31 @@ namespace Archives
 			if (pStruct == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			if (nextFieldname.empty()) //We need to create a fieldname 
+			if (nextFieldname.empty()) //We may to create a fieldname 
 			{
-				nextFieldname = typeid(T).name();
+				if (!Fields.empty()) //We have to create a new fieldname 
+				{
+					nextFieldname = typeid(T).name();
+					Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+				}
+				else
+				{
+					mxDestroyArray(pStruct);
+				}
+			}
+			else
+			{
+				Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
 			}
 
-			Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+
 		};
 
 		void finishMATLABArray()
 		{
+			if (Fields.empty())
+				return;
+
 			assert(!Fields.empty());// , "Trying to pop more mxArrays from the stack than had been pushed"); //Programming error!
 
 			auto TopField = Fields.top(); //Thats the field we have to add!
@@ -288,42 +337,6 @@ namespace Archives
 				}
 			}
 		}
-
-	private:
-		const std::experimental::filesystem::path m_filepath;
-		MatlabOptions m_options;
-		MATFile &m_MatlabFile;
-		
-		using Field = std::tuple<std::string, mxArray*>;
-		std::stack<Field> Fields;
-	
-		std::string nextFieldname;
-
-		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) const 
-		{	
-			assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
-
-			if(!fpath.has_filename())
-				throw std::runtime_error{ std::string{"Could not open file due to missing filename: "} + fpath.string() };
-
-			MATFile *pMAT = matOpen( fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
-
-			if (pMAT == nullptr)
-				throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
-
-			return *pMAT;
-		};
-		
-		template<typename T>
-		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
-		{
-			startMATLABArray(value);
-		};
-		template<typename T>
-		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > epilogue(const T&)
-		{
-			finishMATLABArray();
-		};
 
 
 		template<typename T>
@@ -378,7 +391,7 @@ namespace Archives
 
 			DataType * dataposition = mxGetPr(valarray);
 			/* Inserting Data into Array */
-			Eigen::Map<T>(dataposition, Values.rows(), Values.cols()) = value;
+			Eigen::Map<T>(dataposition, value.rows(), value.cols()) = value;
 			return *valarray;
 		}
 #endif
@@ -389,7 +402,7 @@ namespace Archives
 	class MatlabInputArchive : public InputArchive<MatlabInputArchive>
 	{
 	public:
-		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) 
+		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
 			: InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
 		~MatlabInputArchive() { matClose(&m_MatlabFile); };
 	private:

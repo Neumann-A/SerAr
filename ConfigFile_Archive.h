@@ -948,6 +948,10 @@ namespace Archives
 		};
 	};
 
+	class ConfigFile_Options
+	{
+
+	};
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	Configuration file output archive. </summary>
 	///
@@ -957,6 +961,8 @@ namespace Archives
 	class ConfigFile_OutputArchive : public OutputArchive<ConfigFile_OutputArchive> 
 	{
 	public:
+		
+
 		ConfigFile_OutputArchive(std::ostream& stream);
 		ConfigFile_OutputArchive(const std::experimental::filesystem::path &path);
 		~ConfigFile_OutputArchive();
@@ -1021,6 +1027,16 @@ namespace Archives
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
 		auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
+
+		template<typename T>
+		std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::Type>::value, ConfigFile::Storage::keyvalues> list(const Archives::NamedValue<T>& value)
+		{
+			ConfigLogic.setCurrKey(value.getName());
+			const auto tmp {list(value.getValue())};
+			ConfigLogic.resetCurrKey();
+			return tmp;
+		};
+
 		auto list(std::string value) -> typename ConfigFile::Storage::keyvalues;
 		auto list() -> typename ConfigFile::Storage::sections;
 
