@@ -1,3 +1,16 @@
+///---------------------------------------------------------------------------------------------------
+// file:		ArchiveHelper.h
+//
+// summary: 	Declares the archive helper class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander Neumann
+// date: 07.01.2017
+
+#ifndef INC_ArchiveHelper_H
+#define INC_ArchiveHelper_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
 #include <type_traits>
@@ -223,3 +236,7 @@ namespace Archives
 
 	}
 }
+
+#endif	// INC_ArchiveHelper_H
+// end of ArchiveHelper.h
+///---------------------------------------------------------------------------------------------------

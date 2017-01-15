@@ -301,6 +301,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArchiveHelper.h" />
+    <ClInclude Include="ArchiveVisitor.h" />
+    <ClInclude Include="BaseArchiveType.h" />
     <ClInclude Include="BinaryArchiveWrapper.h" />
     <ClInclude Include="CerealAdapter.h" />
     <ClInclude Include="ConfigFile_Archive.h" />
@@ -308,6 +310,7 @@
     <ClInclude Include="LoadConstructor.h" />
     <ClInclude Include="Matlab_Archive.h" />
     <ClInclude Include="PortableBinaryArchiveWrapper.h" />
+    <ClInclude Include="Serializeable.h" />
     <ClInclude Include="TestIOArchive.h" />
     <ClInclude Include="InputArchive.h" />
     <ClInclude Include="NamedValue.h" />

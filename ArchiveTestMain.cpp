@@ -46,13 +46,23 @@ public:
 };
 
 
-class NoArchiveClass
-{
-private:
-	double d;
-	int i;
-};
+//class NoArchiveClass
+//{
+//private:
+//	double d;
+//	int i;
+//};
+//
+//class IArchive
+//{
+//	virtual IArchive& serialize(ISerializeable&) = 0;
+//};
 
+//template<typename Archive>
+//class ArchiveHolder : public IArchive
+//{
+//
+//};
 
 int main(int, char**)
 {

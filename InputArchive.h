@@ -1,3 +1,16 @@
+///---------------------------------------------------------------------------------------------------
+// file:		InputArchive.h
+//
+// summary: 	Declares the input archive class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander Neumann
+// date: 07.01.2017
+
+#ifndef INC_InputArchive_H
+#define INC_InputArchive_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
 #pragma warning(push)
@@ -10,6 +23,8 @@
 
 namespace Archives
 {
+	class ISerializeable; //Forward declaration
+
 	class IInputArchive
 	{
 	protected:
@@ -18,6 +33,7 @@ namespace Archives
 		DISALLOW_COPY_AND_ASSIGN(IInputArchive)
 	public:
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(IInputArchive)
+		virtual IInputArchive& unstore(ISerializeable&) = delete;
 	};
 
 	template<typename Archive>
@@ -146,3 +162,7 @@ namespace Archives
 }
 
 #pragma warning(pop)
+
+#endif	// INC_InputArchive_H
+// end of InputArchive.h
+///---------------------------------------------------------------------------------------------------

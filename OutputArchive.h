@@ -1,13 +1,28 @@
+///---------------------------------------------------------------------------------------------------
+// file:		OutputArchive.h
+//
+// summary: 	Declares the output archive class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander Neumann
+// date: 07.01.2017
+
+#ifndef INC_OutputArchive_H
+#define INC_OutputArchive_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 #pragma warning(push)
 
-//#pragma warning( disable : 4814) // in c++14 does constexpr not implicit const 
+//#pragma warning( disable : 4814) // in c++14 constexpr is not implicit const 
 
 #include "..\Basic_Library\Headers\BasicMacros.h"
 #include "ArchiveHelper.h"
 
 namespace Archives
 {
+	class ISerializeable; //Forward declaration
+
 	//template <class Archive, class T> 
 	//inline void prologue(const T&, Archive&)
 	//{ }
@@ -38,6 +53,7 @@ namespace Archives
 		DISALLOW_COPY_AND_ASSIGN(IOutputArchive)
 	public:
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(IOutputArchive)
+		virtual IOutputArchive& store(ISerializeable&) = delete;
 	};
 
 	template <typename Archive>
@@ -170,3 +186,7 @@ namespace Archives
 }
 
 #pragma warning(pop)
+
+#endif	// INC_OutputArchive_H
+// end of OutputArchive.h
+///---------------------------------------------------------------------------------------------------

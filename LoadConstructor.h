@@ -13,6 +13,7 @@
 ///---------------------------------------------------------------------------------------------------
 #pragma once
 
+#include "InputArchive.h"
 
 #include "NamedValue.h"
 
@@ -28,6 +29,7 @@ namespace Archives
 	template<typename ToConstruct>
 	class LoadConstructor
 	{
+	public:
 		using type = ToConstruct;
 
 		static_assert(std::is_constructible<type, void>::value, "Type is not constructable without arguments. Archives need specialization of LoadConstructor ");

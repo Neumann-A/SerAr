@@ -16,6 +16,12 @@
     <Filter Include="Headerdateien\Cereal Wrappers">
       <UniqueIdentifier>{83e5d47d-1d7f-4b5a-bb38-6b4c2a5fa186}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headerdateien\Base Archive">
+      <UniqueIdentifier>{9d7c7c8a-b870-490c-a4ac-1087bb8cf1a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Archives">
+      <UniqueIdentifier>{48616f1a-4e7b-4f2b-8edc-02853f65ecd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiveTestMain.cpp">
@@ -26,24 +32,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="InputArchive.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="OutputArchive.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedValue.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="TestIOArchive.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigFile_Archive.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiveHelper.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="XMLArchiveWrapper.h">
       <Filter>Headerdateien\Cereal Wrappers</Filter>
     </ClInclude>
@@ -59,11 +47,38 @@
     <ClInclude Include="CerealAdapter.h">
       <Filter>Headerdateien\Cereal Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="Matlab_Archive.h">
-      <Filter>Headerdateien</Filter>
+    <ClInclude Include="InputArchive.h">
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiveHelper.h">
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseArchiveType.h">
+      <Filter>Headerdateien\Base Archive</Filter>
     </ClInclude>
     <ClInclude Include="LoadConstructor.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedValue.h">
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputArchive.h">
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="Serializeable.h">
+      <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigFile_Archive.h">
+      <Filter>Headerdateien\Archives</Filter>
+    </ClInclude>
+    <ClInclude Include="Matlab_Archive.h">
+      <Filter>Headerdateien\Archives</Filter>
+    </ClInclude>
+    <ClInclude Include="TestIOArchive.h">
+      <Filter>Headerdateien\Archives</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiveVisitor.h">
+      <Filter>Headerdateien\Base Archive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
