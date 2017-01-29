@@ -133,51 +133,59 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB|Win32'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|Win32'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
     <EnableCppCoreCheck>false</EnableCppCoreCheck>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\Eigen;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\include;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\boost_159;$(SolutionDir)Basic_Library\Headers;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
     <EnableCppCoreCheck>false</EnableCppCoreCheck>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -228,6 +236,9 @@
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
     </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

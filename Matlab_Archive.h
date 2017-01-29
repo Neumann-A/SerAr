@@ -19,12 +19,12 @@
 
 #include <cassert>
 
-#include <Eigen\Core>
+#include <Eigen/Core>
 
-#include "..\Basic_Library\Headers\std_extensions.h"
+#include "../Basic_Library/Headers/std_extensions.h"
 
-#include "..\Basic_Library\Headers\BasicMacros.h"
-#include "..\Basic_Library\Headers\BasicIncludes.h"
+#include "../Basic_Library/Headers/BasicMacros.h"
+#include "../Basic_Library/Headers/BasicIncludes.h"
 
 //#include "ArchiveHelper.h"
 #include "NamedValue.h"

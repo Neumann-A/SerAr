@@ -13,7 +13,7 @@
 
 #include <exception>
 
-#include <Eigen\Core>
+#include <Eigen/Core>
 
 #include "..\Basic_Library\Headers\std_extensions.h"
 

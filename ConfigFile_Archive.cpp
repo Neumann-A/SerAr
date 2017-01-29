@@ -5,7 +5,7 @@
 #include <ostream>
 #include <fstream>
 
-#include<cereal\cereal.hpp>
+//#include<cereal\cereal.hpp>
 
 using namespace Archives;
 ///-------------------------------------------------------------------------------------------------
