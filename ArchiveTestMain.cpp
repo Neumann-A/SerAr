@@ -5,6 +5,8 @@
 #include <vector>
 #include <stdio.h>
 
+#include <Eigen/Core>
+#include <Eigen/StdVector>
 
 #include "NamedValue.h"
 #include "ConfigFile_Archive.h"
@@ -74,13 +76,17 @@ int main(int, char**)
 	using namespace Archives;
 	//typedef ConfigFile_OutputArchive ArchiveType;
 	//typedef MatlabOutputArchive ArchiveType;
-	typedef ConfigFile_OutputArchive ArchiveType;
+	typedef MatlabOutputArchive ArchiveType;
 	//typedef ConfigFile_InputArchive InArchiveType;
 	{
-		ArchiveType CFG{ std::cout/*, Archives::MatlabOptions::write_v73*/ };
+		ArchiveType CFG{ mypath, Archives::MatlabOptions::write_v73 };
 		ConfigTestClass CFGTEST{};
+
+		std::vector<Eigen::Matrix3d> VecList{ Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero(), Eigen::Matrix3d::Ones() };
+		CFG(Eigen::Matrix3d::Ones().eval());
+		CFG(VecList);
 		//NoArchiveClass NoAr{};
-		ConfigFile::toString::to_string(vector);
+		//ConfigFile::toString::to_string(vector);
 
 		//using TestClass = std::vector<double>;//std::complex<double>;
 		//static_assert(Archives::traits::use_archive_member_save_v<TestClass, ArchiveType>, "Archive cannot save the Type");
@@ -98,20 +104,20 @@ int main(int, char**)
 		//static_assert(Archives::traits::no_type_save_v<TestClass, ArchiveType>, "Type has some save function");
 		//static_assert(!Archives::traits::not_any_save_v<TestClass, ArchiveType>, "Nobody has a clue");
 
-		std::cout << "Archive Test Begin" << std::endl;
-		CFG(Archives::createNamedValue("FirstSection", CFGTEST));
-		CFG(Archives::createNamedValue("VectorSec",Archives::createNamedValue("SecondSection", vector)));
+		//std::cout << "Archive Test Begin" << std::endl;
+		//CFG(Archives::createNamedValue("FirstSection", CFGTEST));
+		//CFG(Archives::createNamedValue("VectorSec",Archives::createNamedValue("SecondSection", vector)));
 
-		static_assert(stdext::is_container<decltype(vector)>::value, "test");
+		//static_assert(stdext::is_container<decltype(vector)>::value, "test");
 
-		std::pair<double, double> Pairtest{ 0.215,0.31 };
+		//std::pair<double, double> Pairtest{ 0.215,0.31 };
 
-		using TestType = decltype(Archives::createNamedValue("FirstSection", CFGTEST));
+		//using TestType = decltype(Archives::createNamedValue("FirstSection", CFGTEST));
 	}
 
-	std::string s1{ "test" };
-	std::string s2{ std::move(s1) };
-	std::cout << "string s1 is empty? " << s1.empty() << std::endl;
+	//std::string s1{ "test" };
+	//std::string s2{ std::move(s1) };
+	//std::cout << "string s1 is empty? " << s1.empty() << std::endl;
 	////ArchiveType is ConfigFile_Out
 	////TestType should be NamedValue<ConfigTestClass &>
 	//static_assert(Archives::traits::use_archive_member_save_v<TestType, ArchiveType>, "No Archive Save");

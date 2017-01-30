@@ -381,7 +381,7 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
 		template<typename T>
-		std::enable_if_t<std::is_base_of<Eigen::EigenBase<T>, T>::value, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
+		std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>>::value, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
 		{
 			using DataType = typename T::Scalar;
 
