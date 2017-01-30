@@ -361,7 +361,7 @@ namespace Archives
 		}
 		
 		template<typename T>
-		std::enable_if_t<std::conjunction<stdext::is_container<T>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
+		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
 			std::negation<std::is_same<T, std::basic_string<typename T::value_type>>>>::value, mxArray&> createMATLABArray(const T& value) const
 		{
 			using DataType = std::decay_t<typename T::value_type>;
@@ -380,6 +380,8 @@ namespace Archives
 		}
 
 #ifdef EIGEN_CORE_H
+
+		//TODO Vector version!
 		template<typename T>
 		std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>>::value, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
 		{

@@ -83,8 +83,10 @@ int main(int, char**)
 		ConfigTestClass CFGTEST{};
 
 		std::vector<Eigen::Matrix3d> VecList{ Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero(), Eigen::Matrix3d::Ones() };
-		CFG(Eigen::Matrix3d::Ones().eval());
+		//CFG(Eigen::Matrix3d::Ones().eval());
 		CFG(VecList);
+		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)>::value,"Container not there");
+		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)::value_type>::value, "Matrix not ok");
 		//NoArchiveClass NoAr{};
 		//ConfigFile::toString::to_string(vector);
 
