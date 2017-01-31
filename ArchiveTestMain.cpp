@@ -82,11 +82,38 @@ int main(int, char**)
 		ArchiveType CFG{ mypath, Archives::MatlabOptions::write_v73 };
 		ConfigTestClass CFGTEST{};
 
-		std::vector<Eigen::Matrix3d> VecList{ Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero(), Eigen::Matrix3d::Ones() };
+		std::vector<Eigen::Vector3d> VecList;
+		std::vector<Eigen::Matrix<double, 3, 2>>MatList;
+		std::vector<Eigen::Matrix<double, 3, 2, Eigen::ColMajor>>MatList2;
+
+		Eigen::Matrix<double, 3, 2> m1, m2, m3;
+		
+		Eigen::Vector3d v1{ 1, 2 , 3};
+
+		m1 << 1, 1, 1, 2, 2, 2;
+		m2 << 11, 12, 13, 21, 22, 23;
+		m3 << 1, 2, 3, 4, 5, 6;
+
+		MatList.push_back(m1);
+		MatList.push_back(m2);
+		MatList.push_back(m3);
+		VecList.push_back(v1);
+		VecList.push_back(1.2*v1);
+		VecList.push_back(11*v1);
+		VecList.push_back(2*v1);
+		MatList2.push_back(m1);
+		MatList2.push_back(m2);
+		MatList2.push_back(m3);
+		//std::cout << typeid(Eigen::Vector3d::StorageKind).name() << std::endl;
+		//std::cout << typeid(Eigen::Vector3d).name() << std::endl;
+		//std::cout << typeid(m1.transpose().eval()).name() << std::endl;
 		//CFG(Eigen::Matrix3d::Ones().eval());
-		CFG(VecList);
-		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)>::value,"Container not there");
-		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)::value_type>::value, "Matrix not ok");
+		CFG(createNamedValue("Double",1.02f));
+		CFG(createNamedValue("VectorList",VecList));
+		CFG(createNamedValue("MatList", MatList));
+		CFG(createNamedValue("MatList2", MatList2));
+		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)>::value,"Container not there");
+		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)::value_type>::value, "Matrix not ok");
 		//NoArchiveClass NoAr{};
 		//ConfigFile::toString::to_string(vector);
 
@@ -115,7 +142,7 @@ int main(int, char**)
 		//std::pair<double, double> Pairtest{ 0.215,0.31 };
 
 		//using TestType = decltype(Archives::createNamedValue("FirstSection", CFGTEST));
-	}
+	};
 
 	//std::string s1{ "test" };
 	//std::string s2{ std::move(s1) };

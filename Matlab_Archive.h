@@ -199,7 +199,7 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			//TODO check Name for a stupid . these are not allowed in Matlab structs!
+			//TODO: Check Name for a stupid . these are not allowed in Matlab structs!
 			setNextFieldname(value.getName());
 			this->operator()(value.getValue());
 		};
@@ -207,6 +207,7 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> save(const T& value)
 		{
+			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
 			//if (nextFieldname.empty()) //We need to create a fieldname 
 			//	nextFieldname = typeid(T).name();
 
@@ -380,24 +381,113 @@ namespace Archives
 		}
 
 #ifdef EIGEN_CORE_H
+		template<typename T>
+		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, 
+										  std::is_base_of<Eigen::EigenBase<std::decay_t<typename T::value_type>>,
+														  std::decay_t<typename T::value_type>>>::value, mxArray&>
+			createMATLABArray(const T& value) const
+		{
+			using EigenMatrix = typename std::decay_t<T>::value_type;
+			using DataType = typename EigenMatrix::Scalar;
+			const auto& first = value.begin();
+			const mwSize rows = first->rows();
+			const mwSize cols = first->cols();
 
-		//TODO Vector version!
+			constexpr mwSize ndim = 3;
+
+
+			const auto& f = [](const auto& dim1,const auto& dim2, const auto& dim3)->std::array<mwSize, 3> {
+				mwSize a, b, c;
+
+				// Case necessary since we can use the fact that MATLAB drops singleton dims
+				if (dim1 <= 1) //Col Vector Case
+				{
+					a = dim2;
+					b = dim3;
+					c = dim1;
+				}
+				else
+				{
+					if (dim2 <= 1) //Row Vector Case
+					{
+						a = dim1;
+						b = dim3;
+						c = dim2;
+					}
+					else // Matrix case
+					{
+						a = dim1;
+						b = dim2;
+						c = dim3;
+					}
+				}
+				return{ a,b,c };
+			};
+
+			std::array<mwSize,ndim> dims = f(rows,cols,value.size());
+
+			
+			mxArray *valarray = mxCreateNumericArray(ndim, dims.data(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
+						
+			if (valarray == nullptr)
+				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+
+			DataType * dataposition = mxGetPr(valarray);
+		
+			if (dataposition == nullptr)
+				throw std::runtime_error{ "Unable get data pointer!" };
+
+			//Be aware: of strange storage order!
+			for (const auto& tmp : value)
+			{
+
+				if (!EigenMatrix::IsRowMajor)
+				{
+					Eigen::Map< EigenMatrix, Eigen::Unaligned, Eigen::Stride<1, EigenMatrix::ColsAtCompileTime> >(dataposition, tmp.rows(), tmp.cols()) = tmp;
+				}
+				else
+				{
+					Eigen::Map< EigenMatrix, Eigen::Unaligned>(dataposition, tmp.rows(), tmp.cols()) = tmp;
+				}
+				if (EigenMatrix::IsVectorAtCompileTime)
+				{
+					dataposition += rows > cols ? rows : cols;
+				}
+				else
+				{
+					dataposition += rows + cols + 1;
+				}
+				
+			}
+			dataposition = nullptr;
+																																									
+			return *valarray;
+		}
+
 		template<typename T>
 		std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>>::value, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
 		{
 			using DataType = typename T::Scalar;
 
+			//Be Aware: Matlab stores the matrix in column-major order, Eigen in row major!
 			mxArray *valarray = mxCreateNumericMatrix(value.rows(), value.cols(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
 			DataType * dataposition = mxGetPr(valarray);
 			/* Inserting Data into Array */
-			Eigen::Map<T>(dataposition, value.rows(), value.cols()) = value;
+			if (!EigenMatrix::IsRowMajor && !EigenMatrix::IsVectorAtCompileTime)
+			{
+				Eigen::Map< EigenMatrix, Eigen::Unaligned, Eigen::Stride<1, EigenMatrix::ColsAtCompileTime> >(dataposition, tmp.rows(), tmp.cols()) = tmp;
+			}
+			else
+			{
+				Eigen::Map< EigenMatrix, Eigen::Unaligned>(dataposition, tmp.rows(), tmp.cols()) = tmp;
+			}
 			return *valarray;
 		}
 #endif
-
+		//TODO: tuple version
 	};
 
 
