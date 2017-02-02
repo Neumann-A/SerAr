@@ -432,7 +432,7 @@ namespace Archives
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			DataType * dataposition = mxGetPr(valarray);
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
 		
 			if (dataposition == nullptr)
 				throw std::runtime_error{ "Unable get data pointer!" };
@@ -459,7 +459,6 @@ namespace Archives
 				}
 				
 			}
-			dataposition = nullptr;
 																																									
 			return *valarray;
 		}
@@ -474,15 +473,15 @@ namespace Archives
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			DataType * dataposition = mxGetPr(valarray);
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
 			/* Inserting Data into Array */
-			if (!EigenMatrix::IsRowMajor && !EigenMatrix::IsVectorAtCompileTime)
+			if (!T::IsRowMajor && !T::IsVectorAtCompileTime)
 			{
-				Eigen::Map< EigenMatrix, Eigen::Unaligned, Eigen::Stride<1, EigenMatrix::ColsAtCompileTime> >(dataposition, tmp.rows(), tmp.cols()) = tmp;
+				Eigen::Map< T, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(dataposition, value.rows(), value.cols()) = value;
 			}
 			else
 			{
-				Eigen::Map< EigenMatrix, Eigen::Unaligned>(dataposition, tmp.rows(), tmp.cols()) = tmp;
+				Eigen::Map< T, Eigen::Unaligned>(dataposition, value.rows(), value.cols()) = value;
 			}
 			return *valarray;
 		}

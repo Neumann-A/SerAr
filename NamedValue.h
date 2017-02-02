@@ -15,6 +15,7 @@
 
 #include <type_traits>
 #include <string>
+#include <vector>
 
 namespace Archives
 {
@@ -37,10 +38,10 @@ namespace Archives
 		using Type = typename std::conditional<std::is_array<typename std::remove_reference<T>::type>::value,
 												typename std::remove_cv<T>::type,
 												typename std::conditional<std::is_lvalue_reference<T>::value,
-																		T,	typename std::decay<T>::type>::type>::type;
+																		T&,	typename std::decay<T>::type>::type>::type;
 	private:
 		const std::string valname;
-		const T val;
+		const Type val;
 
 		//Disallow assignment of NamedValue; 
 		//could run in problems with r value typed NamedValue
@@ -64,7 +65,7 @@ namespace Archives
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
 		//inline explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
-		inline explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(std::forward<T>(value)) {};
+		inline explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(value) {};
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
@@ -78,7 +79,7 @@ namespace Archives
 		///
 		/// <returns>	The name of the value. </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline std::string getName() const noexcept { return valname; };
+		inline const std::string& getName() const noexcept { return valname; };
 	};
 
 	///-------------------------------------------------------------------------------------------------
@@ -108,7 +109,7 @@ namespace Archives
 	template<typename T>
 	inline NamedValue<T> createNamedValue(const std::string& name, T&& value)
 	{
-		return NamedValue<T>{name, std::forward<T>(value)};
+		return NamedValue<T>{name, std::forward<T&&>(value)};
 	}
 
 	//template<typename T>
