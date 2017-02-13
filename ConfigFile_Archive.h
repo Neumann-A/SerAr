@@ -506,7 +506,7 @@ namespace Archives
 					std::size_t commapos{ findNextCommaSeperator(str) };
 					while (commapos != str.npos)
 					{
-						std::string tmpstr{ str.substr(0, commapos - 1) };
+						std::string tmpstr{ str.substr(0, commapos) };
 						resvec.push_back(from_string_selector<typename T::value_type>(tmpstr));
 						str.erase(0, commapos+ SpecialCharacters::seperator.size());
 						commapos = findNextCommaSeperator(str);
@@ -960,9 +960,8 @@ namespace Archives
 	///-------------------------------------------------------------------------------------------------
 	class ConfigFile_OutputArchive : public OutputArchive<ConfigFile_OutputArchive> 
 	{
+		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 	public:
-		
-
 		ConfigFile_OutputArchive(std::ostream& stream);
 		ConfigFile_OutputArchive(const std::experimental::filesystem::path &path);
 		~ConfigFile_OutputArchive();
@@ -1063,7 +1062,7 @@ namespace Archives
 			//	currentsection = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
 			//}
 
-			using type = typename std::decay_t<T>;
+			//using type = typename std::decay_t<T>;
 			try
 			{
 				try
@@ -1115,7 +1114,7 @@ namespace Archives
 		bool mStreamOwner{ false };
 		ConfigFile::Storage mStorage;
 
-		std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental::filesystem::path &path);
+		std::ifstream& createFileStream(const std::experimental::filesystem::path &path);
 
 		void parseStream();
 

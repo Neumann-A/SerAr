@@ -4,9 +4,11 @@
 #include <array>
 #include <vector>
 #include <stdio.h>
+#include <type_traits>
 
 #include <Eigen/Core>
 #include <Eigen/StdVector>
+
 
 #include "NamedValue.h"
 #include "ConfigFile_Archive.h"
@@ -109,9 +111,13 @@ int main(int, char**)
 		//std::cout << typeid(m1.transpose().eval()).name() << std::endl;
 		//CFG(Eigen::Matrix3d::Ones().eval());
 		CFG(createNamedValue("Double",1.02f));
-		CFG(createNamedValue("VectorList",VecList));
-		CFG(createNamedValue("MatList", MatList));
-		CFG(createNamedValue("MatList2", MatList2));
+		//CFG(createNamedValue("VectorList",VecList));
+		//CFG(createNamedValue("MatList", MatList));
+		//CFG(createNamedValue("MatList2", MatList2));
+		
+		//static_assert(std::is_same<traits::create_MATLAB_t<MatlabOutputArchive, double>, decltype( std::declval<MatlabOutputArchive>().createMATLABArray( std::declval<double>() ) >>, "Hello");
+		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double>::value, "Yes it is there");
+		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double&>::value, "Yes it is there2");
 		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)>::value,"Container not there");
 		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)::value_type>::value, "Matrix not ok");
 		//NoArchiveClass NoAr{};

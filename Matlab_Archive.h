@@ -45,11 +45,11 @@ namespace Archives
 	namespace traits
 	{
 		//Member Function type for converting values to strings
-		template<class T, typename ...Args>
-		using create_MATLAB_t = decltype(std::declval<T&>().createMATLABArray(std::declval<Args&>()...));
+		template<class Class, typename ...Args>
+		using create_MATLAB_t = decltype( std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...) );
 
 		template<typename MATClass, typename Type>
-		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&,create_MATLAB_t, MATClass, Type> {};
+		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&,create_MATLAB_t, MATClass, Type>{};
 		template<typename MATClass, typename Type>
 		constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
 	}
@@ -183,6 +183,10 @@ namespace Archives
 	class MatlabOutputArchive : public OutputArchive<MatlabOutputArchive>
 	{
 		friend class OutputArchive<MatlabOutputArchive>;
+		//template <typename,typename> friend class traits::has_create_MATLAB;
+		
+		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
+
 	public:
 		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) 
 			: OutputArchive(this), m_filepath(fpath), m_options(options), m_MatlabFile(getMatlabFile(fpath, options)) {};
@@ -421,12 +425,12 @@ namespace Archives
 						c = dim3;
 					}
 				}
-				return{ a,b,c };
+				return{ { a,b,c } };
 			};
 
 			std::array<mwSize,ndim> dims = f(rows,cols,value.size());
 
-			
+			//This command will double memory consumption since it has to allocate the memory!
 			mxArray *valarray = mxCreateNumericArray(ndim, dims.data(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
 						
 			if (valarray == nullptr)

@@ -286,6 +286,9 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::experimenta
 	}
 
 	std::ofstream& stream = *(new std::ofstream());
+
+	assert(&stream != nullptr);
+
 	stream.open(path.string().c_str(), std::fstream::trunc);
 	if (!stream.is_open())
 	{
@@ -294,8 +297,6 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::experimenta
 	}
 
 	mStreamOwner = true;
-
-	assert(&stream != nullptr);
 
 	return stream;
 }
@@ -338,7 +339,10 @@ std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental
 	if (!stream.is_open())
 	{
 		delete &stream; //Delete created Stream before we throw; If we throw destructor of the class will not be called!
-		throw std::runtime_error{ "Could not open File! Already in use?" };
+		std::string err{ "Unable to open: " };
+		err += path.string();
+		err += "(File already opened?)";
+		throw std::runtime_error{ err.c_str() };
 	}
 
 	mStreamOwner = true;
