@@ -998,10 +998,9 @@ namespace Archives
 		//TODO:: for unnamed values!
 		//template <typename T>
 		//std::size_t typecounter{ 0 };
-		std::ostream &mOutputstream;
-		
 		bool mStreamOwner{ false };
-		
+		std::ostream &mOutputstream;
+			
 		ConfigFile::Storage mStorage;
 
 		std::ofstream& createFileStream(const std::experimental::filesystem::path &path);
@@ -1110,12 +1109,13 @@ namespace Archives
 	private:
 		//std::string currentsection{}; // Cache for the current Section
 		//std::string currentkey{}; //Cache for current key
-
-		std::istream& mInputstream;
 		bool mStreamOwner{ false };
+		std::istream& mInputstream;
+		//const std::istream& mInputstream{};
 		ConfigFile::Storage mStorage;
 
 		std::ifstream& createFileStream(const std::experimental::filesystem::path &path);
+		void SkipBOM(std::ifstream &in);
 
 		void parseStream();
 
