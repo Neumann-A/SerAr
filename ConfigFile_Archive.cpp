@@ -109,6 +109,18 @@ void ConfigFile::FileParser::removeComment(std::string &line)
 	}
 }
 
+std::string ConfigFile::FileParser::trimWhitespaces(const std::string &str, const std::string& whitespace)
+{
+	const auto strBegin = str.find_first_not_of(whitespace);
+	if (strBegin == std::string::npos)
+		return ""; // no content
+
+	const auto strEnd = str.find_last_not_of(whitespace);
+	const auto strRange = strEnd - strBegin + 1;
+
+	return str.substr(strBegin, strRange);
+}
+
 bool ConfigFile::FileParser::onlyWhitespace(const std::string &line)
 {
 	return (std::regex_search(line, SpecialCharacters::whites_regex) || line.empty());
@@ -145,10 +157,13 @@ std::string ConfigFile::FileParser::extractSection(const std::smatch &match)
 	return std::string{ match.str(1) };
 }
 
-void ConfigFile::FileParser::parseLine(const std::string &line, size_t const lineNo,std::string &currentSection, ConfigFile::Storage &storage)
+void ConfigFile::FileParser::parseLine(const std::string &line, const size_t &lineNo,std::string &currentSection, ConfigFile::Storage &storage)
 {
 	// Comments and Whitespace lines are alread ignored / removed
-	// So we should only have either a valid section line or a valid keyvalue line
+	// So we should only have either a valid section line or a valid keyvalue line or an empty line
+	if (line.empty())
+		return;
+
 	std::smatch match;
 
 	if (validSectionLine(line, match))
@@ -164,57 +179,67 @@ void ConfigFile::FileParser::parseLine(const std::string &line, size_t const lin
 	}
 	else
 	{
-		throw std::runtime_error{ "Configuration Archive: Line Number: " + std::to_string(lineNo) + " is not valid. Line is: " + line + "\n" };
+		const std::string& sec{ currentSection };
+		std::stringstream str;
+		str << "Configuration Archive: Line Number: ";
+		str << std::to_string(lineNo);
+		str << " is not valid. Section:" << sec << "; Line is: " << line << std::endl;
+		std::cout << str.str();
+		throw std::runtime_error{ str.str() };
+		return;
 	}
 };
 
-void ConfigFile::FileParser::loadIntoStorage(std::istream& stream, ConfigFile::Storage &storage)
-{
-	//std::ifstream file;
-	//file.open(fName, std::ios::in);
-	//if (!file)
-	//{
-	//	exitWithError("CFG: File " + _fName.string() + " couldn't be found!\n");
-	//	return;
-	//}
-
-	std::string line;
-	std::string currentSection;
-
-	size_t lineNo = 0;
-	bool FirstRun = true;
-
-	while (std::getline(stream, line))
-	{
-		++lineNo;
-
-		std::string temp{ line };
-
-		if (temp.empty())
-			continue;
-
-		removeComment(temp);
-		if (onlyWhitespace(temp))
-			continue;
-
-		if (FirstRun)
-		{
-			std::smatch match;
-			if (validSectionLine(temp, match))
-				currentSection = extractSection(match);
-			else
-			{
-				std::runtime_error{ "Configuration archive parse error: First non comment\\whitespace line is not a section header!" };
-				break;
-			}
-			FirstRun = false;
-		}
-		else
-		{
-			parseLine(temp, lineNo, currentSection, storage);
-		}
-	}
-}
+//void ConfigFile::FileParser::loadIntoStorage(std::istream& stream, ConfigFile::Storage &storage)
+//{
+//	//std::ifstream file;
+//	//file.open(fName, std::ios::in);
+//	//if (!file)
+//	//{
+//	//	exitWithError("CFG: File " + _fName.string() + " couldn't be found!\n");
+//	//	return;
+//	//}
+//
+//	std::string line;
+//	std::string currentSection;
+//
+//	size_t lineNo = 0;
+//	bool FirstRun = true;
+//
+//	while (std::getline(stream, line))
+//	{
+//		++lineNo;
+//
+//		std::string temp{ line };
+//
+//		if (temp.empty())
+//			continue;
+//
+//		removeComment(temp);
+//		temp = trimWhitespaces(temp);
+//
+//		if (temp.empty())
+//			continue;
+//
+//		if (FirstRun)
+//		{
+//			std::smatch match;
+//			if (validSectionLine(temp, match))
+//				currentSection = extractSection(match);
+//			else
+//			{
+//				std::runtime_error{ "Configuration archive parse error: First non comment\\whitespace line is not a section header!" };
+//				break;
+//			}
+//			FirstRun = false;
+//		}
+//		else
+//		{
+//			std::cout << temp << std::endl;
+//			parseLine(temp, lineNo, currentSection, storage);
+//		}
+//	}
+//}
 
 ///-------------------------------------------------------------------------------------------------
 ///ConfigFile::Storage
@@ -369,11 +394,11 @@ void ConfigFile_InputArchive::parseStream()
 		++lineNo;
 
 		auto& temp{ line };
-
 		if (temp.empty()) 
 			continue; //Empty Line
 
 		ConfigFile::FileParser::removeComment(temp);
+		temp = ConfigFile::FileParser::trimWhitespaces(temp);
 		if (ConfigFile::FileParser::onlyWhitespace(temp) || temp.empty()) 
 			continue; //Only Whitespaces or Comments
 

@@ -865,6 +865,7 @@ namespace Archives
 		public:
 			// Removes commented Linies
 			static void removeComment(std::string &line);
+			static std::string trimWhitespaces(const std::string &str, const std::string& whitespace = " \t");
 
 			// Checks whether a line contains only whitespaces
 			static bool onlyWhitespace(const std::string &line);
@@ -885,10 +886,10 @@ namespace Archives
 
 			// lineNo = the current line number in the file.
 			// line = the current line, with comments removed.
-			static void parseLine(const std::string &line, size_t const lineNo, std::string &currentSection, Storage &storage);
+			static void parseLine(const std::string &line, size_t const &lineNo, std::string &currentSection, Storage &storage);
 
 			//loads contents from file
-			static void loadIntoStorage(std::istream& stream, Storage &storage);
+			/*static void loadIntoStorage(std::istream& stream, Storage &storage);*/
 		};
 
 		/// <summary>	Has the logic for the configuration file. </summary>
