@@ -298,7 +298,7 @@ ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 
 	if (mStreamOwner) 
 	{
-		dynamic_cast<std::fstream*>(&mOutputstream)->close();
+		dynamic_cast<std::ofstream*>(&mOutputstream)->close();
 		delete &mOutputstream; // We created the Stream object we also have to delete it!
 	}
 }
@@ -310,26 +310,27 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::experimenta
 		throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
 	}
 
-	std::ofstream& stream = *(new std::ofstream());
+	// TODO: rewrite to something which makes sense
+	//std::ofstream& stream = *(new std::ofstream());
+	std::unique_ptr<std::ofstream> pstr = std::make_unique<std::ofstream>();
+	
+	assert(pstr != nullptr);
 
-	assert(&stream != nullptr);
-
-	stream.open(path.string().c_str(), std::fstream::trunc);
-	if (!stream.is_open())
+	pstr->open(path.string().c_str(), std::fstream::trunc);
+	if (!pstr->is_open())
 	{
-		delete &stream; //Delete created Stream before we throw; If we throw destructor of the class will not be called!
 		throw std::runtime_error{ "Could not open File! Already in use?" };
 	}
 
 	mStreamOwner = true;
 
-	return stream;
+	return *(pstr.release());
 }
 
 ///-------------------------------------------------------------------------------------------------
 ///ConfigFile::Input Archive
 ///-------------------------------------------------------------------------------------------------
-ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream& stream) : InputArchive(this), mInputstream(stream)
+ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream)
 {
 	parseStream();
 };
@@ -347,10 +348,23 @@ ConfigFile_InputArchive::~ConfigFile_InputArchive()
 {
 	if (mStreamOwner)
 	{
-		dynamic_cast<std::fstream*>(&mInputstream)->close();
+		dynamic_cast<std::ifstream*>(&mInputstream)->close();
 		delete &mInputstream; // We created the Stream object we also have to delete it!
 	}
 };
+
+void ConfigFile_InputArchive::SkipBOM(std::ifstream &in)
+{
+	char test[3] = { 0 };
+	in.read(test, 3);
+	if ((unsigned char)test[0] == 0xEF &&
+		(unsigned char)test[1] == 0xBB &&
+		(unsigned char)test[2] == 0xBF)
+	{
+		return;
+	}
+	in.seekg(0);
+}
 
 std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental::filesystem::path &path)
 {
@@ -359,22 +373,26 @@ std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental
 		throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
 	}
 
-	std::ifstream& stream = *(new std::ifstream());
-	stream.open(path.string().c_str());
-	if (!stream.is_open())
+	std::unique_ptr<std::ifstream> pstr = std::make_unique<std::ifstream>();
+
+	assert(pstr != nullptr);
+
+	pstr->open(path.string().c_str());
+	if (!pstr->is_open())
 	{
-		delete &stream; //Delete created Stream before we throw; If we throw destructor of the class will not be called!
 		std::string err{ "Unable to open: " };
 		err += path.string();
 		err += "(File already opened?)";
 		throw std::runtime_error{ err.c_str() };
 	}
 
+	SkipBOM(*pstr);
+
 	mStreamOwner = true;
 
-	assert(&stream != nullptr);
+	
 
-	return stream;
+	return *(pstr.release());
 }
 
 void ConfigFile_InputArchive::parseStream()
@@ -398,7 +416,9 @@ void ConfigFile_InputArchive::parseStream()
 			continue; //Empty Line
 
 		ConfigFile::FileParser::removeComment(temp);
+		temp.shrink_to_fit();
 		temp = ConfigFile::FileParser::trimWhitespaces(temp);
+		temp.shrink_to_fit();
 		if (ConfigFile::FileParser::onlyWhitespace(temp) || temp.empty()) 
 			continue; //Only Whitespaces or Comments
 
