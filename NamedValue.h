@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 
+#include "../Basic_Library/Headers/BasicMacros.h"
+
 namespace Archives
 {
 	///-------------------------------------------------------------------------------------------------
@@ -32,16 +34,17 @@ namespace Archives
 	class NamedValue
 	{
 	public:
+		using type = T;
 		//If T is an Array: keep the type
 		//If T is a l value: store a reference (T&)
 		//If T is a r value: copy the value (T) (if used as intended this is an unlikly case but sometimes happens)
-		using Type = typename std::conditional<std::is_array<typename std::remove_reference<T>::type>::value,
+		using internal_type = typename std::conditional<std::is_array<typename std::remove_reference<T>::type>::value,
 												typename std::remove_cv<T>::type,
 												typename std::conditional<std::is_lvalue_reference<T>::value,
 																		T&,	typename std::decay<T>::type>::type>::type;
 	private:
 		const std::string valname;
-		const Type val;
+		const internal_type val;
 
 		//Disallow assignment of NamedValue; 
 		//could run in problems with r value typed NamedValue
@@ -56,7 +59,7 @@ namespace Archives
 		///
 		/// <returns>	The type name. </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline static const char & getTypeName() noexcept { return typeid(Type).name(); };
+		BASIC_ALWAYS_INLINE static const char & getTypeName() noexcept { return typeid(Type).name(); };
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Constructor for named value. </summary>
@@ -65,21 +68,21 @@ namespace Archives
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
 		//inline explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
-		inline explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(value) {};
+		BASIC_ALWAYS_INLINE explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(value) {};
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
 		///
 		/// <returns>	The Value </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline Type getValue() const noexcept { return val; };
+		BASIC_ALWAYS_INLINE internal_type getValue() const noexcept { return val; };
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the name. </summary>
 		///
 		/// <returns>	The name of the value. </returns>
 		///-------------------------------------------------------------------------------------------------
-		inline const std::string& getName() const noexcept { return valname; };
+		BASIC_ALWAYS_INLINE const std::string& getName() const noexcept { return valname; };
 	};
 
 	///-------------------------------------------------------------------------------------------------

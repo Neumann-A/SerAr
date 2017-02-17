@@ -22,13 +22,16 @@
     <Filter Include="Headerdateien\Archives">
       <UniqueIdentifier>{48616f1a-4e7b-4f2b-8edc-02853f65ecd2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\Archives">
+      <UniqueIdentifier>{7945b239-1b9e-4016-947a-25c75030073f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiveTestMain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="ConfigFile_Archive.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Quelldateien\Archives</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

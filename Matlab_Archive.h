@@ -185,13 +185,17 @@ namespace Archives
 		friend class OutputArchive<MatlabOutputArchive>;
 		//template <typename,typename> friend class traits::has_create_MATLAB;
 		
+		//needed so that the detector idom works with clang-cl (for some unknown reason!)
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 
 	public:
 		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) 
 			: OutputArchive(this), m_filepath(fpath), m_options(options), m_MatlabFile(getMatlabFile(fpath, options)) {};
+
 		~MatlabOutputArchive() 
 		{ 
+
+			//Cleanup
 			while (!Fields.empty())
 			{
 				mxDestroyArray(std::get<1>(Fields.top()));
@@ -200,20 +204,33 @@ namespace Archives
 			matClose(&m_MatlabFile);
 		};
 
+	
+		//Handle single named value
+		//template<typename T>
+		//inline std::enable_if_t<std::negation<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::type>::value> save(const Archives::NamedValue<T>& value)
+		//{
+		//	setNextFieldname(value.getName());
+		//	std::cout << "Normal Named Value! " << value.getName() << std::endl;
+		//	this->operator()(value.getValue());
+		//	clearNextFieldname();
+		//};
+		//std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value>
+		
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			//TODO: Check Name for a stupid . these are not allowed in Matlab structs!
 			setNextFieldname(value.getName());
 			this->operator()(value.getValue());
+			clearNextFieldname();
 		};
+
 
 		template<typename T>
 		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> save(const T& value)
 		{
 			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
-			//if (nextFieldname.empty()) //We need to create a fieldname 
-			//	nextFieldname = typeid(T).name();
+			if (nextFieldname.empty()) //We need to create a fieldname 
+				nextFieldname = typeid(T).name();
 
 			auto& arrdata = createMATLABArray<std::decay_t<T>>(value);
 			
@@ -251,6 +268,7 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
 		{
+			checkNextFieldname(value);
 			startMATLABArray(value);
 		};
 		template<typename T>
@@ -258,20 +276,52 @@ namespace Archives
 		{
 			finishMATLABArray();
 		};
-
-		inline void setNextFieldname(std::string str) noexcept
+		
+		//For nested NamedValue
+		template<typename T>
+		inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> prologue(const T& value)
 		{
-			nextFieldname = std::move(str);
+			setNextFieldname(value.getName());
+			startMATLABArray(value);
+			clearNextFieldname();
+		};
+		template<typename T>
+		inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> epilogue(const T&)
+		{
+			finishMATLABArray();
+		};
+
+
+		inline void setNextFieldname(const std::string &str) noexcept
+		{
+			nextFieldname = str;
+		}
+
+		inline void clearNextFieldname() noexcept
+		{
+			nextFieldname.clear();
+		}
+
+		template<typename T>
+		inline void checkNextFieldname(T&& val)
+		{
+			//TODO: Creat proper fieldname
+			if (nextFieldname.empty())
+			{
+
+			}
 		}
 
 		template<typename T>
 		inline std::enable_if_t<!traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T&)
 		{
-			mwSize ndims = 2;
-			mwSize dims[2]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want)
+			constexpr mwSize ndims = 2;
+			constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want)
 			mxArray *pStruct = mxCreateStructArray(ndims, dims, 0, nullptr);
 			if (pStruct == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+
+			//std::cout << "Creating Field:" << nextFieldname << std::endl;
 
 			if (nextFieldname.empty()) //We may to create a fieldname 
 			{
@@ -289,8 +339,6 @@ namespace Archives
 			{
 				Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
 			}
-
-
 		};
 
 		void finishMATLABArray()
@@ -298,9 +346,9 @@ namespace Archives
 			if (Fields.empty())
 				return;
 
-			assert(!Fields.empty());// , "Trying to pop more mxArrays from the stack than had been pushed"); //Programming error!
+			//assert(!Fields.empty());// , "Trying to pop more mxArrays from the stack than had been pushed"); //Programming error!
 
-			auto TopField = Fields.top(); //Thats the field we have to add!
+			auto TopField = Fields.top(); //Thats the field we have to add! (Child mxArray)
 			Fields.pop(); //Remove it
 
 			if (Fields.empty()) //at the bottom lvl; write array to mat
@@ -312,33 +360,36 @@ namespace Archives
 			}
 			else // we are recursive
 			{
-				auto& BottomField = Fields.top();
-				auto& arr = std::get<1>(BottomField);
+				auto& BottomField = Fields.top(); 
+				auto& arr = std::get<1>(BottomField); //Parent mxArray
 
 				if (mxIsStruct(arr))
 				{
-					int index = mxAddField(arr, std::get<0>(TopField).c_str());
+					auto index = mxAddField(arr, std::get<0>(TopField).c_str());
 
 					if (index == -1)
 						throw std::runtime_error{ "Could not add Field to MATLAB struct! (Out of Memory?)" };
 
-					mxSetFieldByNumber(arr, 0, index, std::get<1>(TopField));
+					mxSetFieldByNumber(arr, 0, index, std::get<1>(TopField)); // Add Child to parent
 
 					//no destruction of the TopField array here!
 				}
 				else if (mxIsCell(arr))
 				{
+					std::cout << "MATLAB case not handled. Debug me or add correct case" << std::endl;
 					//TODO: Implement mxArray insert for cell arrays;
 					assert(false);// , "Case (Cell) not handeled by Archive currently!");
 				}
 				else if (mxIsNumeric(arr))
 				{
+					std::cout << "MATLAB case not handled. Debug me or add correct case" << std::endl;
 					//TODO: Implement mxArray insert for numeric arrays;
 					assert(false);// , "Case (Numeric) not handeled by Archive currently!");
 				}
 				else
 				{
-					assert(false);// , "Case (Unknown) not handeled by Archive!");
+					std::cout << "Unknown MATLAB case. Debug me or add correct case" << std::endl;
+					assert(true);// , "Case (Unknown) not handeled by Archive!");
 				}
 			}
 		}

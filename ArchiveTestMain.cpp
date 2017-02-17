@@ -84,40 +84,50 @@ int main(int, char**)
 		ArchiveType CFG{ mypath, Archives::MatlabOptions::write_v73 };
 		ConfigTestClass CFGTEST{};
 
-		std::vector<Eigen::Vector3d> VecList;
-		std::vector<Eigen::Matrix<double, 3, 2>>MatList;
-		std::vector<Eigen::Matrix<double, 3, 2, Eigen::ColMajor>>MatList2;
+		auto ValueToArchive{ Archives::createNamedValue("Test",Archives::createNamedValue("InnerTest",0.3f)) };
 
-		Eigen::Matrix<double, 3, 2> m1, m2, m3;
+		using T = decltype(ValueToArchive);
+		using T2 = decltype(ValueToArchive)::type;
+
+		static_assert(std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value, "Not the type you expect");
+		//static_assert(std::negation<std::is_same<typename std::decay<T2>::type::type, Archives::NamedValue<typename std::decay<T2>::type::type::type>>>::value, "Not the type you expect");
 		
-		Eigen::Vector3d v1{ 1, 2 , 3};
+		CFG(ValueToArchive);
+		static_assert(std::is_same<std::true_type,std::negation<std::false_type>::type>::value, "Strange");
+		//std::vector<Eigen::Vector3d> VecList;
+		//std::vector<Eigen::Matrix<double, 3, 2>>MatList;
+		//std::vector<Eigen::Matrix<double, 3, 2, Eigen::ColMajor>>MatList2;
 
-		m1 << 1, 1, 1, 2, 2, 2;
-		m2 << 11, 12, 13, 21, 22, 23;
-		m3 << 1, 2, 3, 4, 5, 6;
+		//Eigen::Matrix<double, 3, 2> m1, m2, m3;
+		//
+		//Eigen::Vector3d v1{ 1, 2 , 3};
 
-		MatList.push_back(m1);
-		MatList.push_back(m2);
-		MatList.push_back(m3);
-		VecList.push_back(v1);
-		VecList.push_back(1.2*v1);
-		VecList.push_back(11*v1);
-		VecList.push_back(2*v1);
-		MatList2.push_back(m1);
-		MatList2.push_back(m2);
-		MatList2.push_back(m3);
+		//m1 << 1, 1, 1, 2, 2, 2;
+		//m2 << 11, 12, 13, 21, 22, 23;
+		//m3 << 1, 2, 3, 4, 5, 6;
+
+		//MatList.push_back(m1);
+		//MatList.push_back(m2);
+		//MatList.push_back(m3);
+		//VecList.push_back(v1);
+		//VecList.push_back(1.2*v1);
+		//VecList.push_back(11*v1);
+		//VecList.push_back(2*v1);
+		//MatList2.push_back(m1);
+		//MatList2.push_back(m2);
+		//MatList2.push_back(m3);
 		//std::cout << typeid(Eigen::Vector3d::StorageKind).name() << std::endl;
 		//std::cout << typeid(Eigen::Vector3d).name() << std::endl;
 		//std::cout << typeid(m1.transpose().eval()).name() << std::endl;
 		//CFG(Eigen::Matrix3d::Ones().eval());
-		CFG(createNamedValue("Double",1.02f));
+		//CFG(createNamedValue("Double",1.02f));
 		//CFG(createNamedValue("VectorList",VecList));
 		//CFG(createNamedValue("MatList", MatList));
 		//CFG(createNamedValue("MatList2", MatList2));
 		
 		//static_assert(std::is_same<traits::create_MATLAB_t<MatlabOutputArchive, double>, decltype( std::declval<MatlabOutputArchive>().createMATLABArray( std::declval<double>() ) >>, "Hello");
-		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double>::value, "Yes it is there");
-		static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double&>::value, "Yes it is there2");
+		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double>::value, "Yes it is there");
+		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, double&>::value, "Yes it is there2");
 		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)>::value,"Container not there");
 		//static_assert(traits::has_create_MATLAB<MatlabOutputArchive, decltype(VecList)::value_type>::value, "Matrix not ok");
 		//NoArchiveClass NoAr{};

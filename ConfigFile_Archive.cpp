@@ -298,7 +298,6 @@ ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 
 	if (mStreamOwner) 
 	{
-		dynamic_cast<std::ofstream*>(&mOutputstream)->close();
 		delete &mOutputstream; // We created the Stream object we also have to delete it!
 	}
 }
@@ -344,12 +343,24 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(const std::experimental::filesy
 	parseStream();
 };
 
+ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream)
+{
+	std::swap(this->mStreamOwner, CFG.mStreamOwner);
+	std::swap(this->mStorage, CFG.mStorage);
+	CFG.mStreamOwner = false;
+};
+
+ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG)
+{
+	//delegate to move constructor
+	return ConfigFile_InputArchive{ std::move(CFG) };
+};
+
 ConfigFile_InputArchive::~ConfigFile_InputArchive() 
 {
 	if (mStreamOwner)
 	{
-		dynamic_cast<std::ifstream*>(&mInputstream)->close();
-		delete &mInputstream; // We created the Stream object we also have to delete it!
+		delete (&mInputstream); // We created the Stream object we also have to delete it!
 	}
 };
 
@@ -389,8 +400,6 @@ std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental
 	SkipBOM(*pstr);
 
 	mStreamOwner = true;
-
-	
 
 	return *(pstr.release());
 }

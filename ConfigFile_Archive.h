@@ -967,7 +967,7 @@ namespace Archives
 		ConfigFile_OutputArchive(const std::experimental::filesystem::path &path);
 		~ConfigFile_OutputArchive();
 
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_OutputArchive)
+		//ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_OutputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_OutputArchive)
 
 		template<typename T>
@@ -1020,15 +1020,18 @@ namespace Archives
 		ConfigFile_InputArchive(std::istream& stream);
 		ConfigFile_InputArchive(ConfigFile::Storage storage);
 		ConfigFile_InputArchive(const std::experimental::filesystem::path &path);
+		ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG);
 		~ConfigFile_InputArchive();
 
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
+		ConfigFile_InputArchive operator=(ConfigFile_InputArchive&& CFG);
+
+		//ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
 		DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
 		auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
 
 		template<typename T>
-		std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::Type>::value, ConfigFile::Storage::keyvalues> list(const Archives::NamedValue<T>& value)
+		std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, ConfigFile::Storage::keyvalues> list(const Archives::NamedValue<T>& value)
 		{
 			ConfigLogic.setCurrKey(value.getName());
 			const auto tmp {list(value.getValue())};
@@ -1107,11 +1110,8 @@ namespace Archives
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	private:
-		//std::string currentsection{}; // Cache for the current Section
-		//std::string currentkey{}; //Cache for current key
 		bool mStreamOwner{ false };
 		std::istream& mInputstream;
-		//const std::istream& mInputstream{};
 		ConfigFile::Storage mStorage;
 
 		std::ifstream& createFileStream(const std::experimental::filesystem::path &path);
