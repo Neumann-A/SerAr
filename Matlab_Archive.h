@@ -1,4 +1,4 @@
-#pragma once
+
 
 #pragma once
 
@@ -33,11 +33,14 @@
 
 //#include <engine.h> //To connect to matlab engine (we dont work directly with matlab so does not matter)
 //MATLAB includes
-#include <mat.h>
+
 #pragma comment (lib, "libmx.lib")
 #pragma comment (lib, "libeng.lib")
 #pragma comment (lib, "libmex.lib")
 #pragma comment (lib, "libmat.lib")
+
+#include <mat.h>
+
 //Needs the following PATH = C:\Program Files\Matlab\R2015b\bin\win64; %PATH%
 
 namespace Archives
@@ -51,7 +54,7 @@ namespace Archives
 		template<typename MATClass, typename Type>
 		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&,create_MATLAB_t, MATClass, Type>{};
 		template<typename MATClass, typename Type>
-		constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
+		static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
 	}
 
 	namespace MATLAB
@@ -179,7 +182,12 @@ namespace Archives
 		}
 
 	};
-	
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	A matlab output archive. </summary>
+	///
+	/// <remarks>	Neumann, 17.02.2017. </remarks>
+	///-------------------------------------------------------------------------------------------------
 	class MatlabOutputArchive : public OutputArchive<MatlabOutputArchive>
 	{
 		friend class OutputArchive<MatlabOutputArchive>;
@@ -189,32 +197,8 @@ namespace Archives
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 
 	public:
-		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) 
-			: OutputArchive(this), m_filepath(fpath), m_options(options), m_MatlabFile(getMatlabFile(fpath, options)) {};
-
-		~MatlabOutputArchive() 
-		{ 
-
-			//Cleanup
-			while (!Fields.empty())
-			{
-				mxDestroyArray(std::get<1>(Fields.top()));
-				Fields.pop();
-			}
-			matClose(&m_MatlabFile);
-		};
-
-	
-		//Handle single named value
-		//template<typename T>
-		//inline std::enable_if_t<std::negation<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::type>::value> save(const Archives::NamedValue<T>& value)
-		//{
-		//	setNextFieldname(value.getName());
-		//	std::cout << "Normal Named Value! " << value.getName() << std::endl;
-		//	this->operator()(value.getValue());
-		//	clearNextFieldname();
-		//};
-		//std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value>
+		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update);
+		~MatlabOutputArchive();
 		
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
@@ -305,96 +289,63 @@ namespace Archives
 		template<typename T>
 		inline void checkNextFieldname(T&& val)
 		{
-			//TODO: Creat proper fieldname
+			//TODO: Create proper fieldname
 			if (nextFieldname.empty())
 			{
-
+				throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
 			}
 		}
 
 		template<typename T>
-		inline std::enable_if_t<!traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T&)
+		inline std::enable_if_t<!traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T& val)
 		{
-			constexpr mwSize ndims = 2;
-			constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want)
-			mxArray *pStruct = mxCreateStructArray(ndims, dims, 0, nullptr);
+			checkNextFieldname(val);
+
+			mxArray *pStruct = nullptr;
+			
+			if (!Fields.empty())
+			{
+				pStruct = mxGetField(std::get<1>(Fields.top()), 0, nextFieldname.c_str());
+			}
+			
 			if (pStruct == nullptr)
-				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
-
-			//std::cout << "Creating Field:" << nextFieldname << std::endl;
-
-			if (nextFieldname.empty()) //We may to create a fieldname 
 			{
-				if (!Fields.empty()) //We have to create a new fieldname 
-				{
-					nextFieldname = typeid(T).name();
-					Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
-				}
-				else
-				{
-					mxDestroyArray(pStruct);
-				}
+				constexpr mwSize ndims = 2;
+				constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want)
+				pStruct = mxCreateStructArray(ndims, dims, 0, nullptr);
+				if (pStruct == nullptr)
+					throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+
+				//std::cout << "Creating Field:" << nextFieldname << std::endl;
 			}
-			else
+
+			if (mxGetClassID(pStruct) != mxSTRUCT_CLASS)
 			{
-				Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+				throw std::runtime_error{ "Updating a mxArray which is not a struct! (Unwanted behavior!)" };
 			}
+
+			Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+
+			//if (nextFieldname.empty()) //We may to create a fieldname 
+			//{
+			//	if (!Fields.empty()) //We have to create a new fieldname 
+			//	{
+			//		nextFieldname = typeid(T).name();
+			//		Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+			//	}
+			//	else
+			//	{
+			//		mxDestroyArray(pStruct);
+			//	}
+			//}
+			//else
+			//{
+			//	Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+			//}
 		};
 
-		void finishMATLABArray()
-		{
-			if (Fields.empty())
-				return;
-
-			//assert(!Fields.empty());// , "Trying to pop more mxArrays from the stack than had been pushed"); //Programming error!
-
-			auto TopField = Fields.top(); //Thats the field we have to add! (Child mxArray)
-			Fields.pop(); //Remove it
-
-			if (Fields.empty()) //at the bottom lvl; write array to mat
-			{
-				int status = matPutVariable(&m_MatlabFile, std::get<0>(TopField).c_str(), std::get<1>(TopField)); // This throws an expection and catches it itself!
-				if (status != 0)
-					throw std::runtime_error{ "Unable to write Array to MATLAB file! (Out of Memory?)" };
-				mxDestroyArray(std::get<1>(TopField)); //release array and automaticlly destroys all arrays which have been added into the array!
-			}
-			else // we are recursive
-			{
-				auto& BottomField = Fields.top(); 
-				auto& arr = std::get<1>(BottomField); //Parent mxArray
-
-				if (mxIsStruct(arr))
-				{
-					auto index = mxAddField(arr, std::get<0>(TopField).c_str());
-
-					if (index == -1)
-						throw std::runtime_error{ "Could not add Field to MATLAB struct! (Out of Memory?)" };
-
-					mxSetFieldByNumber(arr, 0, index, std::get<1>(TopField)); // Add Child to parent
-
-					//no destruction of the TopField array here!
-				}
-				else if (mxIsCell(arr))
-				{
-					std::cout << "MATLAB case not handled. Debug me or add correct case" << std::endl;
-					//TODO: Implement mxArray insert for cell arrays;
-					assert(false);// , "Case (Cell) not handeled by Archive currently!");
-				}
-				else if (mxIsNumeric(arr))
-				{
-					std::cout << "MATLAB case not handled. Debug me or add correct case" << std::endl;
-					//TODO: Implement mxArray insert for numeric arrays;
-					assert(false);// , "Case (Numeric) not handeled by Archive currently!");
-				}
-				else
-				{
-					std::cout << "Unknown MATLAB case. Debug me or add correct case" << std::endl;
-					assert(true);// , "Case (Unknown) not handeled by Archive!");
-				}
-			}
-		}
-
-
+		void finishMATLABArray();
+	
 		template<typename T>
 		std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, mxArray&> createMATLABArray(const T& value) const
 		{
@@ -544,7 +495,11 @@ namespace Archives
 		//TODO: tuple version
 	};
 
-
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	A matlab input archive. </summary>
+	///
+	/// <remarks>	Neumann, 17.02.2017. </remarks>
+	///-------------------------------------------------------------------------------------------------
 	class MatlabInputArchive : public InputArchive<MatlabInputArchive>
 	{
 	public:

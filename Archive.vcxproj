@@ -103,34 +103,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -234,6 +234,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConfigFile_Archive.cpp" />
+    <ClCompile Include="HDF5_Archive.cpp" />
+    <ClCompile Include="Matlab_Archive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArchiveHelper.h" />
@@ -242,6 +244,7 @@
     <ClInclude Include="BinaryArchiveWrapper.h" />
     <ClInclude Include="CerealAdapter.h" />
     <ClInclude Include="ConfigFile_Archive.h" />
+    <ClInclude Include="HDF5_Archive.h" />
     <ClInclude Include="JSONArchiveWrapper.h" />
     <ClInclude Include="LoadConstructor.h" />
     <ClInclude Include="Matlab_Archive.h" />

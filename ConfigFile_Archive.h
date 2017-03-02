@@ -15,10 +15,10 @@
 
 #include <Eigen/Core>
 
-#include "..\Basic_Library\Headers\std_extensions.h"
+#include "../Basic_Library/Headers/std_extensions.h"
 
-#include "..\Basic_Library\Headers\BasicMacros.h"
-#include "..\Basic_Library\Headers\BasicIncludes.h"
+#include "../Basic_Library/Headers/BasicMacros.h"
+#include "../Basic_Library/Headers/BasicIncludes.h"
 
 #include "NamedValue.h"
 //#include "ArchiveHelper.h"
@@ -44,58 +44,58 @@ namespace Archives
 		template<typename TypeToTest, typename TypeToConvert>
 		class has_archive_member_to_string : public stdext::is_detected<member_to_string_t, TypeToTest, TypeToConvert> {};
 		template<typename TypeToTest, typename TypeToConvert>
-		constexpr bool has_archive_member_to_string_v = has_archive_member_to_string<TypeToTest, TypeToConvert>::value;
+		static constexpr bool has_archive_member_to_string_v = has_archive_member_to_string<TypeToTest, TypeToConvert>::value;
 
 		//Checks if ToTest has a save function for itself
 		template<typename TypeToConvert>
 		class has_member_to_string : public stdext::is_detected<member_to_string_t, TypeToConvert> {};
 		template<typename TypeToConvert>
-		constexpr bool has_member_to_string_v = has_member_to_string<TypeToConvert>::value;
+		static constexpr bool has_member_to_string_v = has_member_to_string<TypeToConvert>::value;
 
 		//Checks if there is a save function for ToTest
 		template<typename TypeToConvert>
 		class has_func_to_string : public stdext::is_detected<func_to_string_t, TypeToConvert> {};
 		template<typename TypeToConvert>
-		constexpr bool has_func_to_string_v = has_func_to_string<TypeToConvert>::value;
+		static constexpr bool has_func_to_string_v = has_func_to_string<TypeToConvert>::value;
 
 		//Checks if the Archive has a save function for ToTest
 		template<typename TypeToConvert>
 		class has_std_to_string : public stdext::is_detected<std_to_string_t, TypeToConvert>{};
 		template<typename TypeToConvert>
-		constexpr bool has_std_to_string_v = has_std_to_string<TypeToConvert>::value;
+		static constexpr bool has_std_to_string_v = has_std_to_string<TypeToConvert>::value;
 
 		//There exists a function which can convert the type to a string
 		template<typename TypeToConvert>
 		class has_type_to_string :public std::disjunction<has_member_to_string<TypeToConvert>, has_func_to_string<TypeToConvert>, has_std_to_string<TypeToConvert>> {};
 		template<typename TypeToConvert>
-		constexpr bool has_type_to_string_v = has_type_to_string<TypeToConvert>::value;
+		static constexpr bool has_type_to_string_v = has_type_to_string<TypeToConvert>::value;
 
 		//There exists no function to convert the type to string
 		template<typename TypeToTest, typename TypeToConvert>
 		class has_no_to_string : public std::negation<std::disjunction<has_archive_member_to_string<TypeToTest, TypeToConvert>, has_type_to_string<TypeToConvert>>> {};
 		template<typename TypeToTest, typename TypeToConvert>
-		constexpr bool has_no_to_string_v = has_no_to_string<TypeToTest, TypeToConvert>::value;
+		static constexpr bool has_no_to_string_v = has_no_to_string<TypeToTest, TypeToConvert>::value;
 
 		template<typename TypeToConvert, typename HelperClass, typename TextArchive>
 		class use_to_string :public std::disjunction< has_archive_member_to_string<HelperClass, TypeToConvert>, std::conjunction<has_type_to_string<TypeToConvert>, no_type_save<TypeToConvert, TextArchive>>> {};
 		template<typename TypeToConvert, typename HelperClass, typename TextArchive>
-		constexpr bool use_to_string_v = use_to_string<TypeToConvert, HelperClass, TextArchive>::value;
+		static constexpr bool use_to_string_v = use_to_string<TypeToConvert, HelperClass, TextArchive>::value;
 
 		//Logic to determine which to_string function should be used
 		template<typename TypeToConvert,typename HelperClass>
 		class use_archive_or_func_to_string : public std::disjunction<has_archive_member_to_string<HelperClass, TypeToConvert>, has_func_to_string<TypeToConvert> > {};
 		template<typename TypeToConvert, typename HelperClass>
-		constexpr bool use_archive_or_func_to_string_v = use_archive_or_func_to_string<TypeToConvert, HelperClass>::value;
+		static constexpr bool use_archive_or_func_to_string_v = use_archive_or_func_to_string<TypeToConvert, HelperClass>::value;
 
 		template<typename TypeToConvert, typename HelperClass>
 		class use_type_member_to_string :public std::conjunction<std::negation<has_archive_member_to_string<HelperClass, TypeToConvert>>, has_member_to_string<TypeToConvert>> {};
 		template<typename TypeToConvert, typename HelperClass>
-		constexpr bool use_type_member_to_string_v = use_type_member_to_string<TypeToConvert, HelperClass>::value;
+		static constexpr bool use_type_member_to_string_v = use_type_member_to_string<TypeToConvert, HelperClass>::value;
 
 		template<typename TypeToConvert, typename HelperClass>
 		class use_std_to_string :public std::conjunction<has_std_to_string<TypeToConvert>, std::negation<use_type_member_to_string<TypeToConvert, HelperClass>>, std::negation<use_archive_or_func_to_string<TypeToConvert, HelperClass>>> {};
 		template<typename TypeToConvert, typename HelperClass>
-		constexpr bool use_std_to_string_v = use_std_to_string<TypeToConvert, HelperClass>::value;
+		static constexpr bool use_std_to_string_v = use_std_to_string<TypeToConvert, HelperClass>::value;
 
 		/**************************************************from_string helpers************************************************************************/
 		//Member Function type for converting values to strings
@@ -111,47 +111,47 @@ namespace Archives
 		template<typename TypeToTest, typename TypeToConvert>
 		class has_archive_member_from_string : public stdext::is_detected_exact <std::decay_t<TypeToConvert>, member_from_string_t, TypeToTest, std::decay_t<TypeToConvert> > {};
 		template<typename TypeToTest, typename TypeToConvert>
-		constexpr bool has_archive_member_from_string_v = has_archive_member_from_string<TypeToTest, TypeToConvert>::value;
+		static constexpr bool has_archive_member_from_string_v = has_archive_member_from_string<TypeToTest, TypeToConvert>::value;
 
 		//Checks if ToTest has a load function for itself
 		template<typename TypeToConvert>
 		class has_member_from_string : public stdext::is_detected_exact<std::decay_t<TypeToConvert>,member_from_string_t> {};
 		template<typename TypeToConvert>
-		constexpr bool has_member_from_string_v = has_member_from_string<TypeToConvert>::value;
+		static constexpr bool has_member_from_string_v = has_member_from_string<TypeToConvert>::value;
 
 		//Checks if there is a load function for ToTest
 		template<typename TypeToConvert>
 		class has_func_from_string : public stdext::is_detected_exact<std::decay_t<TypeToConvert>, func_from_string_t> {};
 		template<typename TypeToConvert>
-		constexpr bool has_func_from_string_v = has_func_from_string<TypeToConvert>::value;
+		static constexpr bool has_func_from_string_v = has_func_from_string<TypeToConvert>::value;
 
 		//There exists a function which can convert the type to a string
 		template<typename TypeToConvert>
 		class has_type_from_string :public std::disjunction<has_member_from_string<TypeToConvert>, has_func_from_string<TypeToConvert>> {};
 		template<typename TypeToConvert>
-		constexpr bool has_type_from_string_v = has_type_from_string<TypeToConvert>::value;
+		static constexpr bool has_type_from_string_v = has_type_from_string<TypeToConvert>::value;
 
 		//There exists no function to convert the type to string
 		template<typename TypeToTest, typename TypeToConvert>
 		class has_no_from_string : public std::negation<std::disjunction<has_archive_member_from_string<TypeToTest, TypeToConvert>, has_type_from_string<TypeToConvert>>> {};
 		template<typename TypeToTest, typename TypeToConvert>
-		constexpr bool has_no_from_string_v = has_no_from_string<TypeToTest, TypeToConvert>::value;
+		static constexpr bool has_no_from_string_v = has_no_from_string<TypeToTest, TypeToConvert>::value;
 
 		template<typename TypeToConvert, typename HelperClass, typename TextArchive>
 		class use_from_string :public std::disjunction< has_archive_member_from_string<HelperClass, TypeToConvert>, std::conjunction<has_type_from_string<TypeToConvert>, no_type_load<TypeToConvert, TextArchive>>> {};
 		template<typename TypeToConvert, typename HelperClass, typename TextArchive>
-		constexpr bool use_from_string_v = use_from_string<TypeToConvert, HelperClass, TextArchive>::value;
+		static constexpr bool use_from_string_v = use_from_string<TypeToConvert, HelperClass, TextArchive>::value;
 
 		//Logic to determine which from_string function should be used
 		template<typename TypeToConvert, typename HelperClass>
 		class use_archive_or_func_from_string : public std::disjunction<has_archive_member_from_string<HelperClass, TypeToConvert>, has_func_from_string<TypeToConvert> > {};
 		template<typename TypeToConvert, typename HelperClass>
-		constexpr bool use_archive_or_func_from_string_v = use_archive_or_func_from_string<TypeToConvert, HelperClass>::value;
+		static constexpr bool use_archive_or_func_from_string_v = use_archive_or_func_from_string<TypeToConvert, HelperClass>::value;
 
 		template<typename TypeToConvert, typename HelperClass>
 		class use_type_member_from_string :public std::conjunction<std::negation<has_archive_member_from_string<HelperClass, TypeToConvert>>, has_member_from_string<TypeToConvert>> {};
 		template<typename TypeToConvert, typename HelperClass>
-		constexpr bool use_type_member_from_string_v = use_type_member_from_string<TypeToConvert, HelperClass>::value;
+		static constexpr bool use_type_member_from_string_v = use_type_member_from_string<TypeToConvert, HelperClass>::value;
 
 	};
 

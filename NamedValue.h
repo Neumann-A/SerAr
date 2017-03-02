@@ -14,8 +14,8 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 #include <string>
-#include <vector>
 
 #include "../Basic_Library/Headers/BasicMacros.h"
 
@@ -68,7 +68,7 @@ namespace Archives
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
 		//inline explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
-		BASIC_ALWAYS_INLINE explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(value) {};
+		BASIC_ALWAYS_INLINE explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(std::forward<T>(value)) {};
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
@@ -109,10 +109,16 @@ namespace Archives
 	///
 	/// <returns>	The new named value. </returns>
 	///-------------------------------------------------------------------------------------------------
+	//template<typename T>
+	//inline NamedValue<T> createNamedValue(const std::string& name, T&& value)
+	//{
+	//	return NamedValue<T>{name, std::forward<T&&>(value)};
+	//}
+
 	template<typename T>
-	inline NamedValue<T> createNamedValue(const std::string& name, T&& value)
+	inline NamedValue<T> createNamedValue(std::string name, T&& value)
 	{
-		return NamedValue<T>{name, std::forward<T&&>(value)};
+		return NamedValue<T>{std::move(name), std::forward<T>(value)};
 	}
 
 	//template<typename T>

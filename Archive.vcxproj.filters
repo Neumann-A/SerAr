@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Ressourcendateien">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Headerdateien\Cereal Wrappers">
       <UniqueIdentifier>{83e5d47d-1d7f-4b5a-bb38-6b4c2a5fa186}</UniqueIdentifier>
     </Filter>
@@ -31,6 +27,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="ConfigFile_Archive.cpp">
+      <Filter>Quelldateien\Archives</Filter>
+    </ClCompile>
+    <ClCompile Include="Matlab_Archive.cpp">
+      <Filter>Quelldateien\Archives</Filter>
+    </ClCompile>
+    <ClCompile Include="HDF5_Archive.cpp">
       <Filter>Quelldateien\Archives</Filter>
     </ClCompile>
   </ItemGroup>
@@ -82,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="ArchiveVisitor.h">
       <Filter>Headerdateien\Base Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="HDF5_Archive.h">
+      <Filter>Headerdateien\Archives</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
