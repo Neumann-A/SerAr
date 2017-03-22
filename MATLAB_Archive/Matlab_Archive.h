@@ -148,11 +148,13 @@ namespace Archives
 		struct MATLABClassFinder<std::int64_t> : MATLAB_Int64Class {};
 
 		template<>
+		struct MATLABClassFinder<float> : MATLAB_SingleClass {};
+
+		template<>
 		struct MATLABClassFinder<double> : MATLAB_DoubleClass {};
 
 		template<>
-		struct MATLABClassFinder<float> : MATLAB_SingleClass {};
-
+		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {};
 	}
 
 	//Enum to represent the different Matlab file modes!
@@ -392,7 +394,7 @@ namespace Archives
 
 			return *valarray;
 		}
-		
+
 		template<typename T>
 		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
 			std::negation<std::is_same<T, std::basic_string<typename T::value_type>>>>::value, mxArray&> createMATLABArray(const T& value) const
@@ -403,7 +405,8 @@ namespace Archives
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			DataType * dataposition = mxGetPr(valarray);
+			//Cast needed since mxGetPr always returns an double pointer!
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetPr(valarray));
 			for (const auto& tmp : value)
 			{
 				*dataposition++ = tmp;
