@@ -13,11 +13,12 @@
 ///---------------------------------------------------------------------------------------------------
 #pragma once
 
+#ifdef _MSC_VER
 #pragma warning(push)
-
 #pragma warning( disable : 4814) // constexpr is not implicit const Warning
+#endif
 
-#include "..\Basic_Library\Headers\BasicMacros.h"
+#include "basics/BasicMacros.h"
 
 #include "ArchiveHelper.h"
 
@@ -138,11 +139,15 @@ namespace Archives
 		}
 
 		template <typename T> inline
-		std::enable_if_t<traits::not_any_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
+		std::enable_if_t<traits::not_any_load_v<T, ArchiveType>, ArchiveType&> dowork(T&&)
 		{
 			//Game Over
 			static_assert(!traits::not_any_load_v<T, ArchiveType>, "Type cannot be loaded from Archive. No implementation has been defined for it!");
-			static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
+#ifdef _MSC_VER 
+			static_assert(!traits::not_any_load_v<T, ArchiveType>, __FUNCSIG__);
+#else
+			static_assert(!traits::not_any_load_v<T, ArchiveType>);
+#endif
 		}
 
 	protected:
@@ -161,7 +166,9 @@ namespace Archives
 
 }
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #endif	// INC_InputArchive_H
 // end of InputArchive.h

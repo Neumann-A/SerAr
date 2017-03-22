@@ -11,12 +11,14 @@
 #ifndef INC_OutputArchive_H
 #define INC_OutputArchive_H
 ///---------------------------------------------------------------------------------------------------
+#ifdef _MSC_VER
 #pragma once
 #pragma warning(push)
+#endif
 
 //#pragma warning( disable : 4814) // in c++14 constexpr is not implicit const 
 
-#include "..\Basic_Library\Headers\BasicMacros.h"
+#include "basics/BasicMacros.h"
 #include "ArchiveHelper.h"
 
 namespace Archives
@@ -157,17 +159,21 @@ namespace Archives
 		template <typename T> inline
 		std::enable_if_t<traits::use_func_serialize_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
 		{
-			serialize(const_cast<std::remove_const_t<std::remove_reference_t<T>>>&>(value), self());
+			serialize(const_cast<std::remove_const_t<std::remove_reference_t<T>>&>(value), self());
 			return self();
 		}
 
 		//We do not have a clue how to save/serialize T....
 		template <typename T = void> inline
-		std::enable_if_t<Archives::traits::not_any_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value)
+		std::enable_if_t<Archives::traits::not_any_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&&)
 		{
 			//Game Over
 			static_assert(!traits::not_any_save_v<T, ArchiveType>, "Type cannot be saved to Archive. No implementation has been defined for it!");
+#ifdef _MSC_VER
 			static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
+#else
+			static_assert(!traits::not_any_save_v<T, ArchiveType>);
+#endif
 			return self();
 		}
 
@@ -187,7 +193,9 @@ namespace Archives
 	};
 }
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #endif	// INC_OutputArchive_H
 // end of OutputArchive.h

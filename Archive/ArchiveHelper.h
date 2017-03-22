@@ -14,7 +14,7 @@
 #pragma once
 
 #include <type_traits>
-#include "../Basic_Library/Headers/std_extensions.h"
+#include "stdext/std_extensions.h"
 
 namespace Archives
 {
@@ -65,14 +65,14 @@ namespace Archives
 		//Checks if Archive has a prologue member function
 		template<typename ToTest, typename ArchiveType>
 		class has_prologue_member : public stdext::is_detected<prologue_member_t, ArchiveType, ToTest> {};
-		//Checks if Archive has a eiplogue member function
+		//Checks if Archive has a epilogue member function
 		template<typename ToTest, typename ArchiveType>
 		class has_epilogue_member : public stdext::is_detected<epilogue_member_t, ArchiveType, ToTest> {};
 		
 		//Checks if Archive has a prologue function
 		template<typename ToTest, typename ArchiveType>
 		class has_prologue_func : public stdext::is_detected<prologue_member_t, ToTest, ArchiveType> {};
-		//Checks if Archive has a eiplogue function
+		//Checks if Archive has a epilogue function
 		template<typename ToTest, typename ArchiveType>
 		class has_epilogue_func : public stdext::is_detected<epilogue_member_t, ToTest, ArchiveType> {};
 

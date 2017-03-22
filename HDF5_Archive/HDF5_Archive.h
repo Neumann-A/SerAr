@@ -1,79 +1,81 @@
-///-------------------------------------------------------------------------------------------------
-// file:	HDF5_Archvie.h
+///---------------------------------------------------------------------------------------------------
+// file:		HDF5_Archive.h
 //
-// summary:	Declares the hdf 5 archvie class
-///-------------------------------------------------------------------------------------------------
+// summary: 	Declares the hdf 5 archive class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander
+// date: 08.03.2017
 
+#ifndef INC_HDF5_Archive_H
+#define INC_HDF5_Archive_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <filesystem>
+#include <experimental/filesystem>
 #include <type_traits>
 #include <utility>
 #include <map>
-
 #include <iosfwd>
-
 #include <string>
 #include <regex>
-
 #include <complex>
-
 #include <exception>
 #include <memory>
-
 #include <stack>
+#include <cassert>
 
-#include <Eigen/Core>
-
+//#ifdef EIGEN_CORE_H
+//#include <Eigen/Core>
+//#endif
 
 //If you want dynamic lib for HDF5 define H5_BUILT_AS_DYNAMIC_LIB
 #ifdef _DEBUG
 #ifdef H5_BUILT_AS_DYNAMIC_LIB
-#pragma comment(lib,"hdf5_hl_cpp_D.lib")
+//#pragma comment(lib,"hdf5_hl_cpp_D.lib")
 #pragma comment(lib,"hdf5_cpp_D.lib")
-#pragma comment(lib,"hdf5_hl_D.lib")
+//#pragma comment(lib,"hdf5_hl_D.lib")
 #pragma comment(lib,"hdf5_D.lib")
 //#pragma comment(lib,"szip.lib")
 //#pragma comment(lib,"zlib.lib")
 #else
-#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
+//#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
 #pragma comment(lib,"libhdf5_cpp_D.lib")
-#pragma comment(lib,"libhdf5_hl_D.lib")
+//#pragma comment(lib,"libhdf5_hl_D.lib")
 #pragma comment(lib,"libhdf5_D.lib")
 //#pragma comment(lib,"libszip.lib")
 //#pragma comment(lib,"libzlib.lib")
 #endif
 #else
 #ifdef H5_BUILT_AS_DYNAMIC_LIB
-#pragma comment(lib,"hdf5_hl_cpp.lib")
+//#pragma comment(lib,"hdf5_hl_cpp.lib")
 #pragma comment(lib,"hdf5_cpp.lib")
-#pragma comment(lib,"hdf5_hl.lib")
+//#pragma comment(lib,"hdf5_hl.lib")
 #pragma comment(lib,"hdf5.lib")
 //#pragma comment(lib,"szip.lib")
 //#pragma comment(lib,"zlib.lib")
 #else
-#pragma comment(lib,"libhdf5_hl_cpp.lib")
+//#pragma comment(lib,"libhdf5_hl_cpp.lib")
 #pragma comment(lib,"libhdf5_cpp.lib")
-#pragma comment(lib,"libhdf5_hl.lib")
+//#pragma comment(lib,"libhdf5_hl.lib")
 #pragma comment(lib,"libhdf5.lib")
 //#pragma comment(lib,"libszip.lib")
 //#pragma comment(lib,"libzlib.lib")
 #endif
 #endif
 
-#include <HDF5/include/hdf5.h>
-#include <HDF5/include/hdf5_hl.h>
-#include <HDF5/include/H5Cpp.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
+#include <H5Cpp.h>
 
-#include "../Basic_Library/Headers/std_extensions.h"
+#include "stdext/std_extensions.h"
+#include "basics/BasicMacros.h"
+#include "basics/BasicIncludes.h"
 
-#include "../Basic_Library/Headers/BasicMacros.h"
-#include "../Basic_Library/Headers/BasicIncludes.h"
-
-#include "NamedValue.h"
-
-#include "InputArchive.h"
-#include "OutputArchive.h"
+#include "Archive/NamedValue.h"
+#include "Archive/InputArchive.h"
+#include "Archive/OutputArchive.h"
 
 namespace Archives
 {
@@ -87,6 +89,14 @@ namespace Archives
 		class has_create_HDF5Dataset : public stdext::is_detected_exact<void, create_HDF5Dataset_t, std::string, Type> {};
 		template<typename Type>
 		static constexpr bool has_create_HDF5Dataset_v = has_create_HDF5Dataset<Type>::value;
+
+		//Member Function type for converting values to strings
+		template<typename Class,class Type, typename ...Args>
+		using get_HDF5Dimension_t = decltype(Class::getDimension(std::declval<Type>()));
+
+		template<typename Class, typename Type>
+		class has_get_HDF5Dimension_t : public stdext::is_detected<get_HDF5Dimension_t, Class, Type> {};
+
 	}
 
 
@@ -315,6 +325,79 @@ namespace Archives
 			static inline H5::DataSpace dataspace() { return H5::DataSpace{ value() }; };
 		};
 
+
+		
+		struct DimensionCalculator
+		{
+			template<typename T>
+			static inline std::enable_if_t<std::is_arithmetic<std::remove_reference_t<T>>::value, std::vector<std::size_t>> getDimension(const T&)
+			{
+				return std::vector<std::size_t>{ 1 };
+			};
+
+			///-------------------------------------------------------------------------------------------------
+			/// <summary>	Gets the Dimension of the value/type. The first element of the array is the dimension
+			/// 			from the inner type/value whereas the last value is the dimension of the outmost type/value  </summary>
+			///
+			/// <typeparam name="T">	Generic type parameter. </typeparam>
+			/// <param name="val">	[in] The value. </param>
+			///
+			/// <returns>	The dimension. </returns>
+			///-------------------------------------------------------------------------------------------------
+			template<typename T>
+			static inline std::enable_if_t< std::conjunction<stdext::is_container<std::remove_reference_t<T>>,
+				traits::has_get_HDF5Dimension_t<DimensionCalculator, typename std::remove_reference_t<T>::value_type  > >::value, std::vector<std::size_t>> getDimension(const T& val)
+			{
+				using ElementType = typename std::remove_reference_t<T>::value_type;
+
+				std::vector<std::size_t> bigdim;
+
+				for (const auto& elem : val)
+				{
+					if (std::is_arithmetic<std::remove_reference_t<ElementType>>::value) // In this case the we can skip the loop since it is a container of single elements
+					{
+						return std::vector<std::size_t>{val.size()};
+					}
+					else
+					{
+						auto test = DimensionCalculator::getDimension(elem); // Vector with dimensions of elem
+						
+						if (bigdim.empty()) //Init bigdim once
+						{
+							bigdim.resize(test.size(), 1);
+						}
+
+						auto it2 = bigdim.begin();
+						for (auto it = test.begin(); it != test.end() || it2 != bigdim.end(); it++, it2++)
+						{
+							if (*it > *it2)
+							{
+								*it2 = *it;
+							}
+						}
+					}
+				}
+
+				if (bigdim.size() <= 1)
+					return std::vector<std::size_t>{bigdim.front(), val.size()};
+
+				//std::reverse(bigdim.begin(), bigdim.end());
+				bigdim.push_back(val.size());
+				//std::reverse(bigdim.begin(), bigdim.end());
+
+				return bigdim;
+			};
+
+			template<typename T>
+			static inline std::enable_if_t<traits::has_get_HDF5Dimension_t<DimensionCalculator, std::remove_reference_t<T>>::value, std::vector<std::size_t>> getDimensionOuterFirst(const T& val)
+			{
+				auto dims = getDimension(val);
+				std::reverse(dims.begin(), dims.end());
+				return dims;
+			}
+
+		};
+
 	}
 
 	class HDF5_OutputArchive; // Forward declare archive for Options;
@@ -408,7 +491,7 @@ namespace Archives
 		}
 
 		template<typename T>
-		inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value> save(const T& val)
+		inline std::enable_if_t<std::is_arithmetic<T>::value> save(const T& val)
 		{
 			const auto memtype = HDF5Detail::PredTypeSelector<std::decay_t<T>>::value();
 			const auto memspace = HDF5Detail::DataSpaceTypeSelector<std::decay_t<T>>::dataspace();
@@ -416,8 +499,14 @@ namespace Archives
 			_currentdataset.write(&val, memtype, memspace, filespace);
 		}
 
+		//template<typename T>
+		//inline std::enable_if_t < std::conjunction< stdext::is_container<T>, std::is_arithmetic<std::remove_reference_t<T::value_type>> > > save(const T& val)
+		//{
+
+		//}
+
 		private:
-			// The C++ does not allow exception free finding of Groups and Datasets !
+			// The HDF5 C++ Wrapper does not allow exception free finding of Groups and Datasets !
 			bool hasGroup(const std::string& str)
 			{
 				hid_t dataset_id = H5Gopen2(_groupstack.top()->getLocId(), str.c_str(), H5P_DEFAULT);
@@ -496,3 +585,7 @@ namespace Archives
 	};
 
 }
+
+#endif	// INC_HDF5_Archive_H
+
+///---------------------------------------------------------------------------------------------------

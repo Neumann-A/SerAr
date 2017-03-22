@@ -46,7 +46,7 @@ namespace Archives
 		static inline type constructWithName(InputArchive<Archive>& ar, char const * const name)
 		{
 			type ConstructedType{};
-			ar(Basic::createNamedValue(name, ConstructedType));
+			ar(createNamedValue(name, ConstructedType));
 			return ConstructedType;
 		};
 
@@ -54,7 +54,7 @@ namespace Archives
 		static inline type constructWithName(InputArchive<Archive>& ar, const std::string& name)
 		{
 			type ConstructedType{};
-			ar(Basic::createNamedValue(name, ConstructedType));
+			ar(createNamedValue(name, ConstructedType));
 			return ConstructedType;
 		};
 

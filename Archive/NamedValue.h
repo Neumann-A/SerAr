@@ -17,7 +17,7 @@
 #include <utility>
 #include <string>
 
-#include "../Basic_Library/Headers/BasicMacros.h"
+#include "basics/BasicMacros.h"
 
 namespace Archives
 {
@@ -44,7 +44,7 @@ namespace Archives
 																		T&,	typename std::decay<T>::type>::type>::type;
 	private:
 		const std::string valname;
-		const internal_type val;
+		internal_type val;
 
 		//Disallow assignment of NamedValue; 
 		//could run in problems with r value typed NamedValue
@@ -59,7 +59,7 @@ namespace Archives
 		///
 		/// <returns>	The type name. </returns>
 		///-------------------------------------------------------------------------------------------------
-		BASIC_ALWAYS_INLINE static const char & getTypeName() noexcept { return typeid(Type).name(); };
+		BASIC_ALWAYS_INLINE static const char * getTypeName() noexcept { return typeid(type).name(); };
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Constructor for named value. </summary>

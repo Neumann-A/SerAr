@@ -103,41 +103,41 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(LLVMInstallDir)\lib\clang\5.0\lib\windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">
-    <IncludePath>$(SolutionDir)..\..\..\Extern;$(SolutionDir)..\..\..\Extern\Eigen;$(SolutionDir)..\..\..\Extern\MATLAB\include;$(SolutionDir)..\..\..\Extern\boost;$(SolutionDir)..\..\..\Extern\HDF5\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
-    <LibraryPath>$(SolutionDir)..\..\Extern\boost\lib;$(SolutionDir)..\..\..\Extern\HDF5\lib;$(SolutionDir)..\..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(LLVMInstallDir)\lib\clang\5.0\lib\windows;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -149,39 +149,35 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
     </Link>
-    <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
     </Link>
-    <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -193,12 +189,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -209,12 +206,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>
-      </SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Alexander Neumann\Source\Repos\Everything\Basic_Library\Headers</AdditionalIncludeDirectories>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
@@ -229,35 +225,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ArchiveTestMain.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ConfigFile_Archive.cpp" />
-    <ClCompile Include="HDF5_Archive.cpp" />
-    <ClCompile Include="Matlab_Archive.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ArchiveHelper.h" />
-    <ClInclude Include="ArchiveVisitor.h" />
-    <ClInclude Include="BaseArchiveType.h" />
-    <ClInclude Include="BinaryArchiveWrapper.h" />
-    <ClInclude Include="CerealAdapter.h" />
-    <ClInclude Include="ConfigFile_Archive.h" />
-    <ClInclude Include="HDF5_Archive.h" />
-    <ClInclude Include="JSONArchiveWrapper.h" />
-    <ClInclude Include="LoadConstructor.h" />
-    <ClInclude Include="Matlab_Archive.h" />
-    <ClInclude Include="PortableBinaryArchiveWrapper.h" />
-    <ClInclude Include="Serializeable.h" />
-    <ClInclude Include="TestIOArchive.h" />
-    <ClInclude Include="InputArchive.h" />
-    <ClInclude Include="NamedValue.h" />
-    <ClInclude Include="OutputArchive.h" />
-    <ClInclude Include="XMLArchiveWrapper.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Archive\ArchiveHelper.h" />
+    <ClInclude Include="Archive\ArchiveVisitor.h" />
+    <ClInclude Include="Archive\BaseArchiveType.h" />
+    <ClInclude Include="Archive\InputArchive.h" />
+    <ClInclude Include="Archive\LoadConstructor.h" />
+    <ClInclude Include="Archive\NamedValue.h" />
+    <ClInclude Include="Archive\OutputArchive.h" />
+    <ClInclude Include="Archive\Serializeable.h" />
+    <ClInclude Include="Archive\TestIOArchive.h" />
+    <ClInclude Include="CerealWrappers\BinaryArchiveWrapper.h" />
+    <ClInclude Include="CerealWrappers\CerealAdapter.h" />
+    <ClInclude Include="CerealWrappers\JSONArchiveWrapper.h" />
+    <ClInclude Include="CerealWrappers\PortableBinaryArchiveWrapper.h" />
+    <ClInclude Include="CerealWrappers\XMLArchiveWrapper.h" />
+    <ClInclude Include="ConfigFile_Archive\ConfigFile_Archive.h" />
+    <ClInclude Include="HDF5_Archive\HDF5_Archive.h" />
+    <ClInclude Include="MATLAB_Archive\Matlab_Archive.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Archive\CMakeLists.txt" />
+    <Text Include="CerealWrappers\CMakeLists.txt" />
+    <Text Include="CMakeLists.txt" />
+    <Text Include="ConfigFile_Archive\CMakeLists.txt" />
+    <Text Include="HDF5_Archive\CMakeLists.txt" />
+    <Text Include="MATLAB_Archive\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConfigFile_Archive\ConfigFile_Archive.cpp" />
+    <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp" />
+    <ClCompile Include="MATLAB_Archive\Matlab_Archive.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

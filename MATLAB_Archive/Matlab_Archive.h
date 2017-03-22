@@ -1,45 +1,57 @@
+///---------------------------------------------------------------------------------------------------
+// file:		Matlab_Archive.h
+//
+// summary: 	Declares the matlab archive class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander
+// date: 08.03.2017
 
-
+#ifndef INC_Matlab_Archive_H
+#define INC_Matlab_Archive_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <filesystem>
+#include <experimental/filesystem>
 #include <type_traits>
+#include <utility>
 #include <map>
-
-#include <sstream>
-#include <istream>
-#include <ostream>
-
+#include <iosfwd>
 #include <string>
 #include <regex>
-
 #include <complex>
-
 #include <exception>
-
 #include <cassert>
+#include <cstdint>
 
-#include <Eigen/Core>
+//#ifdef EIGEN_CORE_H
+//#include <Eigen/Core>
+//#endif
 
-#include "../Basic_Library/Headers/std_extensions.h"
-
-#include "../Basic_Library/Headers/BasicMacros.h"
-#include "../Basic_Library/Headers/BasicIncludes.h"
+#include "stdext/std_extensions.h"
+#include "basics/BasicMacros.h"
+#include "basics/BasicIncludes.h"
 
 //#include "ArchiveHelper.h"
-#include "NamedValue.h"
-#include "InputArchive.h"
-#include "OutputArchive.h"
+#include "Archive/NamedValue.h"
+#include "Archive/InputArchive.h"
+#include "Archive/OutputArchive.h"
 
 //#include <engine.h> //To connect to matlab engine (we dont work directly with matlab so does not matter)
 //MATLAB includes
 
-#pragma comment (lib, "libmx.lib")
-#pragma comment (lib, "libeng.lib")
-#pragma comment (lib, "libmex.lib")
-#pragma comment (lib, "libmat.lib")
+#ifdef _MSC_VER
+#pragma comment (lib, "libmx")
+#pragma comment (lib, "libmat")
+#endif
+
+//Not used!
+//#pragma comment (lib, "libeng")
+//#pragma comment (lib, "libmex")
 
 #include <mat.h>
+
 
 //Needs the following PATH = C:\Program Files\Matlab\R2015b\bin\win64; %PATH%
 
@@ -51,8 +63,10 @@ namespace Archives
 		template<class Class, typename ...Args>
 		using create_MATLAB_t = decltype( std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...) );
 
+		//Check if Type has the function create_MATLAB within the Archive
 		template<typename MATClass, typename Type>
-		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&,create_MATLAB_t, MATClass, Type>{};
+		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&, create_MATLAB_t, MATClass, Type> {};
+		//class has_create_MATLAB : public stdext::is_detected<create_MATLAB_t, MATClass, Type> {};
 		template<typename MATClass, typename Type>
 		static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
 	}
@@ -81,7 +95,12 @@ namespace Archives
 		typedef std::integral_constant<mxClassID, mxINDEX_CLASS>	MATLAB_IndexClass;
 
 		template<typename T>
-		struct MATLABClassFinder : MATLAB_UnknownClass {};
+		struct MATLABClassFinder : MATLAB_UnknownClass 
+		{
+			// Normally this static assert should not be necessary but sometimes we seem to need it!
+			// (Due to template specilization and selection rules)
+			static_assert(std::is_same<T,void>::value,"MATLABClassFinder: Unknown type!");
+		};
 
 		template<>
 		struct MATLABClassFinder<std::string> : MATLAB_CellClass {};
@@ -96,32 +115,37 @@ namespace Archives
 		struct MATLABClassFinder<bool> : MATLAB_LogicalClass {};
 
 		template<>
-		struct MATLABClassFinder<uint8_t> : MATLAB_UInt8Class {};
+		struct MATLABClassFinder<std::uint8_t> : MATLAB_UInt8Class {};
 
 		template<>
-		struct MATLABClassFinder<int8_t> : MATLAB_Int8Class {};
+		struct MATLABClassFinder<std::int8_t> : MATLAB_Int8Class {};
 
 		template<>
-		struct MATLABClassFinder<uint16_t> : MATLAB_UInt16Class {};
+		struct MATLABClassFinder<std::uint16_t> : MATLAB_UInt16Class {};
 
 		template<>
-		struct MATLABClassFinder<int16_t> : MATLAB_Int16Class {};
+		struct MATLABClassFinder<std::int16_t> : MATLAB_Int16Class {};
 
 		template<>
-		struct MATLABClassFinder<uint32_t> : MATLAB_UInt32Class {};
+		struct MATLABClassFinder<std::uint32_t> : MATLAB_UInt32Class {};
+		//template<>
+		//struct MATLABClassFinder<unsigned long> : MATLAB_UInt32Class {};
+		
 		template<>
-		struct MATLABClassFinder<unsigned long> : MATLAB_UInt32Class {};
+		struct MATLABClassFinder<std::int32_t> : MATLAB_Int32Class {};
+		// template<>
+		// struct MATLABClassFinder<long> : MATLAB_Int32Class {};
 
 		template<>
-		struct MATLABClassFinder<int32_t> : MATLAB_Int32Class {};
-		template<>
-		struct MATLABClassFinder<long> : MATLAB_Int32Class {};
+		struct MATLABClassFinder<std::uint64_t> : MATLAB_UInt64Class {};
+		// template<>
+		// struct MATLABClassFinder<unsigned long long> : MATLAB_UInt64Class {};
+
+		// template<>
+		// struct MATLABClassFinder<std::size_t> : MATLAB_UInt64Class {};
 
 		template<>
-		struct MATLABClassFinder<uint64_t> : MATLAB_UInt64Class {};
-
-		template<>
-		struct MATLABClassFinder<int64_t> : MATLAB_Int64Class {};
+		struct MATLABClassFinder<std::int64_t> : MATLAB_Int64Class {};
 
 		template<>
 		struct MATLABClassFinder<double> : MATLAB_DoubleClass {};
@@ -129,17 +153,16 @@ namespace Archives
 		template<>
 		struct MATLABClassFinder<float> : MATLAB_SingleClass {};
 
-
 	}
 
 	//Enum to represent the different Matlab file modes!
 	//read: Opens file for reading only; determines the current version of the MAT-file by inspecting the files and preserves the current version.
 	//update: Opens file for update, both reading and writing. If the file does not exist, does not create a file (equivalent to the r+ mode of fopen). Determines the current version of the MAT-file by inspecting the files and preserves the current version.
 	//write: Opens file for writing only; deletes previous contents, if any.
-	//write_v4: Creates a MAT-file compatible with MATLAB® Versions 4 software and earlier.
+	//write_v4: Creates a MAT-file compatible with MATLABï¿½ Versions 4 software and earlier.
 	//write_v6: Creates a MAT-file compatible with MATLAB Version 5 (R8) software or earlier. Equivalent to wL mode.
 	//write_local :Opens file for writing character data using the default character set for your system. Use MATLAB Version 6 or 6.5 software to read the resulting MAT-file.
-	//			     	  If you do not use the wL mode switch, MATLAB writes character data to the MAT-file using Unicode® character encoding by default.
+	//			     	  If you do not use the wL mode switch, MATLAB writes character data to the MAT-file using Unicodeï¿½ character encoding by default.
 	//					  Equivalent to w6 mode.
 	//write_v7: Creates a MAT-file compatible with MATLAB Version 7.0 (R14) software or earlier. Equivalent to wz mode.
 	//write_compressed: Opens file for writing compressed data. By default, the MATLAB save function compresses workspace variables as they are saved to a MAT-file. To use the same compression ratio when creating a MAT-file with the matOpen function, use the wz option.
@@ -174,7 +197,7 @@ namespace Archives
 			case MatlabOptions::write_v73:
 				return "w7.3";
 			default:
-				assert(false); //Invalid Enuma!
+				assert(false); //Invalid Enum!
 				return "";
 			}
 			}() };
@@ -210,13 +233,16 @@ namespace Archives
 
 
 		template<typename T>
-		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> save(const T& value)
+		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive,  std::remove_reference_t<T>>> save(const T& value)
 		{
+			using Type = std::remove_reference_t<T>;
 			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
 			if (nextFieldname.empty()) //We need to create a fieldname 
 				nextFieldname = typeid(T).name();
+			
+			static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
 
-			auto& arrdata = createMATLABArray<std::decay_t<T>>(value);
+			auto& arrdata = createMATLABArray<Type>(value);
 			
 			Fields.push(std::make_tuple(std::move(nextFieldname), &arrdata));
 
@@ -287,7 +313,7 @@ namespace Archives
 		}
 
 		template<typename T>
-		inline void checkNextFieldname(T&& val)
+		inline void checkNextFieldname(T&& /*val*/)
 		{
 			//TODO: Create proper fieldname
 			if (nextFieldname.empty())
@@ -526,3 +552,7 @@ namespace Archives
 	};
 
 }
+
+#endif	// INC_Matlab_Archive_H
+// end of Matlab_Archive.h
+///---------------------------------------------------------------------------------------------------

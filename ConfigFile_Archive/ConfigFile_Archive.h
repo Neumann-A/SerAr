@@ -1,29 +1,41 @@
+///---------------------------------------------------------------------------------------------------
+// file:		ConfigFile_Archive.h
+//
+// summary: 	Declares the configuration file archive class
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander
+// date: 08.03.2017
+
+#ifndef INC_ConfigFile_Archive_H
+#define INC_ConfigFile_Archive_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <filesystem>
+#include <experimental/filesystem>
 #include <type_traits>
+#include <utility>
 #include <map>
-
 #include <iosfwd>
-
 #include <string>
 #include <regex>
-
 #include <complex>
-
 #include <exception>
+#include <cassert>
 
-#include <Eigen/Core>
+//#ifdef EIGEN_CORE_H
+//#include <Eigen/Core>
+//#endif
 
-#include "../Basic_Library/Headers/std_extensions.h"
+#include "stdext/std_extensions.h"
+#include "basics/BasicMacros.h"
+#include "basics/BasicIncludes.h"
 
-#include "../Basic_Library/Headers/BasicMacros.h"
-#include "../Basic_Library/Headers/BasicIncludes.h"
-
-#include "NamedValue.h"
+#include "Archive/NamedValue.h"
 //#include "ArchiveHelper.h"
-#include "InputArchive.h"
-#include "OutputArchive.h"
+#include "Archive/InputArchive.h"
+#include "Archive/OutputArchive.h"
 
 namespace Archives
 {
@@ -242,13 +254,15 @@ namespace Archives
 			template<typename T>
 			static inline std::enable_if_t<traits::use_archive_or_func_from_string_v<std::decay_t<T>, fromString>, std::decay_t<T>> from_string_selector(std::string& str)
 			{
-				return from_string<std::decay_t<T>>(str);
+				using decT = std::decay_t<T>;
+				return from_string<decT>(str);
 			}
 
 			template<typename T>
 			static inline std::enable_if_t<traits::use_type_member_from_string_v<std::decay_t<T>, fromString>, std::decay_t<T>> from_string_selector(std::string& str)
 			{
-				return (std::decay_t<T>)::from_string<std::decay_t<T>>(str);
+				using decT = std::decay_t<T>;
+				return decT::template from_string<decT>(str);
 			}
 
 			template<typename T>
@@ -458,7 +472,7 @@ namespace Archives
 
 							str.erase(0, currentparse);
 
-							auto val = str.compare(0, 1, "+");
+							//auto val = str.compare(0, 1, "+");
 							if (str.compare(0, 1, "+") == 0)
 							{
 								str.erase(0, 1);
@@ -680,8 +694,8 @@ namespace Archives
 			{
 				auto seperator{ findNextCommaSeperator(str) };
 				using type = std::decay_t<std::tuple_element_t<N, Tuple>>;
-				auto head{ from_string_selector<type>(str.substr(0,str - 1)) };
-				str.erase(0, str);
+				auto head{ from_string_selector<type>(str.substr(0,seperator - 1)) };
+				str.erase(0, seperator);
 				auto tail{ buildtupletype<N,Tuple>(str) };
 				return std::tuple_cat(head, tail);
 			};
@@ -692,8 +706,8 @@ namespace Archives
 				auto seperator{ findNextCommaSeperator(str) };
 				using type = std::decay_t<std::tuple_element_t<N, Tuple>>;
 				using type2 = std::decay_t<std::tuple_element_t<N + 1, Tuple>>;
-				auto head{ from_string_selector<type>(str.substr(0,str - 1)) };
-				str.erase(0, str);
+				auto head{ from_string_selector<type>(str.substr(0,seperator - 1)) };
+				str.erase(0, seperator);
 				auto tail{ from_string_selector<type2>(str) };
 				afterConversionStringCheck(str);
 				return std::tuple_cat(head, tail);
@@ -1127,3 +1141,7 @@ namespace Archives
 
 	};
 }
+
+#endif	// INC_ConfigFile_Archive_H
+// ConfigFile_Archive.h
+///---------------------------------------------------------------------------------------------------

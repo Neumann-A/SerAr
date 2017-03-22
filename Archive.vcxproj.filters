@@ -1,95 +1,105 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Quelldateien">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="BaseArchive">
+      <UniqueIdentifier>{df31cc35-1033-4da6-bbf3-994e024a5839}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="MATLAB">
+      <UniqueIdentifier>{2b33933a-85c9-4880-8024-eb068df0bc35}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien\Cereal Wrappers">
-      <UniqueIdentifier>{83e5d47d-1d7f-4b5a-bb38-6b4c2a5fa186}</UniqueIdentifier>
+    <Filter Include="ConfigFile">
+      <UniqueIdentifier>{09cc1407-284a-4c0f-affa-f3d2126389e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien\Base Archive">
-      <UniqueIdentifier>{9d7c7c8a-b870-490c-a4ac-1087bb8cf1a2}</UniqueIdentifier>
+    <Filter Include="HDF5">
+      <UniqueIdentifier>{086140bc-e539-40f3-8d24-b119dfead548}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien\Archives">
-      <UniqueIdentifier>{48616f1a-4e7b-4f2b-8edc-02853f65ecd2}</UniqueIdentifier>
+    <Filter Include="CerealWrappers">
+      <UniqueIdentifier>{7e0a3b86-4c59-42d3-aeee-92a99d469f20}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Quelldateien\Archives">
-      <UniqueIdentifier>{7945b239-1b9e-4016-947a-25c75030073f}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="ArchiveTestMain.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigFile_Archive.cpp">
-      <Filter>Quelldateien\Archives</Filter>
-    </ClCompile>
-    <ClCompile Include="Matlab_Archive.cpp">
-      <Filter>Quelldateien\Archives</Filter>
-    </ClCompile>
-    <ClCompile Include="HDF5_Archive.cpp">
-      <Filter>Quelldateien\Archives</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="XMLArchiveWrapper.h">
-      <Filter>Headerdateien\Cereal Wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="JSONArchiveWrapper.h">
-      <Filter>Headerdateien\Cereal Wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="BinaryArchiveWrapper.h">
-      <Filter>Headerdateien\Cereal Wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="PortableBinaryArchiveWrapper.h">
-      <Filter>Headerdateien\Cereal Wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="CerealAdapter.h">
-      <Filter>Headerdateien\Cereal Wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="InputArchive.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiveHelper.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="BaseArchiveType.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="LoadConstructor.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedValue.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="OutputArchive.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="Serializeable.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigFile_Archive.h">
-      <Filter>Headerdateien\Archives</Filter>
-    </ClInclude>
-    <ClInclude Include="Matlab_Archive.h">
-      <Filter>Headerdateien\Archives</Filter>
-    </ClInclude>
-    <ClInclude Include="TestIOArchive.h">
-      <Filter>Headerdateien\Archives</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiveVisitor.h">
-      <Filter>Headerdateien\Base Archive</Filter>
-    </ClInclude>
-    <ClInclude Include="HDF5_Archive.h">
-      <Filter>Headerdateien\Archives</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Archive\ArchiveHelper.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\ArchiveVisitor.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\BaseArchiveType.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\InputArchive.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\LoadConstructor.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\NamedValue.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\OutputArchive.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\Serializeable.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive\TestIOArchive.h">
+      <Filter>BaseArchive</Filter>
+    </ClInclude>
+    <ClInclude Include="MATLAB_Archive\Matlab_Archive.h">
+      <Filter>MATLAB</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigFile_Archive\ConfigFile_Archive.h">
+      <Filter>ConfigFile</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealWrappers\BinaryArchiveWrapper.h">
+      <Filter>CerealWrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealWrappers\CerealAdapter.h">
+      <Filter>CerealWrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealWrappers\JSONArchiveWrapper.h">
+      <Filter>CerealWrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealWrappers\PortableBinaryArchiveWrapper.h">
+      <Filter>CerealWrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="CerealWrappers\XMLArchiveWrapper.h">
+      <Filter>CerealWrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="HDF5_Archive\HDF5_Archive.h">
+      <Filter>HDF5</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Archive\CMakeLists.txt">
+      <Filter>BaseArchive</Filter>
+    </Text>
+    <Text Include="MATLAB_Archive\CMakeLists.txt">
+      <Filter>MATLAB</Filter>
+    </Text>
+    <Text Include="ConfigFile_Archive\CMakeLists.txt">
+      <Filter>ConfigFile</Filter>
+    </Text>
+    <Text Include="CerealWrappers\CMakeLists.txt">
+      <Filter>CerealWrappers</Filter>
+    </Text>
+    <Text Include="HDF5_Archive\CMakeLists.txt">
+      <Filter>HDF5</Filter>
+    </Text>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MATLAB_Archive\Matlab_Archive.cpp">
+      <Filter>MATLAB</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigFile_Archive\ConfigFile_Archive.cpp">
+      <Filter>ConfigFile</Filter>
+    </ClCompile>
+    <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp">
+      <Filter>HDF5</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
