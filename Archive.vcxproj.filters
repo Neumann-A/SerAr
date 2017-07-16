@@ -72,6 +72,9 @@
     <ClInclude Include="HDF5_Archive\HDF5_Archive.h">
       <Filter>HDF5</Filter>
     </ClInclude>
+    <ClInclude Include="HDF5_Archive\HDF5_FileWrapper.h">
+      <Filter>HDF5</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Archive\CMakeLists.txt">
@@ -99,6 +102,9 @@
       <Filter>ConfigFile</Filter>
     </ClCompile>
     <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp">
+      <Filter>HDF5</Filter>
+    </ClCompile>
+    <ClCompile Include="HDF5_Archive\HDF5_FileWrapper.cpp">
       <Filter>HDF5</Filter>
     </ClCompile>
   </ItemGroup>

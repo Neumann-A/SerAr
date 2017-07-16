@@ -65,7 +65,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <UseIntelIPP>false</UseIntelIPP>
@@ -243,6 +243,7 @@
     <ClInclude Include="CerealWrappers\PortableBinaryArchiveWrapper.h" />
     <ClInclude Include="CerealWrappers\XMLArchiveWrapper.h" />
     <ClInclude Include="ConfigFile_Archive\ConfigFile_Archive.h" />
+    <ClInclude Include="HDF5_Archive\HDF5_FileWrapper.h" />
     <ClInclude Include="HDF5_Archive\HDF5_Archive.h" />
     <ClInclude Include="MATLAB_Archive\Matlab_Archive.h" />
   </ItemGroup>
@@ -256,6 +257,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigFile_Archive\ConfigFile_Archive.cpp" />
+    <ClCompile Include="HDF5_Archive\HDF5_FileWrapper.cpp" />
     <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp" />
     <ClCompile Include="MATLAB_Archive\Matlab_Archive.cpp" />
   </ItemGroup>
