@@ -102,6 +102,8 @@ namespace Archives
 			static_assert(std::is_same<T,void>::value,"MATLABClassFinder: Unknown type!");
 		};
 
+		//Partial specialization for all relevant types
+		//TODO: maybe use Basic_string instead of std::string
 		template<>
 		struct MATLABClassFinder<std::string> : MATLAB_CellClass {};
 
@@ -153,8 +155,9 @@ namespace Archives
 		template<>
 		struct MATLABClassFinder<double> : MATLAB_DoubleClass {};
 
+		//NOTE: Narrowing conversion to MATLAB. There seems to be no long double conversion in MATLAB!
 		template<>
-		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {};
+		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {}; 
 	}
 
 	//Enum to represent the different Matlab file modes!
@@ -228,19 +231,22 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			setNextFieldname(value.getName());
-			this->operator()(value.getValue());
-			clearNextFieldname();
+			setNextFieldname(value.getName());  //Set the Name of the next Field
+			this->operator()(value.getValue()); //Write Data to the Field/struct
+			clearNextFieldname();				//Remove the last Fieldname
 		};
 
-
+		
 		template<typename T>
 		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive,  std::remove_reference_t<T>>> save(const T& value)
 		{
+			//SFINE checks wether T can be saved by this MATLAB Archive!
+
+
 			using Type = std::remove_reference_t<T>;
 			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
 			if (nextFieldname.empty()) //We need to create a fieldname 
-				nextFieldname = typeid(T).name();
+				nextFieldname = typeid(T).name(); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
 			
 			static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
 
@@ -257,10 +263,10 @@ namespace Archives
 		MatlabOptions m_options;
 		MATFile &m_MatlabFile;
 		
-		using Field = std::tuple<std::string, mxArray*>;
-		std::stack<Field> Fields;
+		using Field = std::tuple<std::string, mxArray*>;	
+		std::stack<Field> Fields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
 	
-		std::string nextFieldname;
+		std::string nextFieldname;	//Storage for next fieldname which has not been pushed on the Fields stack yet since the mxArray* was not yet created 
 
 		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
 		{	
@@ -280,13 +286,13 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
 		{
-			checkNextFieldname(value);
-			startMATLABArray(value);
+			checkNextFieldname(value);	//Check the Fieldname for validity
+			startMATLABArray(value);	//Start a new Matlab Array or Struct
 		};
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > epilogue(const T&)
 		{
-			finishMATLABArray();
+			finishMATLABArray();	//Finish the Array (write it to the Array above)
 		};
 		
 		//For nested NamedValue
@@ -317,13 +323,14 @@ namespace Archives
 		template<typename T>
 		inline void checkNextFieldname(T&& /*val*/)
 		{
-			//TODO: Create proper fieldname
+			//TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
 			if (nextFieldname.empty())
 			{
 				throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
 			}
 		}
 
+		//Starting a new field
 		template<typename T>
 		inline std::enable_if_t<!traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T& val)
 		{
@@ -339,7 +346,7 @@ namespace Archives
 			if (pStruct == nullptr)
 			{
 				constexpr mwSize ndims = 2;
-				constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want)
+				constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want. What we want -> [1,1])
 				pStruct = mxCreateStructArray(ndims, dims, 0, nullptr);
 				if (pStruct == nullptr)
 					throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
@@ -353,27 +360,11 @@ namespace Archives
 			}
 
 			Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
-
-			//if (nextFieldname.empty()) //We may to create a fieldname 
-			//{
-			//	if (!Fields.empty()) //We have to create a new fieldname 
-			//	{
-			//		nextFieldname = typeid(T).name();
-			//		Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
-			//	}
-			//	else
-			//	{
-			//		mxDestroyArray(pStruct);
-			//	}
-			//}
-			//else
-			//{
-			//	Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
-			//}
 		};
 
 		void finishMATLABArray();
 	
+		//Save all other arithmetics types
 		template<typename T>
 		std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, mxArray&> createMATLABArray(const T& value) const
 		{
@@ -384,10 +375,11 @@ namespace Archives
 			return *valarray;
 		}
 
+		//Saving Strings
 		template<typename T>
 		std::enable_if_t<std::is_same<T, std::basic_string<typename T::value_type>>::value ,mxArray&> createMATLABArray(const T& value) const
 		{
-			mxArray *valarray = mxCreateString(value.c_str());//mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::decay_t<T>>::value, mxREAL);
+			mxArray *valarray = mxCreateString(value.c_str());
 			
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
@@ -395,6 +387,7 @@ namespace Archives
 			return *valarray;
 		}
 
+		//Save for container types with arithmetic payload type
 		template<typename T>
 		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
 			std::negation<std::is_same<T, std::basic_string<typename T::value_type>>>>::value, mxArray&> createMATLABArray(const T& value) const
@@ -416,6 +409,7 @@ namespace Archives
 		}
 
 #ifdef EIGEN_CORE_H
+		//Eigen Types 
 		template<typename T>
 		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, 
 										  std::is_base_of<Eigen::EigenBase<std::decay_t<typename T::value_type>>,
@@ -535,6 +529,8 @@ namespace Archives
 		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
 			: InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
 		~MatlabInputArchive() { matClose(&m_MatlabFile); };
+
+		//TODO: Write load function!
 	private:
 		MATFile &m_MatlabFile;
 
