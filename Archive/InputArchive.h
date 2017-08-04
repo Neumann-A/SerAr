@@ -53,6 +53,7 @@ namespace Archives
 		template <typename T>
 		inline void work(T&& head)
 		{
+			static_assert(!std::is_const_v<T>, "Cannot load into a const value T!");
 			//static_assert(!std::is_lvalue_reference<T>::value, "Passed rvalue reference for loading from Input Archive! \n (Impossible since load can not write a value into a temporary)");
 			self().beforework(head);
 			self().dowork(head);
@@ -118,7 +119,7 @@ namespace Archives
 		template <typename T> inline
 		std::enable_if_t<traits::use_func_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
 		{
-			load(self(), value);
+			load(value, self());
 			return self();
 		}
 
@@ -134,7 +135,7 @@ namespace Archives
 		template <typename T> inline
 		std::enable_if_t<traits::use_func_serialize_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
 		{
-			serialize(self(), value);
+			serialize(value, self());
 			return self();
 		}
 

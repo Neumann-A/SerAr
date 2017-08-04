@@ -139,6 +139,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -151,6 +152,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -164,6 +166,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -179,6 +182,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -196,6 +200,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -217,6 +222,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
+      <DiagnosticsFormat />
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

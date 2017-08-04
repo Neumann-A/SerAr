@@ -59,16 +59,28 @@ namespace Archives
 {
 	namespace traits
 	{
-		//Member Function type for converting values to strings
-		template<class Class, typename ...Args>
-		using create_MATLAB_t = decltype( std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...) );
 
 		//Check if Type has the function create_MATLAB within the Archive
+		template<class Class, typename ...Args>
+		using create_MATLAB_t = decltype(std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...));
 		template<typename MATClass, typename Type>
 		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&, create_MATLAB_t, MATClass, Type> {};
-		//class has_create_MATLAB : public stdext::is_detected<create_MATLAB_t, MATClass, Type> {};
 		template<typename MATClass, typename Type>
 		static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
+
+
+
+		//Check if the type has a function to load it from an mxArray
+		template<class Class, typename ...Args>
+		using loadtype_MATLAB_t = decltype(std::declval<Class>().loadType(std::declval<std::decay_t<Args>>()...));
+		template<typename MATClass, typename Type>
+		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
+
+		//template<typename MATClass, typename Type>
+		//class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
+		template<typename MATClass, typename Type>
+		constexpr bool has_loadType_MATLAB_v = has_loadType_MATLAB<MATClass, Type>::value;
+
 	}
 
 	namespace MATLAB
@@ -239,10 +251,7 @@ namespace Archives
 		
 		template<typename T>
 		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive,  std::remove_reference_t<T>>> save(const T& value)
-		{
-			//SFINE checks wether T can be saved by this MATLAB Archive!
-
-
+		{	//SFINE checks wether T can be saved by this MATLAB Archive!
 			using Type = std::remove_reference_t<T>;
 			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
 			if (nextFieldname.empty()) //We need to create a fieldname 
@@ -377,7 +386,8 @@ namespace Archives
 
 		//Saving Strings
 		template<typename T>
-		std::enable_if_t<std::is_same<T, std::basic_string<typename T::value_type>>::value ,mxArray&> createMATLABArray(const T& value) const
+		std::enable_if_t<stdext::is_string_v<T>,mxArray&> createMATLABArray(const T& value) const
+		//std::enable_if_t<stdext::is_string_v<T> ,mxArray&> createMATLABArray(const T& value) const
 		{
 			mxArray *valarray = mxCreateString(value.c_str());
 			
@@ -389,8 +399,16 @@ namespace Archives
 
 		//Save for container types with arithmetic payload type
 		template<typename T>
-		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
-			std::negation<std::is_same<T, std::basic_string<typename T::value_type>>>>::value, mxArray&> createMATLABArray(const T& value) const
+		std::enable_if_t<stdext::is_arithmetic_container<T>, mxArray&> createMATLABArray(const T& value) const
+		//std::enable_if_t<std::conjunction_v<stdext::is_container<std::decay_t<T>>,
+		//				std::is_arithmetic<std::decay_t<typename std::decay_t<T>::value_type>>,
+		//				std::negation<stdext::is_string<T>/*std::is_same<T, std::basic_string<typename T::value_type>>*/>
+		//				>, mxArray&> createMATLABArray(const T& value) const
+		//std::enable_if_t<std::conjunction_v<stdext::is_container<std::remove_cv_t<T>>, 
+		//								  std::is_arithmetic<std::remove_cv_t<typename T::value_type>>,
+		//								  std::negation<stdext::is_string<std::remove_cv_t<typename T::value_type>>>>, mxArray&> createMATLABArray(const T& value) const
+		//std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
+		//	std::negation<stdext::is_string<T>>>::value, mxArray&> createMATLABArray(const T& value) const
 		{
 			using DataType = std::decay_t<typename T::value_type>;
 
@@ -469,26 +487,19 @@ namespace Archives
 			//Be aware: of strange storage order!
 			for (const auto& tmp : value)
 			{
-
-				if (!EigenMatrix::IsRowMajor)
-				{
+				if (!EigenMatrix::IsRowMajor) {
 					Eigen::Map< EigenMatrix, Eigen::Unaligned, Eigen::Stride<1, EigenMatrix::ColsAtCompileTime> >(dataposition, tmp.rows(), tmp.cols()) = tmp;
 				}
-				else
-				{
+				else {
 					Eigen::Map< EigenMatrix, Eigen::Unaligned>(dataposition, tmp.rows(), tmp.cols()) = tmp;
 				}
-				if (EigenMatrix::IsVectorAtCompileTime)
-				{
+				if (EigenMatrix::IsVectorAtCompileTime)	{
 					dataposition += rows > cols ? rows : cols;
 				}
-				else
-				{
+				else {
 					dataposition += rows + cols + 1;
-				}
-				
-			}
-																																									
+				}		
+			}																																									
 			return *valarray;
 		}
 
@@ -525,14 +536,53 @@ namespace Archives
 	///-------------------------------------------------------------------------------------------------
 	class MatlabInputArchive : public InputArchive<MatlabInputArchive>
 	{
+		//needed so that the detector idom works with clang-cl (for some unknown reason!)
+		friend class InputArchive<MatlabOutputArchive>;
+		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 	public:
 		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
 			: InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
 		~MatlabInputArchive() { matClose(&m_MatlabFile); };
 
 		//TODO: Write load function!
+		template<typename T>
+		inline void load(const Archives::NamedValue<T>& value)
+		{
+			checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
+			loadNextField(value.getName());     //Loads the next Field with given name; (Move Down)
+			this->operator()(value.getValue()); //Load Data from the Field or struct.
+			releaseField();						//Remove the last Fieldname (Move Up)
+		};
+
+		template<typename T>
+		inline std::enable_if_t<traits::has_loadType_MATLAB_v<MatlabInputArchive,std::remove_reference_t<T>>> load(T& value)
+		{			
+			using Type = std::remove_reference_t<T>; // T cannot be const 
+			const auto fieldptr = std::get<1>(mFields.top());
+
+			//Check Type
+			if (mxGetClassID(fieldptr) == MATLABClassFinder<Type>::value)
+			{
+
+			}
+			else //Wrong type in Field!
+			{
+				const auto namr = std::get<0>(mFields.top());
+				throw std::runtime_error{ std::string{ "Type mismatch. Cannot load value from field: " } +name };
+			}
+		}
+
+		template<typename T>
+		inline void loadType(T& loadtarget)
+		{
+
+		}
+
 	private:
 		MATFile &m_MatlabFile;
+
+		using Field = std::tuple<std::string, mxArray*>;
+		std::stack<Field> mFields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
 
 		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) const
 		{
@@ -548,6 +598,61 @@ namespace Archives
 
 			return *pMAT;
 		};
+
+		inline void checkCurrentField()
+		{
+			if (mFields.empty()) // We are at File level!
+				return;
+			else
+			{
+				const auto& top = mFields.top();
+				const auto& arr = std::get<1>(top);
+				if (mxIsStruct(arr))
+					return;
+				else
+				{
+					const auto& name = std::get<0>(top);
+					throw std::runtime_error{ std::string{ "Unable to nest current field. Field is not a struct. Fieldname: " } +name };
+				}
+
+			}
+
+		}
+		inline void loadNextField(const std::string &str)
+		{
+			mxArray * nextarr = nullptr;
+
+			if (mFields.empty())
+			{
+				nextarr = matGetVariable(&m_MatlabFile,str.c_str());
+			}
+			else
+			{
+				const auto& top = mFields.top();
+				const auto arr = std::get<1>(top);
+				nextarr = mxGetField(arr, 1, str.c_str());
+			}
+			if (nextarr == nullptr)
+				throw std::runtime_error{ std::string{ "Could not open field: " } +str };
+			mFields.emplace(str, nextarr);
+		}
+
+		inline void releaseField() noexcept
+		{
+			assert(!mFields.empty());
+
+			const auto& top = mFields.top();
+			const auto arr = std::get<1>(top);
+			mxDestroyArray(arr);
+			mFields.pop();
+		}
+
+		template<typename T>
+		inline std::enable_if_t<std::is_arithmetic_v<std::remove_reference_t<T>>> loadType(T& loadtarget)
+		{
+
+		}
+
 	};
 
 }
