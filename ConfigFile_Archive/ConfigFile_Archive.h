@@ -266,7 +266,7 @@ namespace Archives
 			}
 
 			template<typename T>
-			static inline std::enable_if_t<std::is_same<std::decay_t<T>, std::string>::value, std::string> from_string(std::string& str)
+			static inline std::enable_if_t<stdext::is_string_v<T>, std::string> from_string(std::string& str)
 			{
 				//std::string str{ val };
 				//auto pos = str.find_first_of(SpecialCharacters::stringidentifier);
@@ -511,7 +511,7 @@ namespace Archives
 
 			/// <summary>	Convert containers into a braced string representation. </summary>
 			template<typename T>
-			static inline std::enable_if_t<stdext::is_container<T>::value && !std::is_same<std::decay_t<T>, std::string>::value, T> from_string(std::string& str)
+			static inline std::enable_if_t<stdext::is_container<T>::value && !stdext::is_string_v<T>, T> from_string(std::string& str)
 			{
 				T resvec;
 				// TODO:: String within Braces

@@ -306,14 +306,16 @@ namespace Archives
 		
 		//For nested NamedValue
 		template<typename T>
-		inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> prologue(const T& value)
+		inline std::enable_if_t<is_nested_NamedValue_v<T>> prologue(const T& value)
+		//inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> prologue(const T& value)
 		{
 			setNextFieldname(value.getName());
 			startMATLABArray(value);
 			clearNextFieldname();
 		};
 		template<typename T>
-		inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> epilogue(const T&)
+		inline std::enable_if_t<is_nested_NamedValue_v<T>> epilogue(const T&)
+		//inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> epilogue(const T&)
 		{
 			finishMATLABArray();
 		};
@@ -399,16 +401,7 @@ namespace Archives
 
 		//Save for container types with arithmetic payload type
 		template<typename T>
-		std::enable_if_t<stdext::is_arithmetic_container<T>, mxArray&> createMATLABArray(const T& value) const
-		//std::enable_if_t<std::conjunction_v<stdext::is_container<std::decay_t<T>>,
-		//				std::is_arithmetic<std::decay_t<typename std::decay_t<T>::value_type>>,
-		//				std::negation<stdext::is_string<T>/*std::is_same<T, std::basic_string<typename T::value_type>>*/>
-		//				>, mxArray&> createMATLABArray(const T& value) const
-		//std::enable_if_t<std::conjunction_v<stdext::is_container<std::remove_cv_t<T>>, 
-		//								  std::is_arithmetic<std::remove_cv_t<typename T::value_type>>,
-		//								  std::negation<stdext::is_string<std::remove_cv_t<typename T::value_type>>>>, mxArray&> createMATLABArray(const T& value) const
-		//std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, std::is_arithmetic<std::decay_t<typename T::value_type>>,
-		//	std::negation<stdext::is_string<T>>>::value, mxArray&> createMATLABArray(const T& value) const
+		std::enable_if_t<stdext::is_arithmetic_container_v<T>, mxArray&> createMATLABArray(const T& value) const
 		{
 			using DataType = std::decay_t<typename T::value_type>;
 
@@ -429,9 +422,10 @@ namespace Archives
 #ifdef EIGEN_CORE_H
 		//Eigen Types 
 		template<typename T>
-		std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, 
-										  std::is_base_of<Eigen::EigenBase<std::decay_t<typename T::value_type>>,
-														  std::decay_t<typename T::value_type>>>::value, mxArray&>
+		//std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, 
+		//								  std::is_base_of<Eigen::EigenBase<std::decay_t<typename T::value_type>>,
+		//												  std::decay_t<typename T::value_type>>>::value, mxArray&>
+		std::enable_if_t<stdext::is_container_with_eigen_type_v<T>, mxArray&>
 			createMATLABArray(const T& value) const
 		{
 			using EigenMatrix = typename std::decay_t<T>::value_type;
@@ -504,7 +498,7 @@ namespace Archives
 		}
 
 		template<typename T>
-		std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>>::value, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
+		std::enable_if_t<stdext::is_eigen_type_v<T>, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
 		{
 			using DataType = typename T::Scalar;
 
@@ -648,8 +642,9 @@ namespace Archives
 		}
 
 		template<typename T>
-		inline std::enable_if_t<std::is_arithmetic_v<std::remove_reference_t<T>>> loadType(T& loadtarget)
+		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget)
 		{
+			using DataType = std::decay_t<T>;
 
 		}
 
