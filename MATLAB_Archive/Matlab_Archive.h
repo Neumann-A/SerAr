@@ -74,7 +74,7 @@ namespace Archives
 		template<class Class, typename ...Args>
 		using loadtype_MATLAB_t = decltype(std::declval<Class>().loadType(std::declval<std::decay_t<Args>>()...));
 		template<typename MATClass, typename Type>
-		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
+		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type, mxArray const * const> {};
 
 		//template<typename MATClass, typename Type>
 		//class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
@@ -115,9 +115,8 @@ namespace Archives
 		};
 
 		//Partial specialization for all relevant types
-		//TODO: maybe use Basic_string instead of std::string
-		template<>
-		struct MATLABClassFinder<std::string> : MATLAB_CellClass {};
+		template<typename CharT, typename TraitsT, typename AllocatorT>
+		struct MATLABClassFinder<std::basic_string<CharT, TraitsT,AllocatorT>> : MATLAB_CellClass {};
 
 		template<typename ...Args>
 		struct MATLABClassFinder<std::tuple<Args...>> : MATLAB_CellClass {};
@@ -307,7 +306,6 @@ namespace Archives
 		//For nested NamedValue
 		template<typename T>
 		inline std::enable_if_t<is_nested_NamedValue_v<T>> prologue(const T& value)
-		//inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> prologue(const T& value)
 		{
 			setNextFieldname(value.getName());
 			startMATLABArray(value);
@@ -315,7 +313,6 @@ namespace Archives
 		};
 		template<typename T>
 		inline std::enable_if_t<is_nested_NamedValue_v<T>> epilogue(const T&)
-		//inline std::enable_if_t<std::is_same<typename std::decay<T>::type::type, Archives::NamedValue<typename std::decay<T>::type::type::type>>::value> epilogue(const T&)
 		{
 			finishMATLABArray();
 		};
@@ -410,7 +407,8 @@ namespace Archives
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
 			//Cast needed since mxGetPr always returns an double pointer!
-			DataType * dataposition = reinterpret_cast<DataType*>(mxGetPr(valarray));
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+
 			for (const auto& tmp : value)
 			{
 				*dataposition++ = tmp;
@@ -422,9 +420,6 @@ namespace Archives
 #ifdef EIGEN_CORE_H
 		//Eigen Types 
 		template<typename T>
-		//std::enable_if_t<std::conjunction<stdext::is_container<std::decay_t<T>>, 
-		//								  std::is_base_of<Eigen::EigenBase<std::decay_t<typename T::value_type>>,
-		//												  std::decay_t<typename T::value_type>>>::value, mxArray&>
 		std::enable_if_t<stdext::is_container_with_eigen_type_v<T>, mxArray&>
 			createMATLABArray(const T& value) const
 		{
@@ -536,7 +531,16 @@ namespace Archives
 	public:
 		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
 			: InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
-		~MatlabInputArchive() { matClose(&m_MatlabFile); };
+		~MatlabInputArchive() 
+		{
+			//Cleanup
+			while (!mFields.empty())
+			{
+				mxDestroyArray(std::get<1>(mFields.top()));
+				mFields.pop();
+			}
+			matClose(&m_MatlabFile);
+		};
 
 		//TODO: Write load function!
 		template<typename T>
@@ -549,7 +553,7 @@ namespace Archives
 		};
 
 		template<typename T>
-		inline std::enable_if_t<traits::has_loadType_MATLAB_v<MatlabInputArchive,std::remove_reference_t<T>>> load(T& value)
+		inline std::enable_if_t<traits::has_loadType_MATLAB_v<MatlabInputArchive,std::decay_t<T>>> load(T& value)
 		{			
 			using Type = std::remove_reference_t<T>; // T cannot be const 
 			const auto fieldptr = std::get<1>(mFields.top());
@@ -557,25 +561,20 @@ namespace Archives
 			//Check Type
 			if (mxGetClassID(fieldptr) == MATLABClassFinder<Type>::value)
 			{
-
+				loadType(value, fieldptr);
 			}
 			else //Wrong type in Field!
 			{
-				const auto namr = std::get<0>(mFields.top());
+				const auto name = std::get<0>(mFields.top());
 				throw std::runtime_error{ std::string{ "Type mismatch. Cannot load value from field: " } +name };
 			}
 		}
 
-		template<typename T>
-		inline void loadType(T& loadtarget)
-		{
-
-		}
 
 	private:
 		MATFile &m_MatlabFile;
 
-		using Field = std::tuple<std::string, mxArray*>;
+		using Field = std::tuple<std::string, mxArray * const>;
 		std::stack<Field> mFields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
 
 		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) const
@@ -642,9 +641,25 @@ namespace Archives
 		}
 
 		template<typename T>
-		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget)
+		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget, mxArray const * const field)
 		{
 			using DataType = std::decay_t<T>;
+			T = *reinterpret_cast<DataType*>(mxGetData(field));
+
+		}
+		template<typename T>
+		inline std::enable_if_t<stdext::is_string_v<T>> loadType(T& loadtarget, mxArray const * const field)
+		{
+			using DataType = std::decay_t<T>;
+			T = std::string{ *reinterpret_cast<DataType*>(mxGetData(field)) };
+
+		}
+		template<typename T>
+		inline std::enable_if_t<stdext::is_container_v<T>> loadType(T& loadtarget, mxArray const * const field)
+		{
+			using DataType = std::decay_t<T>;
+			const auto ndims = mxGetNumberOfDimensions(field);
+			const auto* dims = mxGetDimensions(field);
 
 		}
 
