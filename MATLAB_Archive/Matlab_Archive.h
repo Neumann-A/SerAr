@@ -68,15 +68,16 @@ namespace Archives
 		static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
 
 		//Check if the type has a function to load it from an mxArray
-		template<class Class, typename ...Args>
-		using loadtype_MATLAB_t = decltype(std::declval<Class>().loadType(std::declval<std::decay_t<Args>>()...));
+		template<class Class, typename Type>
+		using getvalue_MATLAB_t = decltype(std::declval<Class>().getValue(std::declval<Type&>(), std::declval<mxArray const * const>()));
+		//using getvalue_MATLAB_t = decltype(std::declval<Class>().getValue(std::declval<std::add_lvalue_reference_t<std::decay_t<Args>>>()...));
 		template<typename MATClass, typename Type>
-		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
+		class has_getvalue_MATLAB : public stdext::is_detected<getvalue_MATLAB_t, MATClass, Type> {};
 
 		//template<typename MATClass, typename Type>
 		//class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
 		template<typename MATClass, typename Type>
-		static constexpr bool has_loadType_MATLAB_v = has_loadType_MATLAB<MATClass, Type>::value;
+		static constexpr bool has_getvalue_MATLAB_v = has_getvalue_MATLAB<MATClass, Type>::value;
 	}
 
 	namespace MATLAB
@@ -112,7 +113,7 @@ namespace Archives
 
 		//Partial specialization for all relevant types
 		template<typename CharT, typename TraitsT, typename AllocatorT>
-		struct MATLABClassFinder<std::basic_string<CharT, TraitsT,AllocatorT>> : MATLAB_CellClass {};
+		struct MATLABClassFinder<std::basic_string<CharT, TraitsT,AllocatorT>> : MATLAB_CharClass {};
 		template<typename ...Args>
 		struct MATLABClassFinder<std::tuple<Args...>> : MATLAB_CellClass {};
 		template<>
@@ -352,7 +353,7 @@ namespace Archives
 	
 		//Save all other arithmetics types
 		template<typename T>
-		std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value, mxArray&> createMATLABArray(const T& value) const
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>, mxArray&> createMATLABArray(const T& value) const
 		{
 			mxArray *valarray = mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::decay_t<T>>::value, mxREAL);
 			if (valarray == nullptr)
@@ -531,15 +532,15 @@ namespace Archives
 		};
 
 		template<typename T>
-		inline std::enable_if_t<traits::has_loadType_MATLAB_v<MatlabInputArchive,std::decay_t<T>>> load(T& value)
+		inline std::enable_if_t<traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
 		{			
 			using Type = std::remove_reference_t<T>; // T cannot be const 
 			const auto fieldptr = std::get<1>(mFields.top());
 
 			//Check Type
-			if (mxGetClassID(fieldptr) == MATLABClassFinder<Type>::value)
+			if (mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<Type>::value)
 			{
-				loadType(value, fieldptr);
+				getValue(value, fieldptr);
 			}
 			else //Wrong type in Field!
 			{
@@ -548,23 +549,31 @@ namespace Archives
 			}
 		}
 		template<typename T>
-		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget)
+		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> getValue(T& loadtarget, mxArray const * const field)
 		{
+			assert(field != nullptr);
 			using DataType = std::decay_t<T>;
-			T = *reinterpret_cast<DataType*>(mxGetData(field));
+			loadtarget = *reinterpret_cast<DataType*>(mxGetData(field));
 
 		};
 		template<typename T>
-		inline std::enable_if_t<stdext::is_string_v<T>> loadType(T& loadtarget)
+		inline std::enable_if_t<stdext::is_string_v<T>> getValue(T& loadtarget, mxArray const * const field)
 		{
-			using DataType = std::decay_t<T>;
-			T = std::string{ *reinterpret_cast<DataType*>(mxGetData(field)) };
+			assert(field != nullptr);
+			//const char* str = nullptr;
+			//const auto length1 = mxGetM(field);
+			const auto length = mxGetN(field);
+			//std::cout << length1 << " " <<length2  << std::endl;
+			auto res = mxArrayToString(field);
+			loadtarget = std::string{ std::move(res), length+1 };
+			mxFree(res);
 
 		};
 		template<typename T>
-		inline std::enable_if_t<stdext::is_container_v<T>> loadType(T& loadtarget)
+		inline std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>>> getValue(T& loadtarget, mxArray const * const field)
 		{
-			using DataType = std::decay_t<T>;
+			assert(field != nullptr);
+			using DataType = typename std::decay_t<T>::value_type;
 			const auto ndims = mxGetNumberOfDimensions(field);
 			const auto* dims = mxGetDimensions(field);
 
@@ -622,7 +631,7 @@ namespace Archives
 			{
 				const auto& top = mFields.top();
 				const auto arr = std::get<1>(top);
-				nextarr = mxGetField(arr, 1, str.c_str());
+				nextarr = mxGetField(arr, 0, str.c_str());
 			}
 			if (nextarr == nullptr)
 				throw std::runtime_error{ std::string{ "Could not open field: " } +str };
@@ -632,9 +641,14 @@ namespace Archives
 		{
 			assert(!mFields.empty());
 
-			const auto& top = mFields.top();
+			const auto top = mFields.top();
 			const auto arr = std::get<1>(top);
-			mxDestroyArray(arr);
+
+			//Seems like we only need to destroy the last array within the stack. 
+			//Trying to delete all arrays or only the structs gave an access violation exception! 
+			if(mFields.size()==1) 
+				mxDestroyArray(arr);
+
 			mFields.pop();
 		};
 	};
