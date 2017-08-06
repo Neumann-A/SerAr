@@ -59,7 +59,6 @@ namespace Archives
 {
 	namespace traits
 	{
-
 		//Check if Type has the function create_MATLAB within the Archive
 		template<class Class, typename ...Args>
 		using create_MATLAB_t = decltype(std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...));
@@ -68,19 +67,16 @@ namespace Archives
 		template<typename MATClass, typename Type>
 		static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
 
-
-
 		//Check if the type has a function to load it from an mxArray
 		template<class Class, typename ...Args>
 		using loadtype_MATLAB_t = decltype(std::declval<Class>().loadType(std::declval<std::decay_t<Args>>()...));
 		template<typename MATClass, typename Type>
-		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type, mxArray const * const> {};
+		class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
 
 		//template<typename MATClass, typename Type>
 		//class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
 		template<typename MATClass, typename Type>
-		constexpr bool has_loadType_MATLAB_v = has_loadType_MATLAB<MATClass, Type>::value;
-
+		static constexpr bool has_loadType_MATLAB_v = has_loadType_MATLAB<MATClass, Type>::value;
 	}
 
 	namespace MATLAB
@@ -117,55 +113,40 @@ namespace Archives
 		//Partial specialization for all relevant types
 		template<typename CharT, typename TraitsT, typename AllocatorT>
 		struct MATLABClassFinder<std::basic_string<CharT, TraitsT,AllocatorT>> : MATLAB_CellClass {};
-
 		template<typename ...Args>
 		struct MATLABClassFinder<std::tuple<Args...>> : MATLAB_CellClass {};
-
 		template<>
 		struct MATLABClassFinder<const char*> : MATLAB_CharClass {};
-
 		template<>
 		struct MATLABClassFinder<bool> : MATLAB_LogicalClass {};
-
 		template<>
 		struct MATLABClassFinder<std::uint8_t> : MATLAB_UInt8Class {};
-
 		template<>
 		struct MATLABClassFinder<std::int8_t> : MATLAB_Int8Class {};
-
 		template<>
 		struct MATLABClassFinder<std::uint16_t> : MATLAB_UInt16Class {};
-
 		template<>
 		struct MATLABClassFinder<std::int16_t> : MATLAB_Int16Class {};
-
 		template<>
 		struct MATLABClassFinder<std::uint32_t> : MATLAB_UInt32Class {};
 		//template<>
 		//struct MATLABClassFinder<unsigned long> : MATLAB_UInt32Class {};
-		
 		template<>
 		struct MATLABClassFinder<std::int32_t> : MATLAB_Int32Class {};
 		// template<>
 		// struct MATLABClassFinder<long> : MATLAB_Int32Class {};
-
 		template<>
 		struct MATLABClassFinder<std::uint64_t> : MATLAB_UInt64Class {};
 		// template<>
 		// struct MATLABClassFinder<unsigned long long> : MATLAB_UInt64Class {};
-
 		// template<>
 		// struct MATLABClassFinder<std::size_t> : MATLAB_UInt64Class {};
-
 		template<>
 		struct MATLABClassFinder<std::int64_t> : MATLAB_Int64Class {};
-
 		template<>
 		struct MATLABClassFinder<float> : MATLAB_SingleClass {};
-
 		template<>
 		struct MATLABClassFinder<double> : MATLAB_DoubleClass {};
-
 		//NOTE: Narrowing conversion to MATLAB. There seems to be no long double conversion in MATLAB!
 		template<>
 		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {}; 
@@ -219,7 +200,6 @@ namespace Archives
 			}() };
 			return mode;
 		}
-
 	};
 
 	///-------------------------------------------------------------------------------------------------
@@ -230,8 +210,6 @@ namespace Archives
 	class MatlabOutputArchive : public OutputArchive<MatlabOutputArchive>
 	{
 		friend class OutputArchive<MatlabOutputArchive>;
-		//template <typename,typename> friend class traits::has_create_MATLAB;
-		
 		//needed so that the detector idom works with clang-cl (for some unknown reason!)
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 
@@ -544,7 +522,7 @@ namespace Archives
 
 		//TODO: Write load function!
 		template<typename T>
-		inline void load(const Archives::NamedValue<T>& value)
+		inline void load(Archives::NamedValue<T>& value)
 		{
 			checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
 			loadNextField(value.getName());     //Loads the next Field with given name; (Move Down)
@@ -569,7 +547,28 @@ namespace Archives
 				throw std::runtime_error{ std::string{ "Type mismatch. Cannot load value from field: " } +name };
 			}
 		}
+		template<typename T>
+		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget)
+		{
+			using DataType = std::decay_t<T>;
+			T = *reinterpret_cast<DataType*>(mxGetData(field));
 
+		};
+		template<typename T>
+		inline std::enable_if_t<stdext::is_string_v<T>> loadType(T& loadtarget)
+		{
+			using DataType = std::decay_t<T>;
+			T = std::string{ *reinterpret_cast<DataType*>(mxGetData(field)) };
+
+		};
+		template<typename T>
+		inline std::enable_if_t<stdext::is_container_v<T>> loadType(T& loadtarget)
+		{
+			using DataType = std::decay_t<T>;
+			const auto ndims = mxGetNumberOfDimensions(field);
+			const auto* dims = mxGetDimensions(field);
+
+		};
 
 	private:
 		MATFile &m_MatlabFile;
@@ -629,7 +628,6 @@ namespace Archives
 				throw std::runtime_error{ std::string{ "Could not open field: " } +str };
 			mFields.emplace(str, nextarr);
 		}
-
 		inline void releaseField() noexcept
 		{
 			assert(!mFields.empty());
@@ -638,31 +636,7 @@ namespace Archives
 			const auto arr = std::get<1>(top);
 			mxDestroyArray(arr);
 			mFields.pop();
-		}
-
-		template<typename T>
-		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> loadType(T& loadtarget, mxArray const * const field)
-		{
-			using DataType = std::decay_t<T>;
-			T = *reinterpret_cast<DataType*>(mxGetData(field));
-
-		}
-		template<typename T>
-		inline std::enable_if_t<stdext::is_string_v<T>> loadType(T& loadtarget, mxArray const * const field)
-		{
-			using DataType = std::decay_t<T>;
-			T = std::string{ *reinterpret_cast<DataType*>(mxGetData(field)) };
-
-		}
-		template<typename T>
-		inline std::enable_if_t<stdext::is_container_v<T>> loadType(T& loadtarget, mxArray const * const field)
-		{
-			using DataType = std::decay_t<T>;
-			const auto ndims = mxGetNumberOfDimensions(field);
-			const auto* dims = mxGetDimensions(field);
-
-		}
-
+		};
 	};
 
 }

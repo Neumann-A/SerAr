@@ -140,6 +140,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -153,6 +154,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -167,6 +169,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\IntelSWTools\compilers_and_libraries_2017.0.109\windows\ipp\lib\intel64_win;$(SolutionDir)..\..\..\SkyDrive\VSProj\Extern\MATLAB\lib\win64\microsoft\</AdditionalLibraryDirectories>
@@ -183,6 +186,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Basic_Library\;$(SolutionDir)Archive\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -201,6 +205,7 @@
       <SDLCheck>true</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -223,6 +228,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <DiagnosticsFormat />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
