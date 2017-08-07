@@ -151,6 +151,10 @@ namespace Archives
 		//NOTE: Narrowing conversion to MATLAB. There seems to be no long double conversion in MATLAB!
 		template<>
 		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {}; 
+#ifdef EIGEN_CORE_H
+		template<typename T>
+		struct MATLABClassFinder<Eigen::EigenBase<T>> : MATLABClassFinder<typename T::Scalar> {};
+#endif
 	}
 
 	//Enum to represent the different Matlab file modes!
@@ -203,6 +207,8 @@ namespace Archives
 		}
 	};
 
+
+
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	A matlab output archive. </summary>
 	///
@@ -210,6 +216,8 @@ namespace Archives
 	///-------------------------------------------------------------------------------------------------
 	class MatlabOutputArchive : public OutputArchive<MatlabOutputArchive>
 	{
+		//TODO: Make the Code for the MatlabOutputArchive cleaner. The Code for the MatlabInputArchive seems much cleaner than this one!
+
 		friend class OutputArchive<MatlabOutputArchive>;
 		//needed so that the detector idom works with clang-cl (for some unknown reason!)
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
@@ -387,6 +395,7 @@ namespace Archives
 
 			//Cast needed since mxGetPr always returns an double pointer!
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+			assert(dataposition != nullptr);
 
 			for (const auto& tmp : value)
 			{
@@ -449,23 +458,22 @@ namespace Archives
 
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
 		
-			if (dataposition == nullptr)
-				throw std::runtime_error{ "Unable get data pointer!" };
+			assert(dataposition != nullptr);
 
 			//Be aware: of strange storage order!
 			for (const auto& tmp : value)
 			{
-				if (!EigenMatrix::IsRowMajor) {
+				if constexpr (EigenMatrix::IsRowMajor) {
 					Eigen::Map< EigenMatrix, Eigen::Unaligned, Eigen::Stride<1, EigenMatrix::ColsAtCompileTime> >(dataposition, tmp.rows(), tmp.cols()) = tmp;
 				}
 				else {
 					Eigen::Map< EigenMatrix, Eigen::Unaligned>(dataposition, tmp.rows(), tmp.cols()) = tmp;
 				}
-				if (EigenMatrix::IsVectorAtCompileTime)	{
+				if constexpr (EigenMatrix::IsVectorAtCompileTime)	{
 					dataposition += rows > cols ? rows : cols;
 				}
 				else {
-					dataposition += rows + cols + 1;
+					dataposition += rows*cols;
 				}		
 			}																																									
 			return *valarray;
@@ -483,7 +491,7 @@ namespace Archives
 
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
 			/* Inserting Data into Array */
-			if (!T::IsRowMajor && !T::IsVectorAtCompileTime)
+			if constexpr (T::IsRowMajor && !T::IsVectorAtCompileTime)
 			{
 				Eigen::Map< T, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(dataposition, value.rows(), value.cols()) = value;
 			}
@@ -534,19 +542,12 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t<traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
 		{			
-			using Type = std::remove_reference_t<T>; // T cannot be const 
+			using Type = std::decay_t<T>; // T cannot be const 
 			const auto fieldptr = std::get<1>(mFields.top());
-
+			
 			//Check Type
-			if (mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<Type>::value)
-			{
-				getValue(value, fieldptr);
-			}
-			else //Wrong type in Field!
-			{
-				const auto name = std::get<0>(mFields.top());
-				throw std::runtime_error{ std::string{ "Type mismatch. Cannot load value from field: " } +name };
-			}
+			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<Type>::value);
+			getValue(value, fieldptr);
 		}
 		template<typename T>
 		inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> getValue(T& loadtarget, mxArray const * const field)
@@ -554,30 +555,112 @@ namespace Archives
 			assert(field != nullptr);
 			using DataType = std::decay_t<T>;
 			loadtarget = *reinterpret_cast<DataType*>(mxGetData(field));
-
 		};
 		template<typename T>
 		inline std::enable_if_t<stdext::is_string_v<T>> getValue(T& loadtarget, mxArray const * const field)
 		{
 			assert(field != nullptr);
-			//const char* str = nullptr;
-			//const auto length1 = mxGetM(field);
 			const auto length = mxGetN(field);
-			//std::cout << length1 << " " <<length2  << std::endl;
 			auto res = mxArrayToString(field);
-			loadtarget = std::string{ std::move(res), length+1 };
-			mxFree(res);
-
+			loadtarget = std::string{ std::move(res), length+1 }; // Copy data into string. 
+			mxFree(res); //mxArrayToString uses heap memory for the returned char array. 
 		};
+
 		template<typename T>
-		inline std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>>> getValue(T& loadtarget, mxArray const * const field)
+		inline std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>>> load(T& value)
 		{
-			assert(field != nullptr);
-			using DataType = typename std::decay_t<T>::value_type;
-			const auto ndims = mxGetNumberOfDimensions(field);
-			const auto* dims = mxGetDimensions(field);
+			//TODO: Check if this will work for all containers containing arithmetic types!
+			using Type = std::decay_t<T>; // T cannot be const
+			using DataType = typename std::decay_t<typename std::decay_t<T>::value_type>;
+			const auto fieldptr = std::get<1>(mFields.top());
+			const auto cols = mxGetN(fieldptr);
+			const auto rows = mxGetM(fieldptr);
 
-		};
+			assert(mxGetNumberOfDimensions(fieldptr) == 2); //Dimensions in Matlab will always have a minimum of two dimensions!
+			assert(std::min(cols, rows) == 1); // 1D-Array!
+			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<DataType>::value);
+
+			const auto size = std::max(cols, rows);
+	
+			resizeContainer(value, size);
+			
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
+			assert(dataposition != nullptr);
+
+			for (auto& elem : value)
+			{
+				elem = *dataposition;
+				++dataposition;
+			}
+		}
+
+#ifdef EIGEN_CORE_H
+
+		template<typename T>
+		inline std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<T>>> load(T& value)
+		{
+			using Type = std::decay_t<T>; // T cannot be const
+			using DataType = typename T::Scalar;
+			const auto fieldptr = std::get<1>(mFields.top());
+
+			assert(mxGetNumberOfDimensions(fieldptr) == 2);
+			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<DataType>::value);
+
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
+			assert(dataposition != nullptr);
+
+			const auto cols = mxGetN(fieldptr);
+			const auto rows = mxGetM(fieldptr);
+			
+			assignEigenType(value, dataposition, rows, cols);
+		}
+
+		template<typename T>
+		inline std::enable_if_t<stdext::is_container_with_eigen_type_v<std::decay_t<T>>> load(T& value)
+		{
+			using Type = std::decay_t<T>;
+			using EigenType = std::decay_t<typename std::decay_t<T>::value_type>; // T cannot be const
+			using DataType = typename EigenType::Scalar;
+			
+			const auto fieldptr = std::get<1>(mFields.top());
+			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<DataType>::value);
+			
+			const auto ndims = mxGetNumberOfDimensions(fieldptr);
+			const auto dims = mxGetDimensions(fieldptr);
+
+			assert(ndims == 2 || ndims == 3);
+
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
+
+			if (ndims == 2) //Special 2D Case -> Means that EigenType should be a Vector
+			{
+				const auto elemsize = dims[0];
+				const auto length = dims[1];
+
+				resizeContainer(value,length);
+				
+				for (auto &elem : value)
+				{					
+					assignEigenType(elem, dataposition, elemsize,1);
+					dataposition += elemsize;	
+				}
+			}
+			else //if (ndims == 3) // 3D Case -> Means that EigenType is a Matrix!
+			{				
+				const auto rows = dims[0];
+				const auto cols = dims[1];
+				const auto size = dims[2];
+
+				resizeContainer(value,size);
+
+				for (auto &elem : value)
+				{
+					assignEigenType(elem, dataposition, rows, cols);
+					dataposition += rows * cols;
+				}
+			}
+		}
+#endif
 
 	private:
 		MATFile &m_MatlabFile;
@@ -618,7 +701,8 @@ namespace Archives
 
 			}
 
-		}
+		};
+
 		inline void loadNextField(const std::string &str)
 		{
 			mxArray * nextarr = nullptr;
@@ -634,9 +718,10 @@ namespace Archives
 				nextarr = mxGetField(arr, 0, str.c_str());
 			}
 			if (nextarr == nullptr)
-				throw std::runtime_error{ std::string{ "Could not open field: " } +str };
+				throw std::runtime_error{ std::string{ "Could not access field: " } +str };
 			mFields.emplace(str, nextarr);
-		}
+		};
+
 		inline void releaseField() noexcept
 		{
 			assert(!mFields.empty());
@@ -645,12 +730,45 @@ namespace Archives
 			const auto arr = std::get<1>(top);
 
 			//Seems like we only need to destroy the last array within the stack. 
-			//Trying to delete all arrays or only the structs gave an access violation exception! 
+			//Trying to delete all other arrays or only the structs gave an access violation exception from MATLAB! 
 			if(mFields.size()==1) 
 				mxDestroyArray(arr);
 
 			mFields.pop();
 		};
+
+		template<typename Container>
+		std::enable_if_t<stdext::is_container_v<std::decay_t<Container>>> resizeContainer(Container& cont, std::size_t size)
+		{
+			if constexpr(std::is_same_v<std::decay_t<Container>, std::array<typename Container::value_type, stdext::array_size<Container>>>)
+			{
+				//TODO: check if std::array is the only fixed size container! Cannot resize this one so we assert that the size is correct.
+				assert(cont.size() == size);
+			}
+			else
+			{
+				//TODO: check if all containers can be resized. If not add extra cases!
+				cont.resize(size);
+			}
+		}
+
+#ifdef EIGEN_CORE_H
+		template<typename EigenType>
+		std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<EigenType>>> assignEigenType(EigenType& value, typename EigenType::Scalar * dataposition, const std::size_t& rows, const std::size_t& cols)
+		{
+			/* Inserting Data into Array */
+			if constexpr (EigenType::IsRowMajor && !EigenType::IsVectorAtCompileTime)
+			{
+				value = Eigen::Map< EigenType, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(dataposition, rows, cols);
+			}
+			else
+			{
+				value = Eigen::Map< EigenType, Eigen::Unaligned>(dataposition, rows, cols);
+			}
+		}
+#endif
+
+
 	};
 
 }
