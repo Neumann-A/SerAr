@@ -225,7 +225,7 @@ namespace Archives
 	public:
 		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update);
 		~MatlabOutputArchive();
-		
+		DISALLOW_COPY_AND_ASSIGN(MatlabOutputArchive)
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
@@ -373,7 +373,6 @@ namespace Archives
 		//Saving Strings
 		template<typename T>
 		std::enable_if_t<stdext::is_string_v<T>,mxArray&> createMATLABArray(const T& value) const
-		//std::enable_if_t<stdext::is_string_v<T> ,mxArray&> createMATLABArray(const T& value) const
 		{
 			mxArray *valarray = mxCreateString(value.c_str());
 			
@@ -530,7 +529,7 @@ namespace Archives
 			}
 			matClose(&m_MatlabFile);
 		};
-
+		DISALLOW_COPY_AND_ASSIGN(MatlabInputArchive)
 		//TODO: Write load function!
 		template<typename T>
 		inline void load(Archives::NamedValue<T>& value)
