@@ -523,7 +523,9 @@ namespace Archives
 			//Cleanup
 			while (!mFields.empty())
 			{
-				mxDestroyArray(std::get<1>(mFields.top()));
+				if (mFields.size() == 1)
+					mxDestroyArray(std::get<1>(mFields.top()));
+
 				mFields.pop();
 			}
 			matClose(&m_MatlabFile);
