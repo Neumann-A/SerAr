@@ -741,6 +741,7 @@ namespace Archives
 		template<typename Container>
 		std::enable_if_t<stdext::is_container_v<std::decay_t<Container>>> resizeContainer(Container& cont,const std::size_t& size)
 		{
+			static_assert(!stdext::is_associative_container_v<std::decay_t<Container>>, "Need to implement assosiative containers in MATLAB. Please do it ;)");
 			if constexpr(std::is_same_v<std::decay_t<Container>, std::array<typename Container::value_type, stdext::array_size<Container>>>)
 			{
 				//std::array is the only fixed size container. So we use an assert here!
@@ -750,16 +751,29 @@ namespace Archives
 			{
 				cont.resize(size);
 			}
-			else
+			else // Brute Force insert or erase! All STL containers which are not resizeable (or std::array) have insert and erase operations!
 			{
 				if(cont.size() == size) { 
-					// -> Do Nothing;
+					// -> Do Nothing; we will be overwriting the elements.
+				}
+				else if (cont.size() < size)
+				{	//too few elements
+					using DataType = std::decay_t<typename std::decay_t<Container>::value_type>;
+
+					const auto toinsert = size - cont.size();
+
+					for (auto index{ toinsert + 1 }; --index;) // +1 du to predecrement
+					{
+						cont.insert(cont.end(),DataType{}); //Insert Default constructed object. 
+					}
 				}
 				else
-				{	//TODO: Create container with correct size. Will be inefficient but is the only way to not change too much code. The current code uses range based for loops to copy the data.
-					//      Ranged based for loops seem unnecessary for containers with data() method but is the only way to handle different alignment between MATLAB and the internal datatyps. 
+				{ //too many elements
+					auto begin = cont.begin();
+					begin += size;
+					cont.erase(begin, cont.end());
 				}
-				static_assert(!stdext::is_resizeable_container_v<std::decay_t<Container>>, "Don't know how to handle containers which are not resizeable yet! Please add it :) ");
+				//static_assert(!stdext::is_resizeable_container_v<std::decay_t<Container>>, "Don't know how to handle containers which are not resizeable yet! Please add it :) ");
 			}
 		}
 
