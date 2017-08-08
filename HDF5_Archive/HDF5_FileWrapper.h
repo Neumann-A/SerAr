@@ -127,7 +127,7 @@ namespace HDF5_Wrapper
 	{
 		const HDF5_LocationWrapper _loc;
 	public:
-		HDF5_GroupWrapper()
+		HDF5_GroupWrapper();
 
 	};
 
