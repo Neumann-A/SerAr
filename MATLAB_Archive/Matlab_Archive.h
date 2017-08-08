@@ -24,6 +24,7 @@
 #include <exception>
 #include <cassert>
 #include <cstdint>
+#include <numeric>
 
 //#ifdef EIGEN_CORE_H
 //#include <Eigen/Core>
@@ -525,8 +526,9 @@ namespace Archives
 			assert(dataposition != nullptr);
 
 			/* Reading Data from Array */
-			Eigen::TensorMap<Type>(dataposition, dims) = value;
+			Eigen::TensorMap<Type>(dataposition, dims) = static_cast<T>(value);
 			return *valarray;
+			
 		}
 #endif
 #endif
@@ -704,20 +706,61 @@ namespace Archives
 
 			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<DataType>::value);
 
-			ArrayBase dimarray = value.dimensions();
+			ArrayBase dimarray = static_cast<T>(value).dimensions();
 		
+			const auto ndims = mxGetNumberOfDimensions(fieldptr);
+			const auto dims = mxGetDimensions(fieldptr);
+
+			std::size_t elemcountMATLAB{ 0 };
+			for (auto counter{ ndims }; counter; --counter)
+			{
+				elemcountMATLAB += dims[counter]; //TODO: Check for Overflow!
+			}
+
 			if (dimarray[0] == 0) // If the Tensor Type has unintialized dimensions we will use the dimension given by MATLAB to Map to the tensor!
 			{
-				const auto ndims = mxGetNumberOfDimensions(fieldptr);
-				assert(value.NumDimensions == ndims); // Programming error; Or should we partition equally onto the given ndims? Personally I would say error!
-				dimarray.data() = mxGetDimensions(fieldptr);
+				if (elemcountMATLAB % value.NumDimensions == 0)
+				{
+					const std::int64_t elemperdim = elemcountMATLAB / value.NumDimensions;
+					for (auto& elem : dimarray)
+					{
+						elem = elemperdim;
+					}
+				}
+				else if(value.NumDimensions == ndims)
+				{
+					assert(value.NumDimensions == ndims); // Programming error; Or should we partition equally onto the given ndims? Personally I would say error!
+					for (auto counter{ ndims }; counter;--counter)
+					{
+						dimarray[counter] = (std::int64_t)dims[counter]; //TODO: Check for Overflow. Narrowing conversion from uint64_t
+					}
+				}
+				else
+				{
+					throw std::runtime_error{"Cannot partition MATLAB data into tensor. Number of elements wrong. (Maybe add padding to data?)"};
+				}
+				static_cast<T&>(value).resize(dimarray);
 			}
-					
+			else
+			{
+				const auto countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 0);
+				if (countTensor != elemcountMATLAB) { //Should this really throw? Even in the case Tensor < Matlab? 
+					throw std::runtime_error{ std::string{"Element count between the provided Tensor and MATLAB disagree!"} };
+				}
+			}
+
+			std::size_t counter{ 0 };
+			for (const auto& elem : dimarray)
+			{
+				std::cout << "\nDim" << ++counter << ": " << elem << "\t";
+			}
+			std::cout << "\n";
+
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
 			assert(dataposition != nullptr);
 
 			/* Reading Data from Array */
-			value = Eigen::TensorMap<Type, Eigen::Unaligned>(dataposition, dimarray);
+			static_cast<T&>(value) = Eigen::TensorMap<Type, Eigen::Unaligned>(dataposition, dimarray);
 		}
 #endif
 #endif
@@ -839,6 +882,7 @@ namespace Archives
 		template<typename EigenType>
 		std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<EigenType>>> assignEigenType(EigenType& value, typename EigenType::Scalar * dataposition, const std::size_t& rows, const std::size_t& cols)
 		{
+			//TODO: Resize EigenType if necessary
 			/* Inserting Data into Array */
 			if constexpr (EigenType::IsRowMajor && !EigenType::IsVectorAtCompileTime)
 			{
