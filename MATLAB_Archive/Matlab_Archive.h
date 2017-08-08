@@ -739,17 +739,27 @@ namespace Archives
 		};
 
 		template<typename Container>
-		std::enable_if_t<stdext::is_container_v<std::decay_t<Container>>> resizeContainer(Container& cont, std::size_t size)
+		std::enable_if_t<stdext::is_container_v<std::decay_t<Container>>> resizeContainer(Container& cont,const std::size_t& size)
 		{
 			if constexpr(std::is_same_v<std::decay_t<Container>, std::array<typename Container::value_type, stdext::array_size<Container>>>)
 			{
-				//TODO: check if std::array is the only fixed size container! Cannot resize this one so we assert that the size is correct.
+				//std::array is the only fixed size container. So we use an assert here!
 				assert(cont.size() == size);
+			}
+			else if constexpr(stdext::is_resizeable_container_v<std::decay_t<Container>>)
+			{
+				cont.resize(size);
 			}
 			else
 			{
-				//TODO: check if all containers can be resized. If not add extra cases!
-				cont.resize(size);
+				if(cont.size() == size) { 
+					// -> Do Nothing;
+				}
+				else
+				{	//TODO: Create container with correct size. Will be inefficient but is the only way to not change too much code. The current code uses range based for loops to copy the data.
+					//      Ranged based for loops seem unnecessary for containers with data() method but is the only way to handle different alignment between MATLAB and the internal datatyps. 
+				}
+				static_assert(!stdext::is_resizeable_container_v<std::decay_t<Container>>, "Don't know how to handle containers which are not resizeable yet! Please add it :) ");
 			}
 		}
 
@@ -760,7 +770,7 @@ namespace Archives
 			/* Inserting Data into Array */
 			if constexpr (EigenType::IsRowMajor && !EigenType::IsVectorAtCompileTime)
 			{
-				value = Eigen::Map< EigenType, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(dataposition, rows, cols);
+				value = Eigen::Map< EigenType, Eigen::Unaligned, Eigen::Stride<1, EigenType::ColsAtCompileTime> >(dataposition, rows, cols);
 			}
 			else
 			{
