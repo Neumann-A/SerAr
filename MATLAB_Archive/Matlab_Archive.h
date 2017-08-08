@@ -154,6 +154,8 @@ namespace Archives
 #ifdef EIGEN_CORE_H
 		template<typename T>
 		struct MATLABClassFinder<Eigen::EigenBase<T>> : MATLABClassFinder<typename T::Scalar> {};
+		template<typename T>
+		struct MATLABClassFinder<Eigen::TensorBase<T>> : MATLABClassFinder<typename T::Scalar> {};
 #endif
 	}
 
@@ -253,7 +255,8 @@ namespace Archives
 		}
 
 
-	private:
+	//private:
+	public:
 		const std::experimental::filesystem::path m_filepath;
 		MatlabOptions m_options;
 		MATFile &m_MatlabFile;
@@ -500,6 +503,32 @@ namespace Archives
 			}
 			return *valarray;
 		}
+
+#ifdef EIGEN_CXX11_TENSOR_TENSOR_H
+		template<typename T>
+		inline std::enable_if_t< stdext::is_eigen_tensor_v<std::decay_t<T>>, mxArray&> createMATLABArray(const Eigen::TensorBase<T>& value) const
+		{
+			using Type = std::decay_t<T>; // T cannot be const
+			using DataType = typename T::Scalar;
+			using Index = typename T::Index;
+			using Dimensions = typename T::Dimensions;
+			using ArrayBase = typename T::Dimensions::Base;
+
+			const auto ndims = value.NumDimensions;
+			const auto dims = static_cast<T>(value).dimensions();
+
+			mxArray *valarray = mxCreateNumericArray(ndims, (const std::size_t*)(dims.data()), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
+			if (valarray == nullptr)
+				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+			assert(dataposition != nullptr);
+
+			/* Reading Data from Array */
+			Eigen::TensorMap<Type>(dataposition, dims) = value;
+			return *valarray;
+		}
+#endif
 #endif
 		//TODO: tuple version
 	};
@@ -661,8 +690,37 @@ namespace Archives
 				}
 			}
 		}
-#endif
+#ifdef EIGEN_CXX11_TENSOR_TENSOR_H
+		template<typename T>
+		inline std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> load(Eigen::TensorBase<T>& value)
+		{
+			using Type = std::decay_t<T>; // T cannot be const
+			using DataType = typename T::Scalar;
+			using Index = typename T::Index;
+			using Dimensions = typename T::Dimensions;
+			using ArrayBase = typename T::Dimensions::Base;
 
+			const auto fieldptr = std::get<1>(mFields.top());
+
+			assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<DataType>::value);
+
+			ArrayBase dimarray = value.dimensions();
+		
+			if (dimarray[0] == 0) // If the Tensor Type has unintialized dimensions we will use the dimension given by MATLAB to Map to the tensor!
+			{
+				const auto ndims = mxGetNumberOfDimensions(fieldptr);
+				assert(value.NumDimensions == ndims); // Programming error; Or should we partition equally onto the given ndims? Personally I would say error!
+				dimarray.data() = mxGetDimensions(fieldptr);
+			}
+					
+			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
+			assert(dataposition != nullptr);
+
+			/* Reading Data from Array */
+			value = Eigen::TensorMap<Type, Eigen::Unaligned>(dataposition, dimarray);
+		}
+#endif
+#endif
 	private:
 		MATFile &m_MatlabFile;
 
@@ -792,6 +850,7 @@ namespace Archives
 			}
 		}
 #endif
+
 
 
 	};
