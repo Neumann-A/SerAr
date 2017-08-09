@@ -59,11 +59,11 @@
 
 namespace Archives
 {
-	namespace traits
+	namespace MATLAB_traits
 	{
 		//Check if Type has the function create_MATLAB within the Archive
-		template<class Class, typename ...Args>
-		using create_MATLAB_t = decltype(std::declval<Class>().createMATLABArray(std::declval<std::decay_t<Args>>()...));
+		template<class Class, typename Type>
+		using create_MATLAB_t = decltype(std::declval<Class>().createMATLABArray(std::declval<const Type&>()));
 		template<typename MATClass, typename Type>
 		class has_create_MATLAB : public stdext::is_detected_exact<mxArray&, create_MATLAB_t, MATClass, Type> {};
 		template<typename MATClass, typename Type>
@@ -240,7 +240,7 @@ namespace Archives
 
 		
 		template<typename T>
-		inline std::enable_if_t<traits::has_create_MATLAB_v<MatlabOutputArchive,  std::remove_reference_t<T>>> save(const T& value)
+		inline std::enable_if_t<MATLAB_traits::has_create_MATLAB_v<MatlabOutputArchive,  std::decay_t<T>>> save(const T& value)
 		{	//SFINE checks wether T can be saved by this MATLAB Archive!
 			using Type = std::remove_reference_t<T>;
 			//TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
@@ -332,7 +332,7 @@ namespace Archives
 
 		//Starting a new field
 		template<typename T>
-		inline std::enable_if_t<!traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T& val)
+		inline std::enable_if_t<!MATLAB_traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T& val)
 		{
 			checkNextFieldname(val);
 
@@ -508,7 +508,7 @@ namespace Archives
 
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
 		template<typename T>
-		inline std::enable_if_t< stdext::is_eigen_tensor_v<std::decay_t<T>>, mxArray&> createMATLABArray(const Eigen::TensorBase<T>& value) const
+		inline std::enable_if_t< stdext::is_eigen_tensor_v<std::decay_t<T>>, mxArray&> createMATLABArray(const T& value) const
 		{
 			using Type = std::decay_t<T>; // T cannot be const
 			using DataType = typename T::Scalar;
@@ -573,7 +573,7 @@ namespace Archives
 		};
 
 		template<typename T>
-		inline std::enable_if_t<traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
+		inline std::enable_if_t<MATLAB_traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
 		{			
 			using Type = std::decay_t<T>; // T cannot be const 
 			const auto fieldptr = std::get<1>(mFields.top());
@@ -696,7 +696,7 @@ namespace Archives
 		}
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
 		template<typename T>
-		inline std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> load(Eigen::TensorBase<T>& value)
+		inline std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> load(T& value)
 		{
 			using Type = std::decay_t<T>; // T cannot be const
 			using DataType = typename T::Scalar;

@@ -91,10 +91,13 @@ namespace HDF5_Wrapper
 		enum class HDF5_Access { ReadOnly, ReadWrite };
 		enum class HDF5_Creation { Exclusive, Overwrite };
 		enum class HDF5_Mode { CreateOrOverwrite, CreateOrOpen, Open, Create };
+		enum class HDF5_Datatype { Native, STD_LE, STD_BE, IEEE_LE, IEEE_BE };
 
 		HDF5_Mode mode{ HDF5_Mode::CreateOrOpen };
 		HDF5_Creation creation_property{ HDF5_Creation::Exclusive };
 		HDF5_Access access_property{ HDF5_Access::ReadWrite };
+		HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
+		HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
 
 		hid_t creation_propertylist{ H5P_DEFAULT };
 		hid_t access_propertylist{ H5P_DEFAULT };
@@ -226,14 +229,14 @@ namespace HDF5_Wrapper
 			}
 			catch (...)
 			{
-				std::err << "HDF5: Some error while destructing: " << typeid(*this).name() << "\n";
+				std::cerr << "HDF5: Some error while destructing: " << typeid(*this).name() << "\n";
 			}
 		}
 
 		auto& getLocation() const noexcept { return mLoc; };
 
 		template<typename U>
-		U openOrCreateLocation(const std::filesystem::path& path,const HDF5_OptionsWrapper<U>::type& options)
+		U openOrCreateLocation(const std::filesystem::path& path,const typename HDF5_OptionsWrapper<U>::type& options)
 		{			
 			U newLocation{ HDF5_OpenCreateCloseWrapper<U>::openOrCreate(*this,path,options) };
 			return newLocation;
@@ -249,7 +252,7 @@ namespace HDF5_Wrapper
 			{
 				switch (options.mode)
 				{
-				case HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite || HDF5_GeneralOptions::HDF5_Mode::Create:
+				case HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite: case HDF5_GeneralOptions::HDF5_Mode::Create:
 					return H5Fcreate(path.string().c_str(), options.getCreationFlags(), options.creation_propertylist, options.getAccessFlags());
 				case HDF5_GeneralOptions::HDF5_Mode::CreateOrOpen:
 				{
@@ -270,10 +273,9 @@ namespace HDF5_Wrapper
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
 					return H5Screate(options.type);
-				default:
-					assert(false); // Programming error;
-					return (hid_t)(-1);
 				}
+				assert(false); // Programming error;
+				return (hid_t)(-1);
 			}
 			assert(false); // Programming error;
 			return (hid_t)(-1);
@@ -360,7 +362,7 @@ namespace HDF5_Wrapper
 	class HDF5_GroupWrapper : HDF5_GeneralLocation<HDF5_GroupWrapper>
 	{
 	public:
-		HDF5_GroupWrapper();
+		HDF5_GroupWrapper(hid_t loc) : HDF5_GeneralLocation<HDF5_GroupWrapper>(std::move(loc)) {};
 	};
 
 	class HDF5_AttributeWrapper : HDF5_GeneralLocation<HDF5_AttributeWrapper>
