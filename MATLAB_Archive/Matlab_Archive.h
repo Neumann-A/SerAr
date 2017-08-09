@@ -13,6 +13,9 @@
 ///---------------------------------------------------------------------------------------------------
 #pragma once
 
+#include <cassert>
+#include <cstdint>
+
 #include <experimental/filesystem>
 #include <type_traits>
 #include <utility>
@@ -22,8 +25,6 @@
 #include <regex>
 #include <complex>
 #include <exception>
-#include <cassert>
-#include <cstdint>
 #include <numeric>
 
 //#ifdef EIGEN_CORE_H
@@ -660,7 +661,8 @@ namespace Archives
 			const auto ndims = mxGetNumberOfDimensions(fieldptr);
 			const auto dims = mxGetDimensions(fieldptr);
 
-			assert(ndims == 2 || ndims == 3);
+			if(!(ndims == 2 || ndims == 3))
+				throw std::runtime_error{"Cannot load data from MATLAB! Dimension mismatch"};
 
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
 
@@ -712,14 +714,23 @@ namespace Archives
 			const auto dims = mxGetDimensions(fieldptr);
 
 			std::size_t elemcountMATLAB{ 0 };
-			for (auto counter{ ndims }; counter; --counter)
+			for (std::size_t index{ 0 }; index < ndims; ++index )
 			{
-				elemcountMATLAB += dims[counter]; //TODO: Check for Overflow!
+				elemcountMATLAB = elemcountMATLAB + dims[index]; //TODO: Check for Overflow!
 			}
 
 			if (dimarray[0] == 0) // If the Tensor Type has unintialized dimensions we will use the dimension given by MATLAB to Map to the tensor!
 			{
-				if (elemcountMATLAB % value.NumDimensions == 0)
+				//Number of Elments agree
+				if (value.NumDimensions == ndims)
+				{
+					for (std::size_t index{ 0 }; index < ndims; ++index)
+					{
+						dimarray[index] = (std::int64_t)(dims[index]); //TODO: Check for Overflow. Narrowing conversion from uint64_t
+					}
+				}
+				else if (elemcountMATLAB % value.NumDimensions == 0)
+					// && value.NumDimensions != ndims; Number of Dimensions does not agree but number of elements can be equally maped to the Tensor
 				{
 					const std::int64_t elemperdim = elemcountMATLAB / value.NumDimensions;
 					for (auto& elem : dimarray)
@@ -727,15 +738,7 @@ namespace Archives
 						elem = elemperdim;
 					}
 				}
-				else if(value.NumDimensions == ndims)
-				{
-					assert(value.NumDimensions == ndims); // Programming error; Or should we partition equally onto the given ndims? Personally I would say error!
-					for (auto counter{ ndims }; counter;--counter)
-					{
-						dimarray[counter] = (std::int64_t)dims[counter]; //TODO: Check for Overflow. Narrowing conversion from uint64_t
-					}
-				}
-				else
+				else // Cannot map the Data! -> User Error -> throw Exception
 				{
 					throw std::runtime_error{"Cannot partition MATLAB data into tensor. Number of elements wrong. (Maybe add padding to data?)"};
 				}
@@ -744,20 +747,13 @@ namespace Archives
 			else
 			{
 				const auto countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 0);
-				if (countTensor != elemcountMATLAB) { //Should this really throw? Even in the case Tensor < Matlab? 
+				if (countTensor != elemcountMATLAB) //To many or to few elements; will either cut or leave values empty
+				{ //Should this really throw? Even in the case Tensor < Matlab? 
 					throw std::runtime_error{ std::string{"Element count between the provided Tensor and MATLAB disagree!"} };
 				}
 			}
-
-			std::size_t counter{ 0 };
-			for (const auto& elem : dimarray)
-			{
-				std::cout << "\nDim" << ++counter << ": " << elem << "\t";
-			}
-			std::cout << "\n";
-
 			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(fieldptr));
-			assert(dataposition != nullptr);
+			assert(dataposition != nullptr); //NULLPTR means no data -> throw instead since user error?
 
 			/* Reading Data from Array */
 			static_cast<T&>(value) = Eigen::TensorMap<Type, Eigen::Unaligned>(dataposition, dimarray);
@@ -800,9 +796,7 @@ namespace Archives
 					const auto& name = std::get<0>(top);
 					throw std::runtime_error{ std::string{ "Unable to nest current field. Field is not a struct. Fieldname: " } +name };
 				}
-
 			}
-
 		};
 
 		inline void loadNextField(const std::string &str)
