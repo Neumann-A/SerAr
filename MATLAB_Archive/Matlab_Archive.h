@@ -156,8 +156,10 @@ namespace Archives
 #ifdef EIGEN_CORE_H
 		template<typename T>
 		struct MATLABClassFinder<Eigen::EigenBase<T>> : MATLABClassFinder<typename T::Scalar> {};
+#ifdef EIGEN_CXX11_TENSOR_TENSOR_H
 		template<typename T>
 		struct MATLABClassFinder<Eigen::TensorBase<T>> : MATLABClassFinder<typename T::Scalar> {};
+#endif
 #endif
 	}
 
@@ -258,7 +260,7 @@ namespace Archives
 
 
 	//private:
-	public:
+	private:
 		const std::experimental::filesystem::path m_filepath;
 		MatlabOptions m_options;
 		MATFile &m_MatlabFile;
@@ -746,7 +748,7 @@ namespace Archives
 			}
 			else
 			{
-				const auto countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 0);
+				const std::size_t countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 0ull);
 				if (countTensor != elemcountMATLAB) //To many or to few elements; will either cut or leave values empty
 				{ //Should this really throw? Even in the case Tensor < Matlab? 
 					throw std::runtime_error{ std::string{"Element count between the provided Tensor and MATLAB disagree!"} };

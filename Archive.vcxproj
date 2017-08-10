@@ -255,6 +255,7 @@
     <ClInclude Include="CerealWrappers\PortableBinaryArchiveWrapper.h" />
     <ClInclude Include="CerealWrappers\XMLArchiveWrapper.h" />
     <ClInclude Include="ConfigFile_Archive\ConfigFile_Archive.h" />
+    <ClInclude Include="HDF5_Archive\HDF5_Type_Selector.h" />
     <ClInclude Include="HDF5_Archive\HDF5_FileWrapper.h" />
     <ClInclude Include="HDF5_Archive\HDF5_Archive.h" />
     <ClInclude Include="MATLAB_Archive\Matlab_Archive.h" />
