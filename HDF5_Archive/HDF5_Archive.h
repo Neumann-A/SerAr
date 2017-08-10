@@ -86,6 +86,9 @@
 
 namespace Archives
 {
+	class HDF5_OutputArchive;
+	class HDF5_InputArchive;
+
 	namespace HDF5_traits
 	{
 		//Member Function type for converting values to strings
@@ -93,14 +96,14 @@ namespace Archives
 		using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<std::decay_t<Args>>()...));
 
 		template<typename Datatype>
-		class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, Datatype> {};
+		class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, HDF5_OutputArchive, Datatype> {};
 		template<typename Type>
 		static constexpr bool has_write_to_HDF5_v = has_write_to_HDF5<Type>::value;
 
 		template<class Class, typename ...Args>
 		using getData_from_HDF5_t = decltype(std::declval<Class>().getData(std::declval<std::decay_t<Args>>()...));
 		template<typename Datatype>
-		class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, Datatype> {};
+		class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, HDF5_InputArchive, Datatype> {};
 		template<typename Type>
 		static constexpr bool has_getData_from_HDF5_v = has_getData_from_HDF5<Type>::value;
 	}
@@ -127,23 +130,49 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			setNextLocation(value.getName());   //Set the Name of the next Field
+			setNextPath(value.getName());		//Set the Name of the next Field
 			this->operator()(value.getValue()); //Write Data to the Field/struct
-			clearNextLocation();				//Remove the last Fieldname
+			clearNextPath();					//Remove the last Fieldname
+		};
+
+		template<typename T>
+		inline std::enable_if_t< HDF5_traits::has_write_to_HDF5_v<T> > save(const T& value)
+		{
+			write(value);
 		};
 
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, HDF5_OutputArchive> > prologue(const T& value)
-		{
+		{		
 			createOrOpenDataset(value);
 		};
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, HDF5_OutputArchive> > epilogue(const T& value)
 		{
-			closeDataset(value);	//Start a new Matlab Array or Struct
+			closeDataset(value);
 		};
+
+		//If the type does not have a write to HDF5 function here it means we need to create/open a Group!
+		template<typename T>
+		inline std::enable_if_t<!HDF5_traits::has_write_to_HDF5_v<T> || is_nested_NamedValue_v<T> > prologue(const T& value)
+		{
+			if constexpr(is_nested_NamedValue_v<T>)
+				setNextPath(value.getName());
+			
+			createOrOpenGroup(value);
+			
+			if constexpr(is_nested_NamedValue_v<T>)
+				clearNextPath();
+		};
+
+		template<typename T>
+		inline std::enable_if_t<!HDF5_traits::has_write_to_HDF5_v<T> || is_nested_NamedValue_v<T> > epilogue(const T& value)
+		{
+			closeLastGroup(value);
+		};
+
 	private:
-		std::string nextLocation;
+		std::string nextPath;
 		using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
 		using File = HDF5_Wrapper::HDF5_FileWrapper;
 		std::stack<CurrentGroup> mGroupStack;
@@ -160,39 +189,54 @@ namespace Archives
 			//return file; //this called a destructor!
 		}
 
-		bool isValidNextLocation(const std::string& str) const
+		bool isValidNextLocation(const std::string&) const
 		{
 			//TODO: Check the Location name for invalid characters
 			return true;
 		}
-		void setNextLocation(const std::string& str)
+		void setNextPath(const std::string& str)
 		{
 			if (!isValidNextLocation(str))
-				throw std::runtime_error{ "Invalid HDF5 location string!" };
+				throw std::runtime_error{ "Invalid HDF5 path string!" };
 
-			if (!nextLocation.empty())
+			assert(nextPath.empty());
+			
+			nextPath = str;
+		}
+		void clearNextPath()
+		{
+			nextPath.clear();
+		}
+
+		template<typename T>
+		void createOrOpenGroup(const T&)
+		{
+			using namespace HDF5_Wrapper;
+
+			assert(!nextPath.empty());
+	
+			if (mGroupStack.empty())
 			{
-				
+				HDF5_GroupOptions opts;
+				opts.mode = HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate;
+				HDF5_GroupWrapper group{mFile,nextPath, opts};
+				mGroupStack.push(std::move(group));
 			}
 			else
 			{
-				nextLocation = str;
+				const auto& currentGroup{mGroupStack.top()};
+				HDF5_GroupOptions opts;
+				opts.mode = HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate;
+				HDF5_GroupWrapper group{ currentGroup,nextPath, opts };
+				mGroupStack.push(std::move(group));
 			}
 		}
-		void clearNextLocation(const std::string& str)
-		{
-			nextLocation.clear();
-		}
 
 		template<typename T>
-		void createOrOpenGroup(const T& val)
+		void closeLastGroup(const T&)
 		{
-
-		}
-		template<typename T>
-		void closeLastGroup(const T& val)
-		{
-
+			assert(!mGroupStack.empty());
+			mGroupStack.pop();
 		}
 
 		template<typename T>
@@ -205,12 +249,18 @@ namespace Archives
 		{
 
 		}
+
+		template <typename T>
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(const T&)
+		{
+
+		}
 	};
 
 
 	class HDF5_InputArchive : public InputArchive<HDF5_InputArchive>
 	{
-		HDF5_InputArchive(const std::experimental::filesystem::path &path) : InputArchive(this)
+		HDF5_InputArchive(const std::experimental::filesystem::path &) : InputArchive(this)
 		{
 
 		}

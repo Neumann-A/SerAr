@@ -98,21 +98,17 @@ namespace HDF5_Wrapper
 	struct HDF5_GeneralOptions
 	{
 		enum class HDF5_Mode { CreateOrOverwrite, OpenOrCreate, Open, Create };
-
 		HDF5_Mode mode{ HDF5_Mode::OpenOrCreate };
-		HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
-		HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
 
-		hid_t creation_propertylist{ H5P_DEFAULT };
-		hid_t access_propertylist{ H5P_DEFAULT };
-
-	};
+		};
 	struct HDF5_FileOptions : HDF5_GeneralOptions
 	{
 		enum class HDF5_FileCreationFlags { Exclusive, Overwrite };
 		enum class HDF5_FileAccess { ReadOnly, ReadWrite };
 		HDF5_FileCreationFlags creation_property{ HDF5_FileCreationFlags::Exclusive };
 		HDF5_FileAccess access_property{ HDF5_FileAccess::ReadWrite };
+		hid_t creation_propertylist{ H5P_DEFAULT };
+		hid_t access_propertylist{ H5P_DEFAULT };
 		unsigned int getCreationFlags() const noexcept
 		{
 			switch (mode)
@@ -124,6 +120,7 @@ namespace HDF5_Wrapper
 			default:
 				std::runtime_error{ "Invalid file creation mode!" };
 			};
+			return 0;
 		}
 		unsigned int getAccessFlags() const noexcept
 		{
@@ -137,10 +134,13 @@ namespace HDF5_Wrapper
 				std::runtime_error{ "Invalid access mode!" };
 
 			};
+			return 0;
 		};
 	};
-	struct HDF5_GroupOptions : HDF5_GeneralOptions  
+	struct HDF5_GroupOptions : HDF5_GeneralOptions
 	{
+		hid_t creation_propertylist{ H5P_DEFAULT };
+		hid_t access_propertylist{ H5P_DEFAULT };
 		hid_t link_creation_propertylist{ H5P_DEFAULT };
 		hid_t getLinkCreationFlags() const noexcept
 		{
@@ -159,6 +159,10 @@ namespace HDF5_Wrapper
 	{
 		hid_t datatype_id;
 		hid_t dataspace_id;
+
+		HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
+		HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
+
 
 		hid_t link_creation_propertylist{ H5P_DEFAULT };
 		hid_t creation_propertylist{ H5P_DEFAULT };
@@ -244,16 +248,18 @@ namespace HDF5_Wrapper
 	template<typename T>
 	class HDF5_GeneralLocation 
 	{
-	private:
+		static_assert(std::is_same_v<T, std::decay_t<T>>);
+
 		HDF5_LocationWrapper mLoc;
 		bool wasMoved{ false };
 	public:
 		using Base = T;
 		DISALLOW_COPY_AND_ASSIGN(HDF5_GeneralLocation)
 
+	protected:
 		explicit HDF5_GeneralLocation(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) 
 		{};
-		
+	public:	
 		HDF5_GeneralLocation(HDF5_GeneralLocation&& rhs) : mLoc(std::move(rhs.mLoc))
 		{
 			rhs.wasMoved = true;
@@ -330,14 +336,16 @@ namespace HDF5_Wrapper
 				switch (options.mode)
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
+				{
 					const auto test = H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
 					if (test < 0)
-						return H5Gcreate(loc.getLocation, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+						return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 					return test;
+				}
 				case HDF5_GeneralOptions::HDF5_Mode::Open:
 					return H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
-					return H5Gcreate(loc.getLocation, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+					return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 				default:
 					assert(false); 
 					return (hid_t)(-1);
@@ -357,7 +365,6 @@ namespace HDF5_Wrapper
 			{
 
 			}
-			assert(false); // Programming error;
 			return (hid_t)(-1);
 		}
 
@@ -402,8 +409,23 @@ namespace HDF5_Wrapper
 
 	class HDF5_GroupWrapper : public HDF5_GeneralLocation<HDF5_GroupWrapper>
 	{
+		using ThisClass = HDF5_GroupWrapper;
+
+		template<typename T>
+		static HDF5_LocationWrapper openOrCreateFile(const HDF5_GeneralLocation<T> &loc ,const std::experimental::filesystem::path &path, const HDF5_GroupOptions& options = HDF5_GroupOptions{})
+		{
+			if (path.has_extension())
+				throw ::std::runtime_error{ "Group path should not have an extension!" };
+
+			if (path.has_filename())
+				throw ::std::runtime_error{ "Group path should not have a filename!" };
+
+			return HDF5_LocationWrapper(HDF5_OpenCreateCloseWrapper<ThisClass>::openOrCreate(loc, path, options));
+		}
 	public:
-		//HDF5_GroupWrapper(hid_t loc) : HDF5_GeneralLocation<HDF5_GroupWrapper>(std::move(loc)) {};
+		template<typename T>
+		HDF5_GroupWrapper(const HDF5_GeneralLocation<T> &loc, const std::experimental::filesystem::path &path, const HDF5_GroupOptions& options = HDF5_GroupOptions{})
+			: HDF5_GeneralLocation<HDF5_GroupWrapper>(openOrCreateFile(loc,path,options)) {};
 	};
 
 	class HDF5_AttributeWrapper : public HDF5_GeneralLocation<HDF5_AttributeWrapper>
@@ -419,7 +441,6 @@ namespace HDF5_Wrapper
 	class HDF5_FileWrapper : public HDF5_GeneralLocation<HDF5_FileWrapper>
 	{
 		using ThisClass = HDF5_FileWrapper;
-	private:
 		//std::experimental::filesystem::path _filepath;
 		HDF5_FileOptions moptions;
 		
