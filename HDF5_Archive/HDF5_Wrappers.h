@@ -187,25 +187,20 @@ namespace HDF5_Wrapper
 
 		inline explicit HDF5_LocationWrapper(hid_t locID) : mLocation(std::move(locID))
 		{
-			std::cout << "Constructing Location!" << std::endl;
 			if (!isValid()) {
 				throw std::runtime_error{ "Invalid HDF5 location." };
 			};
 		};
 
-		~HDF5_LocationWrapper()
-		{
-			std::cout << "Deconstruction Location!" << std::endl;
-		}
-		//inline const hid_t& getLoc() const noexcept { return mLocation; }; //We use the Implicit Conversion instead!
+		inline ~HDF5_LocationWrapper() noexcept = default;
 
-		inline operator hid_t() const 
+		inline operator const hid_t&() const 
 		{ 
 			return mLocation; 
 				
 		}; //Implicit Conversion Operator! 
 
-		inline std::string getName() const noexcept
+		inline std::string getHDF5Path() const noexcept
 		{
 			std::string res;
 			
@@ -214,6 +209,18 @@ namespace HDF5_Wrapper
 
 			H5Iget_name(mLocation, res.data(), size+1);
 			
+			return res;
+		}
+
+		inline std::string getHDF5Fullpath() const noexcept
+		{
+			std::string res;
+
+			auto size = H5Fget_name(mLocation, nullptr, 0);
+			res.resize(size + 1);
+
+			H5Fget_name(mLocation, res.data(), size + 1);
+
 			return res;
 		}
 	};
@@ -239,22 +246,31 @@ namespace HDF5_Wrapper
 	{
 	private:
 		HDF5_LocationWrapper mLoc;
+		bool wasMoved{ false };
 	public:
 		using Base = T;
-		//explicit HDF5_GeneralLocation(hid_t locID) : mLoc(std::move(locID)) {};
-		explicit HDF5_GeneralLocation(HDF5_LocationWrapper locID) : mLoc(std::move(locID)) 
-		{
-			std::cout << "HDF5_GeneralLocation construction!" << "\n";
-		};
 		DISALLOW_COPY_AND_ASSIGN(HDF5_GeneralLocation)
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_GeneralLocation)
+
+		explicit HDF5_GeneralLocation(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) 
+		{};
+		
+		HDF5_GeneralLocation(HDF5_GeneralLocation&& rhs) : mLoc(std::move(rhs.mLoc))
+		{
+			rhs.wasMoved = true;
+		}//Move Constructor
+		HDF5_GeneralLocation& operator=(HDF5_GeneralLocation&& rhs)
+		{
+			this->mLoc = std::move(rhs.mLoc);
+			rhs.wasMoved = true;
+		}; //Move Assignment
 
 		~HDF5_GeneralLocation() noexcept
 		{		
-			std::cout << "HDF5_GeneralLocation destructor!" << "\n";
+			if (!wasMoved)
 			try
 			{
-				HDF5_OpenCreateCloseWrapper<T>::close(mLoc);
+				
+					HDF5_OpenCreateCloseWrapper<T>::close(mLoc);
 			}
 			catch (...)
 			{
@@ -418,9 +434,7 @@ namespace HDF5_Wrapper
 	public:
 		explicit HDF5_FileWrapper(const std::experimental::filesystem::path &path, const HDF5_FileOptions& options = HDF5_FileOptions{})
 			: HDF5_GeneralLocation<HDF5_FileWrapper>(openOrCreateFile(path, options)), moptions(options)
-		{
-			std::cout << getLocation().getName() << std::endl;
-		};
+		{};
 
 		DISALLOW_COPY_AND_ASSIGN(HDF5_FileWrapper)
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_FileWrapper)

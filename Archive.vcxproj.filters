@@ -72,10 +72,10 @@
     <ClInclude Include="HDF5_Archive\HDF5_Archive.h">
       <Filter>HDF5</Filter>
     </ClInclude>
-    <ClInclude Include="HDF5_Archive\HDF5_FileWrapper.h">
+    <ClInclude Include="HDF5_Archive\HDF5_Type_Selector.h">
       <Filter>HDF5</Filter>
     </ClInclude>
-    <ClInclude Include="HDF5_Archive\HDF5_Type_Selector.h">
+    <ClInclude Include="HDF5_Archive\HDF5_Wrappers.h">
       <Filter>HDF5</Filter>
     </ClInclude>
   </ItemGroup>
@@ -107,7 +107,7 @@
     <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp">
       <Filter>HDF5</Filter>
     </ClCompile>
-    <ClCompile Include="HDF5_Archive\HDF5_FileWrapper.cpp">
+    <ClCompile Include="HDF5_Archive\HDF5_Wrappers.cpp">
       <Filter>HDF5</Filter>
     </ClCompile>
   </ItemGroup>

@@ -82,7 +82,7 @@
 #include "Archive/InputArchive.h"
 #include "Archive/OutputArchive.h"
 
-#include "HDF5_FileWrapper.h"
+#include "HDF5_Wrappers.h"
 
 namespace Archives
 {
@@ -118,7 +118,8 @@ namespace Archives
 	public:
 		HDF5_OutputArchive(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options) : OutputArchive(this), mFile(openOrCreateFile(path,options))
 		{
-			std::cout << mFile.getLocation().getName() << std::endl;
+			//std::cout << mFile.getLocation().getHDF5Path() << std::endl;
+			//std::cout << mFile.getLocation().getHDF5Fullpath() << std::endl;
 		}
 
 		DISALLOW_COPY_AND_ASSIGN(HDF5_OutputArchive)
@@ -126,7 +127,7 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			setNextLocation(value.getName());  //Set the Name of the next Field
+			setNextLocation(value.getName());   //Set the Name of the next Field
 			this->operator()(value.getValue()); //Write Data to the Field/struct
 			clearNextLocation();				//Remove the last Fieldname
 		};
