@@ -92,8 +92,8 @@ namespace Archives
 	namespace HDF5_traits
 	{
 		//Member Function type for converting values to strings
-		template<class Class, typename ...Args>
-		using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<std::decay_t<Args>>()...));
+		template<class Class, typename Args>
+		using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<HDF5_Wrapper::HDF5_DatasetWrapper&>(), std::declval<std::decay_t<Args>>()));
 
 		template<typename Datatype>
 		class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, HDF5_OutputArchive, Datatype> {};
@@ -115,6 +115,7 @@ namespace Archives
 	public:
 		HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite };
 		HDF5_Wrapper::HDF5_DatatypeOptions			 DefaultDatatypeOptions{};
+		HDF5_Wrapper::HDF5_DataspaceOptions			 DefaultDataspaceOptions{};
 	};
 
 	class HDF5_OutputArchive : public OutputArchive<HDF5_OutputArchive>
@@ -140,10 +141,10 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t< HDF5_traits::has_write_to_HDF5_v<T> > save(const T& value)
 		{
-			createOrOpenDataset(value);
-			write(value);
+			auto dataset = createOrOpenDataset(value);
+			write(dataset,value);
 		};
-
+	
 		//If the type does not have a write to HDF5 function here it means we need to create/open a Group!
 		template<typename T>
 		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_save_v<T, ThisClass> )>
@@ -242,35 +243,56 @@ namespace Archives
 
 			const auto& currentLoc = mGroupStack.top();
 
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+
 			if constexpr(std::is_arithmetic_v<std::decay_t<T>>)
 			{
 				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
-				const auto datatypid = DatatypeRuntimeSelector::getType(mOptions.DefaultDatatypeOptions.default_storage_datatyp, val);
 				
+				//TODO: Check if dataset already exists! 
+				
+				
+				//Creating the dataspace!
+				const HDF5_DataspaceOptions dataspaceopts;
+								
+				//Creating the dataset!
+				HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts) , HDF5_DataspaceWrapper(dataspacetype,dataspaceopts));
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+				return dataset;
+			}
+			else if constexpr(stdext::is_string_v<std::decay_t<T>>)
+			{
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
 				//TODO: Check if dataset already exists! 
 
 
 				//Creating the dataspace!
 				const HDF5_DataspaceOptions dataspaceopts;
-				const HDF5_DataspaceWrapper dataspace{ dataspacetype, dataspaceopts };
 
 				//Creating the dataset!
-				const HDF5_DatasetOptions datasetopts;
-				const HDF5_DatasetWrapper dataset{ currentLoc, nextPath,  };
+				HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts));
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+				return dataset;
 			}
-			else if constexpr(stdext::is_string_v<std::decay_t<T>>)
-			{
-				const auto datatypid = DatatypeRuntimeSelector::getType(mOptions.DefaultDatatypeOptions.default_storage_datatyp, val);
-			}
-			else if constexpr(stdext::is_arithmetic_container_v<std::decay_t<T>>)
-			{
-				const auto datatypid = DatatypeRuntimeSelector::getType<std::decay_t<typename T::value_type>>(mOptions.DefaultDatatypeOptions.default_storage_datatyp);
-			}
+			//else if constexpr(stdext::is_arithmetic_container_v<std::decay_t<T>>)
+			//{
+			//	const auto datatypid = DatatypeRuntimeSelector::getType<std::decay_t<typename T::value_type>>(mOptions.DefaultDatatypeOptions.default_storage_datatyp);
+			//}
 			else
 			{
 				static_assert(false);
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+				//TODO: Check if dataset already exists! 
+				//Creating the dataspace!
+				const HDF5_DataspaceOptions dataspaceopts;
+
+				//Creating the dataset!
+				HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts));
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+				return dataset;
 			}
-			
 		}
 
 		//template<typename T>
@@ -280,8 +302,15 @@ namespace Archives
 		//}
 
 		template <typename T>
-		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(const T& val)
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(HDF5_Wrapper::HDF5_DatasetWrapper& dataset, const T& val)
 		{
+			using namespace HDF5_Wrapper;
+			const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+			const HDF5_DataspaceOptions dataspaceopts;
+
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
+			dataset.writeData(val, memoryopts);
 			//Only write here
 		}
 	};

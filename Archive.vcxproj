@@ -270,8 +270,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigFile_Archive\ConfigFile_Archive.cpp" />
-    <ClCompile Include="HDF5_Archive\HDF5_Wrappers.cpp" />
-    <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp" />
+    <ClCompile Include="HDF5_Archive\HDF5_Wrappers.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="HDF5_Archive\HDF5_Archive.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="HDF5_Archive\HDF5_Type_Selector.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="MATLAB_Archive\Matlab_Archive.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
