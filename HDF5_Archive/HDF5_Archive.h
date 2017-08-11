@@ -114,12 +114,14 @@ namespace Archives
 	{
 	public:
 		HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite };
+		HDF5_Wrapper::HDF5_DatatypeOptions			 DefaultDatatypeOptions{};
 	};
 
 	class HDF5_OutputArchive : public OutputArchive<HDF5_OutputArchive>
 	{
+		using ThisClass = HDF5_OutputArchive;
 	public:
-		HDF5_OutputArchive(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options) : OutputArchive(this), mFile(openOrCreateFile(path,options))
+		HDF5_OutputArchive(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options) : OutputArchive(this), mFile(openOrCreateFile(path,options)), mOptions(options)
 		{
 			//std::cout << mFile.getLocation().getHDF5Path() << std::endl;
 			//std::cout << mFile.getLocation().getHDF5Fullpath() << std::endl;
@@ -130,54 +132,47 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			setNextPath(value.getName());		//Set the Name of the next Field
-			this->operator()(value.getValue()); //Write Data to the Field/struct
-			clearNextPath();					//Remove the last Fieldname
+			setNextPath(value.getName());		//Sets the name for the next Dataset or Group
+			this->operator()(value.getValue()); //Write Data to the Group or Dataset
+			clearNextPath();					//Remove the Last Fieldname
 		};
 
 		template<typename T>
 		inline std::enable_if_t< HDF5_traits::has_write_to_HDF5_v<T> > save(const T& value)
 		{
-			write(value);
-		};
-
-		template<typename T>
-		inline std::enable_if_t<traits::uses_type_save_v<T, HDF5_OutputArchive> > prologue(const T& value)
-		{		
 			createOrOpenDataset(value);
-		};
-		template<typename T>
-		inline std::enable_if_t<traits::uses_type_save_v<T, HDF5_OutputArchive> > epilogue(const T& value)
-		{
-			closeDataset(value);
+			write(value);
 		};
 
 		//If the type does not have a write to HDF5 function here it means we need to create/open a Group!
 		template<typename T>
-		inline std::enable_if_t<!HDF5_traits::has_write_to_HDF5_v<T> || is_nested_NamedValue_v<T> > prologue(const T& value)
+		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_save_v<T, ThisClass> )>
+			prologue(const T& value)
 		{
 			if constexpr(is_nested_NamedValue_v<T>)
 				setNextPath(value.getName());
 			
 			createOrOpenGroup(value);
 			
-			if constexpr(is_nested_NamedValue_v<T>)
-				clearNextPath();
+			clearNextPath();
 		};
 
 		template<typename T>
-		inline std::enable_if_t<!HDF5_traits::has_write_to_HDF5_v<T> || is_nested_NamedValue_v<T> > epilogue(const T& value)
+		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_save_v<T, ThisClass>) >
+			epilogue(const T& value)
 		{
 			closeLastGroup(value);
 		};
 
 	private:
-		std::string nextPath;
+		
 		using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
 		using File = HDF5_Wrapper::HDF5_FileWrapper;
-		std::stack<CurrentGroup> mGroupStack;
+		
 		File mFile;
-
+		std::stack<CurrentGroup> mGroupStack;
+		std::string nextPath;
+		HDF5_OutputOptions mOptions;
 		static File openOrCreateFile(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options)
 		{
 			using namespace HDF5_Wrapper;
@@ -238,24 +233,59 @@ namespace Archives
 			assert(!mGroupStack.empty());
 			mGroupStack.pop();
 		}
-
+		
 		template<typename T>
-		void createOrOpenDataset(const T& val)
+		HDF5_Wrapper::HDF5_DatasetWrapper createOrOpenDataset(const T& val)
 		{
+			//Open or create the Dataset here!
+			using namespace HDF5_Wrapper;
 
-		}
-		template<typename T>
-		void closeLastDataset(const T& val)
-		{
+			const auto& currentLoc = mGroupStack.top();
 
+			if constexpr(std::is_arithmetic_v<std::decay_t<T>>)
+			{
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+				const auto datatypid = DatatypeRuntimeSelector::getType(mOptions.DefaultDatatypeOptions.default_storage_datatyp, val);
+				
+				//TODO: Check if dataset already exists! 
+
+
+				//Creating the dataspace!
+				const HDF5_DataspaceOptions dataspaceopts;
+				const HDF5_DataspaceWrapper dataspace{ dataspacetype, dataspaceopts };
+
+				//Creating the dataset!
+				const HDF5_DatasetOptions datasetopts;
+				const HDF5_DatasetWrapper dataset{ currentLoc, nextPath,  };
+			}
+			else if constexpr(stdext::is_string_v<std::decay_t<T>>)
+			{
+				const auto datatypid = DatatypeRuntimeSelector::getType(mOptions.DefaultDatatypeOptions.default_storage_datatyp, val);
+			}
+			else if constexpr(stdext::is_arithmetic_container_v<std::decay_t<T>>)
+			{
+				const auto datatypid = DatatypeRuntimeSelector::getType<std::decay_t<typename T::value_type>>(mOptions.DefaultDatatypeOptions.default_storage_datatyp);
+			}
+			else
+			{
+				static_assert(false);
+			}
+			
 		}
+
+		//template<typename T>
+		//void closeDataset(const T& val, HDF5_Wrapper::HDF5_DatasetWrapper &)
+		//{
+			//Donne automatically when the Dataset moves out of scope !
+		//}
 
 		template <typename T>
-		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(const T&)
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(const T& val)
 		{
-
+			//Only write here
 		}
 	};
+
 
 
 	class HDF5_InputArchive : public InputArchive<HDF5_InputArchive>

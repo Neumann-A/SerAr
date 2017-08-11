@@ -210,5 +210,11 @@ namespace HDF5_Wrapper
 				return DatatypeSelector<HDF5_Datatype::BigEndian>::getType<T>();
 			}
 		}
+
+		template<typename T>
+		inline static constexpr auto getType(const HDF5_Datatype& type, const T&)
+		{
+			return getType<std::decay_t<T>>(type);
+		}
 	};
 }

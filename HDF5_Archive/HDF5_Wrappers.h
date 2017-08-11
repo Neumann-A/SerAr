@@ -160,23 +160,38 @@ namespace HDF5_Wrapper
 		hid_t datatype_id;
 		hid_t dataspace_id;
 
-		HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
-		HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
-
-
 		hid_t link_creation_propertylist{ H5P_DEFAULT };
 		hid_t creation_propertylist{ H5P_DEFAULT };
 		hid_t access_propertylist{ H5P_DEFAULT };
 	};
 	struct HDF5_DataspaceOptions 
 	{
-		H5S_class_t type{ H5S_SCALAR };
+		std::vector<hsize_t> dims;
+		std::vector<hsize_t> maxdims;
+
+		std::int32_t getRank() const noexcept
+		{
+			assert(dims.size() == maxdims.size());
+			return dims.size();
+		}
+
+		void makeUnlimited()
+		{
+			maxdims = std::vector<hsize_t>(dims.size(), H5S_UNLIMITED);
+		}
+
+		bool isUnlimited() const noexcept
+		{
+			const auto found = std::find(maxdims.begin(), maxdims.end(), H5S_UNLIMITED);
+			return (found != maxdims.end());
+		}
+	};
+	struct HDF5_DatatypeOptions
+	{
+		HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
+		HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
 	};
 
-	struct HDF_GeneralLocationOptions
-	{
-		hid_t link_access_properties{ H5P_DEFAULT };
-	};
 
 
 	class HDF5_LocationWrapper
@@ -242,7 +257,7 @@ namespace HDF5_Wrapper
 	template<>
 	struct HDF5_OptionsWrapper<HDF5_AttributeWrapper> { using type = HDF5_DummyOptions; };
 	template<>
-	struct HDF5_OptionsWrapper<HDF5_DatatypeWrapper> { using type = HDF5_DummyOptions; };
+	struct HDF5_OptionsWrapper<HDF5_DatatypeWrapper> { using type = HDF5_DatatypeOptions; };
 
 
 	template<typename T>
@@ -273,15 +288,7 @@ namespace HDF5_Wrapper
 		~HDF5_GeneralLocation() noexcept
 		{		
 			if (!wasMoved)
-			try
-			{
-				
-					HDF5_OpenCreateCloseWrapper<T>::close(mLoc);
-			}
-			catch (...)
-			{
-				std::cerr << "HDF5: Some error while destructing: " << typeid(*this).name() << "\n";
-			}
+				HDF5_OpenCreateCloseWrapper<T>::close(mLoc);
 		}
 
 		const HDF5_LocationWrapper& getLocation() const noexcept { return mLoc; };
@@ -297,7 +304,15 @@ namespace HDF5_Wrapper
 	template<typename T>
 	struct HDF5_OpenCreateCloseWrapper
 	{
-		static hid_t openOrCreate(const std::experimental::filesystem::path& path, const typename HDF5_OptionsWrapper<T>::type &options = typename HDF5_OptionsWrapper<T>::type{})
+		template<typename U>
+		static bool exists(const HDF5_GeneralLocation<U>& loc, const std::experimental::filesystem::path& path, const typename HDF5_OptionsWrapper<T>::type &options) noexcept
+		{
+			//TODO: recursive check if path is complete path to an object! Meaning Path = <Linkname> is ok but  Path =<somepath>/<linkname> must be checked recursivly. 
+			const auto herr = H5Lexists(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+			return herr > 0;
+		}
+
+		static hid_t openOrCreate(const std::experimental::filesystem::path& path, const typename HDF5_OptionsWrapper<T>::type &options = typename HDF5_OptionsWrapper<T>::type{}) noexcept
 		{
 			if constexpr (std::is_same_v<HDF5_FileWrapper, T>)
 			{
@@ -337,10 +352,24 @@ namespace HDF5_Wrapper
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
 				{
-					const auto test = H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
-					if (test < 0)
+					if (exists(loc,path,options)) { //Link does exist
+						H5O_info_t oinfo;
+						const auto herr = H5Oget_info_by_name(loc.getLocation(), path.string().c_str(),&oinfo, options.access_propertylist);
+						
+						assert(herr >= 0); // we checked that the link exists so the above should never fail!
+
+						if (oinfo.type == H5O_TYPE_GROUP) {
+							return H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+						}
+						else {
+							std::runtime_error{ "Given path is neither empty nor points to a HDF5 group!" };
+						}
+
+					}
+					else { // does not exist
 						return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
-					return test;
+					}
+					return -1;
 				}
 				case HDF5_GeneralOptions::HDF5_Mode::Open:
 					return H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
@@ -348,7 +377,7 @@ namespace HDF5_Wrapper
 					return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 				default:
 					assert(false); 
-					return (hid_t)(-1);
+					return -1;
 				}
 			}
 			else if constexpr (std::is_same_v<HDF5_DatatypeWrapper, T>)
@@ -404,7 +433,22 @@ namespace HDF5_Wrapper
 
 	class HDF5_DataspaceWrapper : public HDF5_GeneralLocation<HDF5_DataspaceWrapper>
 	{
+		static HDF5_LocationWrapper createDataspace(const H5S_class_t& type, const HDF5_DataspaceOptions& opts)
+		{
+			switch (type)
+			{
+			case H5S_SCALAR: case H5S_NO_CLASS:
+				return HDF5_LocationWrapper(H5Screate(type));
+			case H5S_SIMPLE:
+				return HDF5_LocationWrapper(H5Screate_simple(opts.getRank(),opts.dims.data(),opts.maxdims.data()));;
+			}
+
+		};
 	public:
+		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts) : HDF5_GeneralLocation<HDF5_DataspaceWrapper>(createDataspace(type,opts))
+		{
+
+		}
 	};
 
 	class HDF5_GroupWrapper : public HDF5_GeneralLocation<HDF5_GroupWrapper>
@@ -416,9 +460,6 @@ namespace HDF5_Wrapper
 		{
 			if (path.has_extension())
 				throw ::std::runtime_error{ "Group path should not have an extension!" };
-
-			if (path.has_filename())
-				throw ::std::runtime_error{ "Group path should not have a filename!" };
 
 			return HDF5_LocationWrapper(HDF5_OpenCreateCloseWrapper<ThisClass>::openOrCreate(loc, path, options));
 		}
@@ -433,10 +474,6 @@ namespace HDF5_Wrapper
 	public:
 	};
 
-	class HDF5_DatatypeWrapper : public HDF5_GeneralLocation<HDF5_DatatypeWrapper>
-	{
-	public:
-	};
 
 	class HDF5_FileWrapper : public HDF5_GeneralLocation<HDF5_FileWrapper>
 	{
