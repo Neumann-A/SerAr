@@ -509,7 +509,7 @@ namespace HDF5_Wrapper
 	public:
 		template<typename T>
 		HDF5_DatatypeWrapper(const T& val, const HDF5_DatatypeOptions &options) : 
-			HDF5_GeneralType<HDF5_DatatypeWrapper>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val))) {};
+			HDF5_GeneralType<HDF5_DatatypeWrapper>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val) ) ) {};
 	};
 
 	struct HDF5_DataspaceOptions
@@ -587,12 +587,12 @@ namespace HDF5_Wrapper
 	public:
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
 
-		template<typename T>
+		template<typename T, typename _ = void>
 		auto writeData(const T& val, const HDF5_MemoryOptions& memopts)
 		{
 			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
 		}
-		template<typename T>
+		template<typename T, typename _ = void >
 		auto writeData(const T* val, const HDF5_MemoryOptions& memopts)
 		{
 			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, val);

@@ -42,7 +42,7 @@ namespace HDF5_Wrapper
 	struct DatatypeSelector<HDF5_Datatype::Native>
 	{
 		template<typename T>
-		inline static constexpr auto getType()
+		inline static constexpr auto getType([[maybe_unused]] const T& val)
 		{
 			if constexpr(std::is_same_v<T, std::int8_t>) {
 				return H5T_NATIVE_INT8;
@@ -84,7 +84,7 @@ namespace HDF5_Wrapper
 				return H5T_NATIVE_B8;
 			}
 			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, H5T_VARIABLE);
+				return H5Tcreate(H5T_STRING, val.size()*sizeof(typename T::value_type));
 			}
 			else {
 				static_assert(!std::is_same_v<T, void>, "Type definied!");
@@ -95,7 +95,7 @@ namespace HDF5_Wrapper
 	struct DatatypeSelector<HDF5_Datatype::LittleEndian>
 	{
 		template<typename T>
-		inline static constexpr auto getType()
+		inline static constexpr auto getType([[maybe_unused]] const T& val)
 		{
 			if constexpr(std::is_same_v<T, std::int8_t>) {
 				return H5T_STD_I8LE;
@@ -137,7 +137,7 @@ namespace HDF5_Wrapper
 				return H5T_STD_B8LE;
 			}
 			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, H5T_VARIABLE);
+				return H5Tcreate(H5T_STRING, val.size() * sizeof(typename T::value_type));
 			}
 			else {
 				static_assert(!std::is_same_v<T, void>, "Type not definied!");
@@ -148,7 +148,7 @@ namespace HDF5_Wrapper
 	struct DatatypeSelector<HDF5_Datatype::BigEndian>
 	{
 		template<typename T>
-		inline static constexpr auto getType()
+		inline static constexpr auto getType([[maybe_unused]] const T& val)
 		{
 			if constexpr(std::is_same_v<T, std::int8_t>) {
 				return H5T_STD_I8BE;
@@ -190,7 +190,7 @@ namespace HDF5_Wrapper
 				return H5T_STD_B8BE;
 			}
 			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, H5T_VARIABLE);
+				return H5Tcreate(H5T_STRING, val.size() * sizeof(typename T::value_type));
 			}
 			else {
 				static_assert(!std::is_same_v<T, void>, "Type definied!");
@@ -200,25 +200,19 @@ namespace HDF5_Wrapper
 	struct DatatypeRuntimeSelector
 	{
 		template<typename T>
-		inline static constexpr auto getType(const HDF5_Datatype& type)
+		inline static constexpr auto getType(const HDF5_Datatype& type, const T& val)
 		{
 			switch (type)
 			{
 			case HDF5_Datatype::Native:
-				return DatatypeSelector<HDF5_Datatype::Native>::getType<T>();
+				return DatatypeSelector<HDF5_Datatype::Native>::getType(val);
 			case HDF5_Datatype::LittleEndian:
-				return DatatypeSelector<HDF5_Datatype::LittleEndian>::getType<T>();
+				return DatatypeSelector<HDF5_Datatype::LittleEndian>::getType(val);
 			case HDF5_Datatype::BigEndian:
-				return DatatypeSelector<HDF5_Datatype::BigEndian>::getType<T>();
+				return DatatypeSelector<HDF5_Datatype::BigEndian>::getType(val);
 			default:
-				return DatatypeSelector<HDF5_Datatype::Native>::getType<T>();
+				return DatatypeSelector<HDF5_Datatype::Native>::getType(val);
 			}
-		}
-
-		template<typename T>
-		inline static constexpr auto getType(const HDF5_Datatype& type, const T&)
-		{
-			return getType<std::decay_t<T>>(type);
 		}
 	};
 
