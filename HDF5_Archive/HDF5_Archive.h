@@ -245,13 +245,12 @@ namespace Archives
 
 			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
-			if constexpr(std::is_arithmetic_v<std::decay_t<T>>)
+			if constexpr(std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>>)
 			{
 				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
 				
 				//TODO: Check if dataset already exists! 
-				
-				
+								
 				//Creating the dataspace!
 				const HDF5_DataspaceOptions dataspaceopts;
 								
@@ -333,7 +332,7 @@ namespace Archives
 		//}
 
 		template <typename T>
-		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> write(HDF5_Wrapper::HDF5_DatasetWrapper& dataset, const T& val)
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>> > write(HDF5_Wrapper::HDF5_DatasetWrapper& dataset, const T& val)
 		{
 			using namespace HDF5_Wrapper;
 			const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
@@ -397,12 +396,13 @@ namespace Archives
 			{ //Converting from Columnmajor to rowmajor
 				Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), std::move(dataspace) };
-				dataset.writeData(TransposedMatrix, memoryopts);
-				return;
-			};
-
-			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), std::move(dataspace) };
-			dataset.writeData(val, memoryopts);
+				dataset.writeData(TransposedMatrix, memoryopts);		
+			}
+			else
+			{
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), std::move(dataspace) };
+				dataset.writeData(val, memoryopts);
+			}
 		}
 	};
 

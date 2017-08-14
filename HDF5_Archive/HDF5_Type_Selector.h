@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <complex>
 
 #include <type_traits>
 
@@ -22,7 +23,7 @@ namespace HDF5_Wrapper
 		//A null dataspace, H5S_NULL, has no data elements.
 		static constexpr inline H5S_class_t value()
 		{
-			if constexpr (std::is_arithmetic_v<T> || stdext::is_string_v<T>)
+			if constexpr (std::is_arithmetic_v<T> || stdext::is_string_v<T> || stdext::is_complex_v<T>)
 				return  H5S_SCALAR;
 			else if constexpr (stdext::is_container_v<T>)
 				return  H5S_SIMPLE;
@@ -77,6 +78,10 @@ namespace HDF5_Wrapper
 			else if constexpr(std::is_same_v<T, long double>) {
 				return H5T_NATIVE_LDOUBLE;
 			}
+			else if constexpr(stdext::is_complex_v<T>) {
+				const std::array<std::size_t, 1> size{ {2} };
+				return H5Tarray_create(getType(val.real()), 1, size.data());
+			}
 			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
 				return H5T_C_S1;
 			}
@@ -130,6 +135,14 @@ namespace HDF5_Wrapper
 			//else if constexpr(std::is_same_v<T, long double>) {
 			//	return H5T_NATIVE_LDOUBLE;
 			//}
+			else if constexpr(stdext::is_complex_v<T>) {
+				const std::array<std::size_t, 1> size{ { 2 } };
+				return H5Tarray_create(getType(val.real()), 1, size.data());
+			}
+			//else if constexpr(std::is_same_v<T, std::complex<long double>>) {
+			//	std::array<std::size_t, 1> size{ { 2 } };
+			//	return H5Tarray_create(H5T_NATIVE_LDOUBLE, 1, size.data());
+			//}
 			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
 				return H5T_C_S1;
 			}
@@ -180,9 +193,10 @@ namespace HDF5_Wrapper
 			else if constexpr(std::is_same_v<T, double>) {
 				return H5T_IEEE_F64BE;
 			}
-			//else if constexpr(std::is_same_v<T, long doubBE>) {
-			//	return H5T_NATIVE_LDOUBBE;
-			//}
+			else if constexpr(stdext::is_complex_v<T>) {
+				const std::array<std::size_t, 1> size{ { 2 } };
+				return H5Tarray_create(getType(val.real()), 1, size.data());
+			}
 			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
 				return H5T_C_S1;
 			}
