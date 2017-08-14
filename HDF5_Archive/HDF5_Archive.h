@@ -19,6 +19,8 @@
 
 #include <experimental/filesystem>
 
+#include <algorithm>
+
 #include <utility>
 #include <map>
 #include <iosfwd>
@@ -238,10 +240,13 @@ namespace Archives
 		template<typename T>
 		HDF5_Wrapper::HDF5_DatasetWrapper createOrOpenDataset(const T& val)
 		{
+			// TODO: Maybe remove this function and but it all into write.
+
 			//Open or create the Dataset here!
 			using namespace HDF5_Wrapper;
 
-			const auto& currentLoc = mGroupStack.top();
+
+			const auto& currentLoc = mGroupStack.empty() ?  mFile.getLocation() : mGroupStack.top().getLocation() ;
 
 			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
@@ -309,11 +314,27 @@ namespace Archives
 				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
 				return dataset;
 			}
+			else if constexpr(stdext::is_eigen_tensor_v<std::decay_t<T>>)
+			{
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+				HDF5_DataspaceOptions dataspaceopts;
+				const auto valdims = val.dimensions();
+				dataspaceopts.dims.resize(valdims.size() );
+				dataspaceopts.maxdims.resize(valdims.size() );
+				std::copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
+				std::copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
+				std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
+				std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
+				HDF5_DataspaceWrapper dataspace(dataspacetype, dataspaceopts);
+				HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace));
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+				return dataset;
+			}
 			else 
 			{
 				static_assert(false);
 		
-
+				assert(false);
 				//TODO: Check if dataset already exists! 
 				//Creating the dataspace!
 				const HDF5_DataspaceOptions dataspaceopts;
@@ -395,15 +416,48 @@ namespace Archives
 			if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
 			{ //Converting from Columnmajor to rowmajor
 				Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
-				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), std::move(dataspace) };
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
 				dataset.writeData(TransposedMatrix, memoryopts);		
 			}
 			else
 			{
-				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), std::move(dataspace) };
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
 				dataset.writeData(val, memoryopts);
 			}
 		}
+
+		template <typename T>
+		std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> write(HDF5_Wrapper::HDF5_DatasetWrapper& dataset, const T& val)
+		{
+			using namespace HDF5_Wrapper;
+			const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+			
+			HDF5_DataspaceOptions dataspaceopts;
+
+			const auto valdims = val.dimensions();
+			dataspaceopts.dims.resize(valdims.size());
+			dataspaceopts.maxdims.resize(valdims.size());
+			std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
+			std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
+			//std::copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
+			//std::copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
+			HDF5_DataspaceWrapper dataspace(dataspacetype, dataspaceopts);
+
+
+			//if constexpr (!(T::Layout))
+			//{ //Converting from Columnmajor to rowmajor
+			//	Eigen::Tensor<typename T::Scalar, T::NumDimensions, Eigen::RowMajor> TransposedTensor = val;
+			//	HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
+			//	dataset.writeData(TransposedTensor, memoryopts);
+			//}
+			//else
+			//{
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
+				dataset.writeData(val.data(), memoryopts);
+			//}
+
+		};
 	};
 
 

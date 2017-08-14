@@ -173,9 +173,8 @@ namespace HDF5_Wrapper
 			}
 			return -1;
 		};
-
-		template<typename U>
-		static hid_t openOrCreate(const HDF5_GeneralType<U>& loc, const hdf5path& path, const HDF5_Options_t<T> &options = HDF5_Options_t<T>{})
+		
+		static hid_t openOrCreate(const HDF5_LocationWrapper& loc, const hdf5path& path, const HDF5_Options_t<T> &options = HDF5_Options_t<T>{})
 		{
 			if constexpr (std::is_same_v<HDF5_GroupWrapper, T>)
 			{
@@ -185,12 +184,12 @@ namespace HDF5_Wrapper
 				{
 					if (loc.checkLinkExists<T>(path, options)) { //Link does exist
 						H5O_info_t oinfo;
-						const auto herr = H5Oget_info_by_name(loc.getLocation(), path.string().c_str(), &oinfo, options.access_propertylist);
+						const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
 						assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
 						if (oinfo.type == H5O_TYPE_GROUP) {
-							return H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+							return H5Gopen(loc, path.string().c_str(), options.access_propertylist);
 						}
 						else {
 							std::runtime_error{ "Given path is neither empty nor points to a HDF5 group!" };
@@ -198,14 +197,14 @@ namespace HDF5_Wrapper
 
 					}
 					else { // does not exist
-						return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+						return H5Gcreate(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 					}
 					return -1;
 				}
 				case HDF5_GeneralOptions::HDF5_Mode::Open:
-					return H5Gopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+					return H5Gopen(loc, path.string().c_str(), options.access_propertylist);
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
-					return H5Gcreate(loc.getLocation(), path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+					return H5Gcreate(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 				default:
 					assert(false);
 					return -1;
@@ -226,17 +225,17 @@ namespace HDF5_Wrapper
 				switch (options.mode)
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::Open:
-					return H5Dopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+					return H5Dopen(loc, path.string().c_str(), options.access_propertylist);
 				case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
 				{
 					if (loc.checkLinkExists<T>(path, options)) { //Link does exist
 						H5O_info_t oinfo;
-						const auto herr = H5Oget_info_by_name(loc.getLocation(), path.string().c_str(), &oinfo, options.access_propertylist);
+						const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
 						assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
 						if (oinfo.type == H5O_TYPE_DATASET) {
-							return H5Dopen(loc.getLocation(), path.string().c_str(), options.access_propertylist);
+							return H5Dopen(loc, path.string().c_str(), options.access_propertylist);
 						}
 						else {
 							std::runtime_error{ "Given path is neither empty nor points to a HDF5 Dataset!" };
@@ -244,14 +243,14 @@ namespace HDF5_Wrapper
 
 					}
 					else { // does not exist
-						return H5Dcreate(loc.getLocation(), path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
+						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
 					}
 					return -1;
 				}
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
 				{
 					if (!loc.checkLinkExists<T>(path, options)) { //Link does exist
-						return H5Dcreate(loc.getLocation(), path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
+						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
 					}
 					else {
 						std::runtime_error{ "Given path already exists! Cannot create Dataset!" };
@@ -347,6 +346,14 @@ namespace HDF5_Wrapper
 
 			return res;
 		}
+
+		template<typename U>
+		bool checkLinkExists(const hdf5path& path, const HDF5_Options_t<U>& options) const noexcept
+		{
+			//TODO: recursive check if path is complete path to an object! Meaning Path = <Linkname> is ok but  Path =<somepath>/<linkname> must be checked recursivly. 
+			const auto herr = H5Lexists(mLocation, path.string().c_str(), options.access_propertylist);
+			return herr > 0;
+		}
 	};
 	
 	template<typename T>
@@ -363,15 +370,17 @@ namespace HDF5_Wrapper
 		DISALLOW_COPY_AND_ASSIGN(HDF5_GeneralType)
 			
 	protected:
-		explicit HDF5_GeneralType(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) 
-		{};
-
-
+		explicit HDF5_GeneralType(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) {};
 	public:	
 		template<typename U>
 		explicit HDF5_GeneralType(const HDF5_GeneralType<U>& loc, const hdf5path& path, HDF5_Options_t<T> options)
 			: mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
 		
+		explicit HDF5_GeneralType(const HDF5_LocationWrapper& loc, const hdf5path& path, HDF5_Options_t<T> options)
+			: mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
+		//explicit HDF5_GeneralType(const hid_t& loc, const hdf5path& path, HDF5_Options_t<T> options)
+		//	: mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
+
 		// Special Case for HDF5_FileWrapper
 		explicit HDF5_GeneralType(const filepath& path, const HDF5_Options_t<T>& options)
 			: mLoc(HDF5_OpenCreateCloseWrapper<Base>::openOrCreate(path, options)), mOptions(options) {
@@ -413,13 +422,12 @@ namespace HDF5_Wrapper
 			return mLoc;
 		}; //Implicit Conversion Operator! 
 
-		template<typename U>
-		bool checkLinkExists(const hdf5path& path, const HDF5_Options_t<U>& options) const noexcept
+		inline operator const HDF5_LocationWrapper&() const
 		{
-			//TODO: recursive check if path is complete path to an object! Meaning Path = <Linkname> is ok but  Path =<somepath>/<linkname> must be checked recursivly. 
-			const auto herr = H5Lexists(this->mLoc, path.string().c_str(), options.access_propertylist);
-			return herr > 0;
-		}
+			return mLoc;
+		}; //Implicit Conversion Operator! 
+
+
 	};
 
 	struct HDF5_FileOptions : HDF5_GeneralOptions
