@@ -102,8 +102,8 @@ namespace Archives
 		template<typename Type>
 		static constexpr bool has_write_to_HDF5_v = has_write_to_HDF5<Type>::value;
 
-		template<class Class, typename ...Args>
-		using getData_from_HDF5_t = decltype(std::declval<Class>().getData(std::declval<std::decay_t<Args>>()...));
+		template<class Class, typename Args>
+		using getData_from_HDF5_t = decltype(std::declval<Class>().getData(std::declval<Args&>()));
 		template<typename Datatype>
 		class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, HDF5_InputArchive, Datatype> {};
 		template<typename Type>
@@ -213,21 +213,11 @@ namespace Archives
 
 			assert(!nextPath.empty());
 	
-			if (mGroupStack.empty())
-			{
-				HDF5_GroupOptions opts;
-				opts.mode = HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate;
-				HDF5_GroupWrapper group{mFile,nextPath, opts};
-				mGroupStack.push(std::move(group));
-			}
-			else
-			{
-				const auto& currentGroup{mGroupStack.top()};
-				HDF5_GroupOptions opts;
-				opts.mode = HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate;
-				HDF5_GroupWrapper group{ currentGroup,nextPath, opts };
-				mGroupStack.push(std::move(group));
-			}
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+			HDF5_GroupOptions opts;
+			opts.mode = HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate;
+			HDF5_GroupWrapper group(currentLoc, nextPath, opts );
+			mGroupStack.push(std::move(group));
 		}
 
 		template<typename T>
@@ -434,23 +424,9 @@ namespace Archives
 			dataspaceopts.maxdims.resize(valdims.size());
 			std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
 			std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
-			//std::copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
-			//std::copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
 			HDF5_DataspaceWrapper dataspace(dataspacetype, dataspaceopts);
-
-
-			//if constexpr (!(T::Layout))
-			//{ //Converting from Columnmajor to rowmajor
-			//	Eigen::Tensor<typename T::Scalar, T::NumDimensions, Eigen::RowMajor> TransposedTensor = val;
-			//	HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
-			//	dataset.writeData(TransposedTensor, memoryopts);
-			//}
-			//else
-			//{
-				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
-				dataset.writeData(val.data(), memoryopts);
-			//}
-
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), std::move(dataspace) };
+			dataset.writeData(val.data(), memoryopts);
 		};
 	};
 
@@ -471,10 +447,10 @@ namespace Archives
 
 	class HDF5_InputArchive : public InputArchive<HDF5_InputArchive>
 	{
-		using ThisClass = HDF5_OutputArchive;
+		using ThisClass = HDF5_InputOptions;
 	public:
 		HDF5_InputArchive(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
-			: InputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {};
+			: InputArchive(this), mFile(openFile(path, options)), mOptions(options) {};
 
 		DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
 
@@ -489,8 +465,7 @@ namespace Archives
 		template<typename T>
 		inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<T> > load(T& value)
 		{
-			auto dataset = openDataset(value);
-			getData(dataset, value);
+			getData(value);
 		};
 
 		//If the type does not have a write to HDF5 function here it means we need to create/open a Group!
@@ -510,7 +485,7 @@ namespace Archives
 		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_load_v<T, ThisClass>) >
 			epilogue(const T& value)
 		{
-			closeLastGroup(value);
+			closeLastGroup();
 		};
 
 	private:
@@ -524,7 +499,7 @@ namespace Archives
 
 		HDF5_InputOptions mOptions;
 
-		static File openOrCreateFile(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
+		static File openFile(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
 		{
 			using namespace HDF5_Wrapper;
 			HDF5_FileOptions opt{};
@@ -534,6 +509,7 @@ namespace Archives
 			return file;
 		}
 
+		//TODO: Move those function into another class which can also be used by the Output Archive
 		void setNextPath(const std::string& str)
 		{
 			if (!isValidNextLocation(str))
@@ -548,7 +524,6 @@ namespace Archives
 			assert(!nextPath.empty());
 			nextPath.clear();
 		}
-
 		bool isValidNextLocation(const std::string&) const
 		{
 			//TODO: Check the Location name for invalid characters
@@ -561,30 +536,45 @@ namespace Archives
 			using namespace HDF5_Wrapper;
 
 			assert(!nextPath.empty());
+			
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
 
-			if (mGroupStack.empty())
-			{
-				//Open dataset or group directly with the file. 
-				HDF5_GroupOptions opts;
-				opts.mode = HDF5_GeneralOptions::HDF5_Mode::Open;
-				HDF5_GroupWrapper group{ mFile,nextPath, opts };
-				mGroupStack.push(std::move(group));
-			}
-			else
-			{
-				//Open dataset or group within another group
-				HDF5_GroupOptions opts;
-				opts.mode = HDF5_GeneralOptions::HDF5_Mode::Open;
-				HDF5_GroupWrapper group{ currentGroup,nextPath, opts };
-				mGroupStack.push(std::move(group));
-			}			
+			HDF5_GroupOptions opts;
+			opts.mode = HDF5_GeneralOptions::HDF5_Mode::Open;
+			HDF5_GroupWrapper group{ currentLoc, nextPath, opts };
+			mGroupStack.push(std::move(group));
 		}
 
 		void closeLastGroup()
 		{
 			assert(!mGroupStack.empty());
-			mGroupStack.pop();
+			mGroupStack.pop(); // Just pop it from the stack. The Destructor will close it!
 		};
+
+		template<typename T>
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>> >
+			getData(T& val)
+		{
+			using namespace HDF5_Wrapper;
+
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
+			const auto datatype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+
+			HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper{ {},val });
+			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+			
+			assert(dataset.getDatatype() == datatype);
+
+			const auto& dataspace{ dataset.getDataspace() };
+
+			assert(dataspace.getDimensions().size() <= 1);
+
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(datatype) };
+			dataset.readData(val, memoryopts);
+		}
 
 	};
 

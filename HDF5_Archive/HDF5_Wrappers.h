@@ -358,7 +358,7 @@ namespace HDF5_Wrapper
 	template<typename T>
 	class HDF5_GeneralType 
 	{
-		static_assert(std::is_same_v<T, std::decay_t<T>>);
+		static_assert(std::is_same_v<T, std::decay_t<T>>); // T should be a Type without any qualifiers!
 
 		HDF5_LocationWrapper mLoc;
 		bool wasMoved{ false };
@@ -368,7 +368,7 @@ namespace HDF5_Wrapper
 		using Base = T;
 		DISALLOW_COPY_AND_ASSIGN(HDF5_GeneralType)
 			
-	protected:
+	public:
 		explicit HDF5_GeneralType(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) {};
 	public:	
 		template<typename U>
@@ -495,6 +495,8 @@ namespace HDF5_Wrapper
 			return HDF5_LocationWrapper(HDF5_OpenCreateCloseWrapper<ThisClass>::openOrCreate(loc, path, options));
 		}
 	public:
+		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
+
 		template<typename T, typename _ = std::enable_if_t<std::is_same_v<HDF5_GroupWrapper, T> || std::is_same_v<HDF5_FileWrapper, T>>>
 		HDF5_GroupWrapper(const HDF5_GeneralType<T> &loc, const hdf5path &path, const HDF5_GroupOptions& options = HDF5_GroupOptions{})
 			: HDF5_GeneralType<HDF5_GroupWrapper>(openOrCreateFile(loc, path, options)) {};
@@ -509,9 +511,21 @@ namespace HDF5_Wrapper
 	{
 		using ThisClass = HDF5_DatatypeWrapper;
 	public:
+
+		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
+
 		template<typename T>
 		HDF5_DatatypeWrapper(const T& val, const HDF5_DatatypeOptions &options) : 
 			HDF5_GeneralType<HDF5_DatatypeWrapper>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val) ) ) {};
+
+
+		bool HDF5_DatatypeWrapper::operator==(const HDF5_DatatypeWrapper& other) {
+			return H5Tequal(*this,other);
+		}
+		bool HDF5_DatatypeWrapper::operator!=(const HDF5_DatatypeWrapper& other) {
+			return !(*this == other);
+		}
+
 	};
 
 	struct HDF5_DataspaceOptions
@@ -542,7 +556,7 @@ namespace HDF5_Wrapper
 	};
 	class HDF5_DataspaceWrapper : public HDF5_GeneralType<HDF5_DataspaceWrapper>
 	{
-		using ThisClass = HDF5_DatasetWrapper;
+		using ThisClass = HDF5_DataspaceWrapper;
 
 		static HDF5_LocationWrapper createDataspace(const H5S_class_t& type, const HDF5_DataspaceOptions& opts)
 		{
@@ -563,16 +577,27 @@ namespace HDF5_Wrapper
 			}
 
 		};
+		
+		template<typename T>
+		static HDF5_LocationWrapper createDataspace(const HDF5_DataspaceOptions& opts, const T& val)
+		{
+			return createDataspace(opts, DataspaceTypeSelector<std::decay_t<T>>::value());
+		}
 	public:
-		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts) : HDF5_GeneralType<HDF5_DataspaceWrapper>(createDataspace(type, opts))
+		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
+
+		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts = HDF5_DataspaceOptions{}) : HDF5_GeneralType<ThisClass>(createDataspace(type, opts))
 		{}
 
-		std::vector<std::size_t> getDimensions() const noexcept
+		template<typename T>
+		HDF5_DataspaceWrapper(const HDF5_DataspaceOptions& opts, const T& val) : HDF5_GeneralType<ThisClass>(createDataspace(opts, val)) {};
+
+		std::vector<std::size_t> getDimensions() const 
 		{
 			const auto ndims = H5Sget_simple_extent_ndims(*this);
 			std::vector<std::size_t> dims(ndims);
-
-
+			H5Sget_simple_extent_dims(*this, dims.data(), nullptr);
+			return dims;
 			//if (H5Sis_simple(*this)) // Currently this will always be true according to HDF5 documnetation
 			//{	}
 			//else {	return { {1} };		}
@@ -587,9 +612,9 @@ namespace HDF5_Wrapper
 
 	struct HDF5_DatasetOptions : HDF5_GeneralOptions
 	{
-		HDF5_DatatypeWrapper   datatype;
 		HDF5_DataspaceWrapper  dataspace;
-
+		HDF5_DatatypeWrapper   datatype;
+		
 		hid_t link_creation_propertylist{ H5P_DEFAULT };
 		hid_t transfer_propertylist{ H5P_DEFAULT };
 
@@ -599,6 +624,8 @@ namespace HDF5_Wrapper
 		DISALLOW_COPY_AND_ASSIGN(HDF5_DatasetOptions)
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_DatasetOptions)
 	};
+
+	
 	class HDF5_DatasetWrapper : public HDF5_GeneralType<HDF5_DatasetWrapper>
 	{
 		using ThisClass = HDF5_DatasetWrapper;
@@ -606,27 +633,25 @@ namespace HDF5_Wrapper
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
 
 		template<typename T, typename _ = void>
-		auto writeData(const T& val, const HDF5_MemoryOptions& memopts)
+		auto writeData(const T& val, const HDF5_MemoryOptions& memopts) const
 		{
 			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
 		}
 
 		template<typename T>
-		auto readData(T& val, const HDF5_MemoryOptions& memopts)
+		auto readData(T& val, const HDF5_MemoryOptions& memopts) const
 		{
 			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
 		}
 
-		template<typename T>
 		HDF5_DatatypeWrapper getDatatype() const noexcept
 		{
-			return HDF5_DatatypeWrapper(H5Dget_type(*this));
+			return HDF5_DatatypeWrapper(HDF5_LocationWrapper{ H5Dget_type(*this) });
 		}
 
-		template<typename T>
 		HDF5_DataspaceWrapper getDataspace() const noexcept
 		{
-			return HDF5_DataspaceWrapper(H5Dget_space(*this));
+			return HDF5_DataspaceWrapper( HDF5_LocationWrapper{ H5Dget_space(*this) } );
 		}
 	};
 
