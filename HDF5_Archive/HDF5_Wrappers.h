@@ -138,8 +138,7 @@ namespace HDF5_Wrapper
 		hid_t access_propertylist{ H5P_DEFAULT };
 
 	};
-
-		
+			
 	template<typename T>
 	struct HDF5_OpenCreateCloseWrapper
 	{
@@ -303,7 +302,7 @@ namespace HDF5_Wrapper
 	private:
 		hid_t mLocation;
 
-		inline bool isValid() const noexcept { return (mLocation > 0); };
+		inline bool isValid() const noexcept { return (mLocation >= 0); };
 	public:
 		DISALLOW_COPY_AND_ASSIGN(HDF5_LocationWrapper)
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_LocationWrapper)
@@ -378,8 +377,6 @@ namespace HDF5_Wrapper
 		
 		explicit HDF5_GeneralType(const HDF5_LocationWrapper& loc, const hdf5path& path, HDF5_Options_t<T> options)
 			: mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
-		//explicit HDF5_GeneralType(const hid_t& loc, const hdf5path& path, HDF5_Options_t<T> options)
-		//	: mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
 
 		// Special Case for HDF5_FileWrapper
 		explicit HDF5_GeneralType(const filepath& path, const HDF5_Options_t<T>& options)
@@ -408,26 +405,23 @@ namespace HDF5_Wrapper
 			rhs.wasMoved = true;
 		}; //Move Assignment	
 
-
 		~HDF5_GeneralType() noexcept
 		{		
-			if (!wasMoved)
+			if (!wasMoved && ((hid_t)mLoc)!=0)
 				HDF5_OpenCreateCloseWrapper<Base>::close(mLoc);
 		}
 
-		const HDF5_LocationWrapper& getLocation() const noexcept { return mLoc; };
+		//const HDF5_LocationWrapper& getLocation() const noexcept { return mLoc; };
 
+		//Implicit conversion functions!
 		inline operator const hid_t&() const
 		{
 			return mLoc;
 		}; //Implicit Conversion Operator! 
-
 		inline operator const HDF5_LocationWrapper&() const
 		{
 			return mLoc;
 		}; //Implicit Conversion Operator! 
-
-
 	};
 
 	struct HDF5_FileOptions : HDF5_GeneralOptions
@@ -557,7 +551,12 @@ namespace HDF5_Wrapper
 			case H5S_SCALAR: case H5S_NO_CLASS:
 				return HDF5_LocationWrapper(H5Screate(type));
 			case H5S_SIMPLE:
+			{
+				assert(opts.dims.size() > 0);
+				assert(opts.maxdims.size() > 0);
+				assert(opts.maxdims.size() == opts.dims.size());
 				return HDF5_LocationWrapper(H5Screate_simple(opts.getRank(), opts.dims.data(), opts.maxdims.data()));
+			}
 			default:
 				assert(false);
 				return HDF5_LocationWrapper(-1);
@@ -567,6 +566,17 @@ namespace HDF5_Wrapper
 	public:
 		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts) : HDF5_GeneralType<HDF5_DataspaceWrapper>(createDataspace(type, opts))
 		{}
+
+		std::vector<std::size_t> getDimensions() const noexcept
+		{
+			const auto ndims = H5Sget_simple_extent_ndims(*this);
+			std::vector<std::size_t> dims(ndims);
+
+
+			//if (H5Sis_simple(*this)) // Currently this will always be true according to HDF5 documnetation
+			//{	}
+			//else {	return { {1} };		}
+		}
 	};
 
 	struct HDF5_MemoryOptions
@@ -600,24 +610,24 @@ namespace HDF5_Wrapper
 		{
 			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
 		}
-		template<typename T, typename _ = void >
-		auto writeData(const T* val, const HDF5_MemoryOptions& memopts)
-		{
-			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, val);
-		}
 
 		template<typename T>
 		auto readData(T& val, const HDF5_MemoryOptions& memopts)
 		{
 			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
 		}
+
 		template<typename T>
-		auto readData(T* val, const HDF5_MemoryOptions& memopts)
+		HDF5_DatatypeWrapper getDatatype() const noexcept
 		{
-			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, val);
+			return HDF5_DatatypeWrapper(H5Dget_type(*this));
 		}
 
-
+		template<typename T>
+		HDF5_DataspaceWrapper getDataspace() const noexcept
+		{
+			return HDF5_DataspaceWrapper(H5Dget_space(*this));
+		}
 	};
 
 

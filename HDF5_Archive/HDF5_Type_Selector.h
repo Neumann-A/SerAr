@@ -89,7 +89,10 @@ namespace HDF5_Wrapper
 				return H5T_NATIVE_B8;
 			}
 			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, val.size()*sizeof(typename T::value_type));
+				//return H5Tcreate(H5T_STRING, val.size()*sizeof(typename T::value_type));
+				auto hdf5typeid = H5Tcopy(H5T_C_S1);
+				H5Tset_size(hdf5typeid, H5T_VARIABLE);
+				return hdf5typeid;
 			}
 			else {
 				static_assert(!std::is_same_v<T, void>, "Type definied!");

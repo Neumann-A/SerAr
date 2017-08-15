@@ -24,6 +24,20 @@
 
 namespace Archives
 {
+
+	template <typename OptionClass, typename Archive>
+	class InputArchive_Options
+	{
+	public:
+		using ArchiveType = Archive;
+		using ArchiveOptions = OptionClass;
+
+		inline ArchiveOptions& self() noexcept
+		{
+			return *static_cast<ArchiveOptions * const>(this);
+		}
+	};
+
 	class ISerializeable; //Forward declaration
 
 	class IInputArchive
