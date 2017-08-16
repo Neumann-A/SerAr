@@ -95,17 +95,17 @@ namespace Archives
 	{
 		//Member Function type for converting values to strings
 		template<class Class, typename Args>
-		using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<HDF5_Wrapper::HDF5_DatasetWrapper&>(), std::declval<std::decay_t<Args>>()));
+		using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<HDF5_Wrapper::HDF5_DatasetWrapper&>(), std::declval<std::decay_t<Args&>>()));
 
-		template<typename Datatype>
-		class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, HDF5_OutputArchive, Datatype> {};
+		template<typename Type>
+		class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, HDF5_OutputArchive, Type> {};
 		template<typename Type>
 		static constexpr bool has_write_to_HDF5_v = has_write_to_HDF5<Type>::value;
 
 		template<class Class, typename Args>
 		using getData_from_HDF5_t = decltype(std::declval<Class>().getData(std::declval<Args&>()));
-		template<typename Datatype>
-		class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, HDF5_InputArchive, Datatype> {};
+		template<typename Type>
+		class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, HDF5_InputArchive, Type> {};
 		template<typename Type>
 		static constexpr bool has_getData_from_HDF5_v = has_getData_from_HDF5<Type>::value;
 	}
@@ -117,6 +117,10 @@ namespace Archives
 
 	class HDF5_OutputOptions : OutputArchive_Options<HDF5_OutputOptions, HDF5_OutputArchive>
 	{
+		friend class OutputArchive<HDF5_OutputOptions>;
+		//needed so that the detector idom works with clang-cl (for some unknown reason!)
+		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
+
 	public:
 		HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite };
 		HDF5_Wrapper::HDF5_DatatypeOptions			 DefaultDatatypeOptions{};
@@ -128,7 +132,9 @@ namespace Archives
 		using ThisClass = HDF5_OutputArchive;
 	public:
 		HDF5_OutputArchive(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options)
-			: OutputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {		};
+			: OutputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {
+			static_assert(std::is_same_v<ThisClass, std::decay_t<decltype(*this)>>);
+		};
 
 		DISALLOW_COPY_AND_ASSIGN(HDF5_OutputArchive)
 
@@ -447,30 +453,47 @@ namespace Archives
 
 	class HDF5_InputArchive : public InputArchive<HDF5_InputArchive>
 	{
-		using ThisClass = HDF5_InputOptions;
+		using ThisClass = HDF5_InputArchive;
+		friend class OutputArchive<ThisClass>;
+		//needed so that the detector idom works with clang-cl (for some unknown reason!)
+		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
+		
 	public:
 		HDF5_InputArchive(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
-			: InputArchive(this), mFile(openFile(path, options)), mOptions(options) {};
+			: InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
+			static_assert(std::is_same_v<ThisClass, std::decay_t<decltype(*this)>>);
+		};
 
 		DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
 
 		template<typename T>
 		inline void load(Archives::NamedValue<T>& value)
 		{
-			setNextPath(value.getName());		//Sets the name for the next Dataset or Group
-			this->operator()(value.getValue()); //Write Data to the Group or Dataset
-			clearNextPath();					//Remove the Fieldname
+			//if constexpr(is_NamedValue_v<T>)
+			//{
+			//	setNextPath(value.getName());
+			//	openGroup(value);
+			//	clearNextPath();
+
+			//	this->operator()(value.getValue());
+			//}
+			//else
+			//{
+				setNextPath(value.getName());		//Sets the name for the next Dataset or Group
+				this->operator()(value.getValue()); //Write Data to the Group or Dataset
+				clearNextPath();	//Remove the Fieldname
+			//}
 		};
 
 		template<typename T>
-		inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<T> > load(T& value)
+		inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<std::decay_t<T>> > load(T& value)
 		{
 			getData(value);
 		};
 
 		//If the type does not have a write to HDF5 function here it means we need to create/open a Group!
 		template<typename T>
-		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_load_v<T, ThisClass>)>
+		inline std::enable_if_t<(is_nested_NamedValue_v<std::decay_t<T>> || !traits::use_archive_member_load_v<std::decay_t<T>, ThisClass>)>
 			prologue(const T& value)
 		{
 			if constexpr(is_nested_NamedValue_v<T>)
@@ -482,8 +505,8 @@ namespace Archives
 		};
 
 		template<typename T>
-		inline std::enable_if_t<(is_nested_NamedValue_v<T> || !traits::use_archive_member_load_v<T, ThisClass>) >
-			epilogue(const T& value)
+		inline std::enable_if_t<(is_nested_NamedValue_v<std::decay_t<T>> || !traits::use_archive_member_load_v<std::decay_t<T>, ThisClass>) >
+			epilogue(const T&)
 		{
 			closeLastGroup();
 		};
@@ -552,8 +575,7 @@ namespace Archives
 		};
 
 		template<typename T>
-		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>> >
-			getData(T& val)
+		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>> > getData(T& val)
 		{
 			using namespace HDF5_Wrapper;
 

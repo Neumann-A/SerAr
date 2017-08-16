@@ -126,7 +126,16 @@ namespace Archives
 	//{
 	//	return NamedValue<T>{std::move(name), std::forward<T>(value)};
 	//}
+	template<typename T, typename _ = std::void_t<> >
+	struct is_NamedValue : std::false_type {};
 
+	template<typename T>
+	struct is_NamedValue<T, std::void_t<typename std::decay_t<T>::type,
+		typename std::decay_t<T>::internal_type>> : std::is_same<typename std::decay_t<T>,
+		Archives::NamedValue<typename std::decay_t<T>::type>> {};
+
+	template<typename T>
+	static constexpr bool is_NamedValue_v = is_NamedValue<T>::value;
 
 	template<typename T, typename _ = std::void_t<> >
 	struct is_nested_NamedValue : std::false_type {};

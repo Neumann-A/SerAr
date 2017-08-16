@@ -242,14 +242,14 @@ namespace HDF5_Wrapper
 
 					}
 					else { // does not exist
-						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
+						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 					}
 					return -1;
 				}
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
 				{
 					if (!loc.checkLinkExists<T>(path, options)) { //Link does exist
-						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist options.creation_propertylist, options.access_propertylist);
+						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 					}
 					else {
 						std::runtime_error{ "Given path already exists! Cannot create Dataset!" };
@@ -579,9 +579,9 @@ namespace HDF5_Wrapper
 		};
 		
 		template<typename T>
-		static HDF5_LocationWrapper createDataspace(const HDF5_DataspaceOptions& opts, const T& val)
+		static HDF5_LocationWrapper createDataspace(const HDF5_DataspaceOptions& opts, const T&)
 		{
-			return createDataspace(opts, DataspaceTypeSelector<std::decay_t<T>>::value());
+			return createDataspace(DataspaceTypeSelector<std::decay_t<T>>::value(),opts);
 		}
 	public:
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
