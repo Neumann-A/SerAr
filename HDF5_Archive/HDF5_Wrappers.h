@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <utility>
 #include <string_view>
+#include <string>
 #include <variant>
 #include <limits>
 #include <iostream>
@@ -107,7 +108,12 @@ namespace HDF5_Wrapper
 	struct HDF5_DataspaceOptions;
 	struct HDF5_DatatypeOptions;
 
-
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	Option type selection for HDF5 wrappers. </summary>
+	///
+	/// <typeparam name="T">	specialized for all HDF5_XYZWrapper types. Every other type should 
+	/// 						generate a compiler error </typeparam>
+	///-------------------------------------------------------------------------------------------------
 	template<typename T>
 	struct HDF5_OptionsSelector { static_assert(std::is_same_v<void, T>, "Options not defined!"); };
 	template<>
@@ -123,12 +129,12 @@ namespace HDF5_Wrapper
 	template<>
 	struct HDF5_OptionsSelector<HDF5_DatatypeWrapper> { using type = HDF5_DatatypeOptions; };
 
+	
+	/// <summary>	Alias declaration for easier access of the HDF5 options selector. </summary>
 	template<typename T>
 	using HDF5_Options_t = typename HDF5_OptionsSelector<T>::type;
-
-	//End of Forward declarations
-	/*********************************************************************************************************************************************/
 	
+	/// <summary>	General options for HDF5 options </summary>
 	struct HDF5_GeneralOptions
 	{
 		enum class HDF5_Mode { CreateOrOverwrite, OpenOrCreate, Open, Create };
@@ -138,10 +144,25 @@ namespace HDF5_Wrapper
 		hid_t access_propertylist{ H5P_DEFAULT };
 
 	};
-			
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	HDF5 open, create and close wrapper. To create or open HDF5 types </summary>
+	///
+	/// <typeparam name="T">	HDF5 Wrapper to create. </typeparam>
+	///-------------------------------------------------------------------------------------------------
 	template<typename T>
 	struct HDF5_OpenCreateCloseWrapper
 	{
+		//TODO: Change these function to return a LocationWrapper instead of a hid_t!
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Will create return an HDF5 hid_t by opening or creating the specific location
+		/// 			(FileWrapper and Dataspace) </summary>
+		/// <param name="path">	Full pathname of the HDF5 file. </param>
+		/// <param name="options">	Additional options to pass to the HDF5 creation/opnening function </param>
+		///
+		/// <returns>	HDF5 hid_t to init the requested type </returns>
+		///-------------------------------------------------------------------------------------------------
 		static hid_t openOrCreate(const hdf5path& path, const HDF5_Options_t<T> &options = HDF5_Options_t<T>{}) noexcept
 		{
 			if constexpr (std::is_same_v<HDF5_FileWrapper, T>)
@@ -163,6 +184,7 @@ namespace HDF5_Wrapper
 			}
 			else if constexpr (std::is_same_v<HDF5_DataspaceWrapper, T>)
 			{
+				//TODO: Move this into a seperate function because it does not fit here!
 				switch (options.mode)
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
@@ -172,7 +194,15 @@ namespace HDF5_Wrapper
 			}
 			return -1;
 		};
-		
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Opens or create. </summary>
+		///
+		/// <param name="loc"> 	The HDF5 location wrapper. </param>
+		/// <param name="path">	HDF5 path to the location to create or open. </param>
+		///
+		/// <returns>	The hid_t of the created HDF5 location </returns>
+		///-------------------------------------------------------------------------------------------------
 		static hid_t openOrCreate(const HDF5_LocationWrapper& loc, const hdf5path& path, const HDF5_Options_t<T> &options = HDF5_Options_t<T>{})
 		{
 			if constexpr (std::is_same_v<HDF5_GroupWrapper, T>)
@@ -211,13 +241,14 @@ namespace HDF5_Wrapper
 			}
 			else if constexpr (std::is_same_v<HDF5_DatatypeWrapper, T>)
 			{
+				//TODO: Move to different function?
 				static_assert(!std::is_same_v<HDF5_DatatypeWrapper, T>, "What are you doing? Dont define your own Datatypes! Use the predifined ones!");
 				assert(false); // Dont use your own Datatypes! Use predefined ones!
 				return (hid_t)(-1);
 			}
 			else if constexpr (std::is_same_v<HDF5_AttributeWrapper, T>)
 			{
-				return (hid_t)(-1);
+				return (hid_t)(-1); //TODO: Add support for atributes?
 			}
 			else if constexpr (std::is_same_v<HDF5_DatasetWrapper, T>)
 			{
@@ -262,10 +293,18 @@ namespace HDF5_Wrapper
 			}
 			else
 			{
+				// TODO: Throw meaningfull error!
 				return (hid_t)(-1);
 			}
 		}
 
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Closes the given HDF5_LocationWrapper. </summary>
+		///
+		/// <param name="mLoc">	[in,out] The location. </param>
+		///
+		/// <returns>	HDF5 error code. >= Mean success </returns>
+		///-------------------------------------------------------------------------------------------------
 		static herr_t close(HDF5_LocationWrapper& mLoc)
 		{
 			if constexpr (std::is_same_v<HDF5_FileWrapper, T>)
@@ -290,13 +329,15 @@ namespace HDF5_Wrapper
 			}
 			else if constexpr (std::is_same_v<HDF5_DatatypeWrapper, T>)
 			{
-				if(!isTypeImmutable(mLoc))
+				if(!isTypeImmutable(mLoc)) //TODO: Get rid of this check somehow?
 					return H5Tclose(mLoc);
 				return 0;
 			}
 		}
 	};
 	
+	
+	/// <summary>	Wrapper for HDF5 hid_t </summary>
 	class HDF5_LocationWrapper
 	{
 	private:
@@ -304,9 +345,6 @@ namespace HDF5_Wrapper
 
 		inline bool isValid() const noexcept { return (mLocation >= 0); };
 	public:
-		DISALLOW_COPY_AND_ASSIGN(HDF5_LocationWrapper)
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_LocationWrapper)
-
 		inline explicit HDF5_LocationWrapper(hid_t locID) : mLocation(std::move(locID))
 		{
 			if (!isValid()) {
@@ -314,14 +352,18 @@ namespace HDF5_Wrapper
 			};
 		};
 
-		inline ~HDF5_LocationWrapper() noexcept = default;
-
+		/// <summary>	Implicit conversion to hid_t </summary>
 		inline operator const hid_t&() const 
 		{ 
 			return mLocation; 
 				
 		}; //Implicit Conversion Operator! 
 
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Gets the relative path within the HDF5 file </summary>
+		///
+		/// <returns>	The HDF5 path to the object. </returns>
+		///-------------------------------------------------------------------------------------------------
 		inline std::string getHDF5Path() const noexcept
 		{
 			std::string res;
@@ -334,6 +376,11 @@ namespace HDF5_Wrapper
 			return res;
 		}
 
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Gets the full path including the filename </summary>
+		///
+		/// <returns>	The full path to the HDF5 object </returns>
+		///-------------------------------------------------------------------------------------------------
 		inline std::string getHDF5Fullpath() const noexcept
 		{
 			std::string res;
@@ -346,6 +393,15 @@ namespace HDF5_Wrapper
 			return res;
 		}
 
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Queries if a given link exists. </summary>
+		///
+		/// <typeparam name="U">	Type to inderectly define the HDF5 options. </typeparam>
+		/// <param name="path">   	HDF5 path to the HDF5 object </param>
+		/// <param name="options">	Options needed to access the object </param>
+		///
+		/// <returns>	True if it succeeds, false if it fails. </returns>
+		///-------------------------------------------------------------------------------------------------
 		template<typename U>
 		bool checkLinkExists(const hdf5path& path, const HDF5_Options_t<U>& options) const noexcept
 		{
@@ -632,6 +688,8 @@ namespace HDF5_Wrapper
 	public:
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
 
+		//TODO: Correctly initialize the options for read operations!
+
 		template<typename T, typename _ = void>
 		auto writeData(const T& val, const HDF5_MemoryOptions& memopts) const
 		{
@@ -641,7 +699,24 @@ namespace HDF5_Wrapper
 		template<typename T>
 		auto readData(T& val, const HDF5_MemoryOptions& memopts) const
 		{
-			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
+			return H5Dread(*this, memopts.datatype, memopts.dataspace, getDataspace(), mOptions.transfer_propertylist, &val);
+		}
+
+		template<typename CharT,typename TraitsT, typename AllocatorT>
+		auto readData(std::basic_string<CharT,TraitsT,AllocatorT>& val, const HDF5_MemoryOptions& memopts) const
+		{
+			char **rdata = (char **)malloc(sizeof(char *));
+			const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, getDataspace(), mOptions.transfer_propertylist, rdata);
+			val = *rdata;
+			H5Dvlen_reclaim(getDatatype(), memopts.dataspace, H5P_DEFAULT, rdata);
+			free(rdata);
+			return err;
+		}
+
+		template<typename T>
+		auto readData(T* val, const HDF5_MemoryOptions& memopts) const
+		{
+			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, val);
 		}
 
 		HDF5_DatatypeWrapper getDatatype() const noexcept

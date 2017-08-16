@@ -234,7 +234,7 @@ namespace HDF5_Wrapper
 	};
 
 
-	bool isTypeImmutable(const hid_t& dtype)
+	inline bool isTypeImmutable(const hid_t& dtype)
 	{
 		if (dtype == H5T_IEEE_F32BE)
 			return true;

@@ -8,5 +8,7 @@
 
 namespace Archives
 {
-
+#ifdef _MSC_VER
+	__declspec(dllexport) void getRidOfLNK4221() {};
+#endif
 }

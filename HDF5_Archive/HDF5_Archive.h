@@ -32,10 +32,6 @@
 #include <memory>
 #include <stack>
 
-//#ifdef EIGEN_CORE_H
-//#include <Eigen/Core>
-//#endif
-
 //If you want dynamic lib for HDF5 define H5_BUILT_AS_DYNAMIC_LIB
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -91,6 +87,11 @@ namespace Archives
 	class HDF5_OutputArchive;	// Forward declare archive for Options;
 	class HDF5_InputArchive;	// Forward declare archive for Options;
 
+///-------------------------------------------------------------------------------------------------
+/// <signature>	HDF5_traits</signature>
+///
+/// <summary>	defines type traits for the HDF5 archives </summary>
+///-------------------------------------------------------------------------------------------------
 	namespace HDF5_traits
 	{
 		//Member Function type for converting values to strings
@@ -115,6 +116,11 @@ namespace Archives
 	/****************** Output Archive									 *********************/
 	/*****************************************************************************************/
 
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	A hdf 5 output options. </summary>
+	///
+	/// <seealso cref="T:OutputArchive_Options{HDF5_OutputOptions, HDF5_OutputArchive}"/>
+	///-------------------------------------------------------------------------------------------------
 	class HDF5_OutputOptions : OutputArchive_Options<HDF5_OutputOptions, HDF5_OutputArchive>
 	{
 		friend class OutputArchive<HDF5_OutputOptions>;
@@ -127,6 +133,11 @@ namespace Archives
 		HDF5_Wrapper::HDF5_DataspaceOptions			 DefaultDataspaceOptions{};
 	};
 
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	HDF5 output archive. </summary>
+	///
+	/// <seealso cref="T:OutputArchive{HDF5_OutputArchive}"/>
+	///-------------------------------------------------------------------------------------------------
 	class HDF5_OutputArchive : public OutputArchive<HDF5_OutputArchive>
 	{
 		using ThisClass = HDF5_OutputArchive;
@@ -147,7 +158,7 @@ namespace Archives
 		};
 
 		template<typename T>
-		inline std::enable_if_t< HDF5_traits::has_write_to_HDF5_v<T> > save(const T& value)
+		inline std::enable_if_t< HDF5_traits::has_write_to_HDF5<std::decay_t<T>>::value > save(const T& value)
 		{
 			auto dataset = createDataset(value);
 			write(dataset,value);
@@ -162,7 +173,7 @@ namespace Archives
 				setNextPath(value.getName());
 			
 			createOrOpenGroup(value);
-			
+
 			clearNextPath();
 		};
 
@@ -328,11 +339,12 @@ namespace Archives
 			}
 			else 
 			{
-				static_assert(false);
+				//static_assert(false);
 		
 				assert(false);
 				//TODO: Check if dataset already exists! 
 				//Creating the dataspace!
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
 				const HDF5_DataspaceOptions dataspaceopts;
 
 				//Creating the dataset!
@@ -342,6 +354,7 @@ namespace Archives
 			}
 		}
 
+		public: // For some reason the write functions must be public for clang to detect that the class can use them.
 		template <typename T>
 		std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>> || stdext::is_complex_v<std::decay_t<T>> > write(HDF5_Wrapper::HDF5_DatasetWrapper& dataset, const T& val)
 		{
@@ -544,7 +557,6 @@ namespace Archives
 		}
 		void clearNextPath()
 		{
-			assert(!nextPath.empty());
 			nextPath.clear();
 		}
 		bool isValidNextLocation(const std::string&) const
@@ -581,21 +593,69 @@ namespace Archives
 
 			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
 
-			const auto datatype = DataspaceTypeSelector<std::decay_t<T>>::value();
+			const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
 
 			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
 			HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper{ {},val });
 			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
 			
-			assert(dataset.getDatatype() == datatype);
+			assert(dataset.getDatatype() == datasetopts.datatype);
 
 			const auto& dataspace{ dataset.getDataspace() };
 
 			assert(dataspace.getDimensions().size() <= 1);
 
-			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(datatype) };
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(spacetype) };
 			dataset.readData(val, memoryopts);
+		}
+
+		template<typename T>
+		std::enable_if_t<stdext::is_string_v<std::decay_t<T>> > getData(T& val)
+		{
+			using namespace HDF5_Wrapper;
+
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
+			const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+
+			HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper{ {},val });
+			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+
+			assert(dataset.getDatatype() == datasetopts.datatype);
+			
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(spacetype) };
+			dataset.readData(val, memoryopts);
+		}
+
+		template<typename T>
+		std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>> &&
+						 stdext::is_memory_sequentiel_container_v<std::decay_t<T>> > getData(T& val)
+		{
+			using namespace HDF5_Wrapper;
+
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
+			const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+
+			HDF5_DatasetOptions datasetopts(HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper{ {},val });
+			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+
+			assert(dataset.getDatatype() == datasetopts.datatype);
+
+			const auto& dataspace{ dataset.getDataspace() };
+			const auto dims = dataspace.getDimensions();
+
+			assert(dims.size() == 1);
+
+			val.resize(dims.at(0));
+
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(spacetype) };
+			dataset.readData(val.data(), memoryopts);
 		}
 
 	};
