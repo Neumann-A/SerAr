@@ -43,176 +43,203 @@ namespace HDF5_Wrapper
 	struct DatatypeSelector<HDF5_Datatype::Native>
 	{
 		template<typename T>
-		inline static constexpr auto getType([[maybe_unused]] const T& val)
-		{
-			if constexpr(std::is_same_v<T, std::int8_t>) {
-				return H5T_NATIVE_INT8;
-			}
-			else if constexpr(std::is_same_v<T, std::int16_t>) {
-				return H5T_NATIVE_INT16;
-			}
-			else if constexpr(std::is_same_v<T, std::int32_t>) {
-				return H5T_NATIVE_INT32;
-			}
-			else if constexpr(std::is_same_v<T, std::int64_t>) {
-				return H5T_NATIVE_INT64;
-			}
-			else if constexpr(std::is_same_v<T, std::uint8_t>) {
-				return H5T_NATIVE_UINT8;
-			}
-			else if constexpr(std::is_same_v<T, std::uint16_t>) {
-				return H5T_NATIVE_UINT16;
-			}
-			else if constexpr(std::is_same_v<T, std::uint32_t>) {
-				return H5T_NATIVE_UINT32;
-			}
-			else if constexpr(std::is_same_v<T, std::uint64_t>) {
-				return H5T_NATIVE_UINT64;
-			}
-			else if constexpr(std::is_same_v<T, float>) {
-				return H5T_NATIVE_FLOAT;
-			}
-			else if constexpr(std::is_same_v<T, double>) {
-				return H5T_NATIVE_DOUBLE;
-			}
-			else if constexpr(std::is_same_v<T, long double>) {
-				return H5T_NATIVE_LDOUBLE;
-			}
-			else if constexpr(stdext::is_complex_v<T>) {
-				const std::array<std::size_t, 1> size{ {2} };
-				return H5Tarray_create(getType(val.real()), 1, size.data());
-			}
-			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
-				return H5T_C_S1;
-			}
-			else if constexpr(std::is_same_v<T, bool>) {
-				return H5T_NATIVE_B8;
-			}
-			else if constexpr(stdext::is_string_v<T>) {
-				//return H5Tcreate(H5T_STRING, val.size()*sizeof(typename T::value_type));
-				auto hdf5typeid = H5Tcopy(H5T_C_S1);
-				H5Tset_size(hdf5typeid, H5T_VARIABLE);
-				return hdf5typeid;
-			}
-			else {
-				static_assert(!std::is_same_v<T, void>, "Type definied!");
-			}
-		}
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int8_t>, hid_t> getType(const T&)	{
+			return H5T_NATIVE_INT8;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int16_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_INT16;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int32_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_INT32;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int64_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_INT64;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint8_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_UINT8;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint16_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_UINT16;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint32_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_UINT32;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint64_t>, hid_t> getType(const T&) {
+			return H5T_NATIVE_UINT64;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, float>, hid_t> getType(const T&) {
+			return H5T_NATIVE_FLOAT;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, double>, hid_t> getType(const T&) {
+			return H5T_NATIVE_DOUBLE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, long double>, hid_t> getType(const T&) {
+			return H5T_NATIVE_LDOUBLE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
+			const std::array<std::size_t, 1> size{ { 2 } };
+			return H5Tarray_create(getType(val.real()), 1, size.data());
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
+			return H5T_C_S1;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, bool>, hid_t> getType(const T&) {
+			return H5T_NATIVE_B8;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+			auto hdf5typeid = H5Tcopy(H5T_C_S1);
+			//H5Tset_size(hdf5typeid, val.size());
+			H5Tset_size(hdf5typeid, H5T_VARIABLE);
+			return hdf5typeid;
+		};
 	};
 	template<>
 	struct DatatypeSelector<HDF5_Datatype::LittleEndian>
 	{
 		template<typename T>
-		inline static constexpr auto getType([[maybe_unused]] const T& val)
-		{
-			if constexpr(std::is_same_v<T, std::int8_t>) {
-				return H5T_STD_I8LE;
-			}
-			else if constexpr(std::is_same_v<T, std::int16_t>) {
-				return H5T_STD_I16LE;
-			}
-			else if constexpr(std::is_same_v<T, std::int32_t>) {
-				return H5T_STD_I32LE;
-			}
-			else if constexpr(std::is_same_v<T, std::int64_t>) {
-				return H5T_STD_I64LE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint8_t>) {
-				return H5T_STD_U8LE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint16_t>) {
-				return H5T_STD_U16LE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint32_t>) {
-				return H5T_STD_U32LE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint64_t>) {
-				return H5T_STD_U64LE;
-			}
-			else if constexpr(std::is_same_v<T, float>) {
-				return H5T_IEEE_F32LE;
-			}
-			else if constexpr(std::is_same_v<T, double>) {
-				return H5T_IEEE_F64LE;
-			}
-			//else if constexpr(std::is_same_v<T, long double>) {
-			//	return H5T_NATIVE_LDOUBLE;
-			//}
-			else if constexpr(stdext::is_complex_v<T>) {
-				const std::array<std::size_t, 1> size{ { 2 } };
-				return H5Tarray_create(getType(val.real()), 1, size.data());
-			}
-			//else if constexpr(std::is_same_v<T, std::complex<long double>>) {
-			//	std::array<std::size_t, 1> size{ { 2 } };
-			//	return H5Tarray_create(H5T_NATIVE_LDOUBLE, 1, size.data());
-			//}
-			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
-				return H5T_C_S1;
-			}
-			else if constexpr(std::is_same_v<T, bool>) {
-				return H5T_STD_B8LE;
-			}
-			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, val.size() * sizeof(typename T::value_type));
-			}
-			else {
-				static_assert(!std::is_same_v<T, void>, "Type not definied!");
-			}
-		}
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int8_t>, hid_t> getType(const T&) {
+			return H5T_STD_I8LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int16_t>, hid_t> getType(const T&) {
+			return H5T_STD_I16LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int32_t>, hid_t> getType(const T&) {
+			return H5T_STD_I32LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::int64_t>, hid_t> getType(const T&) {
+			return H5T_STD_I64LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint8_t>, hid_t> getType(const T&) {
+			return H5T_STD_U8LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint16_t>, hid_t> getType(const T&) {
+			return H5T_STD_U16LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint32_t>, hid_t> getType(const T&) {
+			return H5T_STD_U32LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint64_t>, hid_t> getType(const T&) {
+			return H5T_STD_U64LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, float>, hid_t> getType(const T&) {
+			return H5T_IEEE_F32LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, double>, hid_t> getType(const T&) {
+			return H5T_IEEE_F64LE;
+		};
+		//template<typename T>
+		//inline static constexpr std::enable_if_t<std::is_same_v<T, long double>, hid_t> getType(const T&) {
+		//	return H5T_NATIVE_LDOUBLE;
+		//};
+		template<typename T>
+		inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
+			const std::array<std::size_t, 1> size{ { 2 } };
+			return H5Tarray_create(getType(val.real()), 1, size.data());
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
+			return H5T_C_S1;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<std::is_same_v<T, bool>, hid_t> getType(const T&) {
+			return H5T_STD_B8LE;
+		};
+		template<typename T>
+		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+			auto hdf5typeid = H5Tcopy(H5T_C_S1);
+			H5Tset_size(hdf5typeid, H5T_VARIABLE);
+			return hdf5typeid;
+		};
 	};
 	template<>
 	struct DatatypeSelector<HDF5_Datatype::BigEndian>
 	{
-		template<typename T>
-		inline static constexpr auto getType([[maybe_unused]] const T& val)
-		{
-			if constexpr(std::is_same_v<T, std::int8_t>) {
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::int8_t>, hid_t> getType(const T&) {
 				return H5T_STD_I8BE;
-			}
-			else if constexpr(std::is_same_v<T, std::int16_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::int16_t>, hid_t> getType(const T&) {
 				return H5T_STD_I16BE;
-			}
-			else if constexpr(std::is_same_v<T, std::int32_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::int32_t>, hid_t> getType(const T&) {
 				return H5T_STD_I32BE;
-			}
-			else if constexpr(std::is_same_v<T, std::int64_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::int64_t>, hid_t> getType(const T&) {
 				return H5T_STD_I64BE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint8_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint8_t>, hid_t> getType(const T&) {
 				return H5T_STD_U8BE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint16_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint16_t>, hid_t> getType(const T&) {
 				return H5T_STD_U16BE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint32_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint32_t>, hid_t> getType(const T&) {
 				return H5T_STD_U32BE;
-			}
-			else if constexpr(std::is_same_v<T, std::uint64_t>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, std::uint64_t>, hid_t> getType(const T&) {
 				return H5T_STD_U64BE;
-			}
-			else if constexpr(std::is_same_v<T, float>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, float>, hid_t> getType(const T&) {
 				return H5T_IEEE_F32BE;
-			}
-			else if constexpr(std::is_same_v<T, double>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, double>, hid_t> getType(const T&) {
 				return H5T_IEEE_F64BE;
-			}
-			else if constexpr(stdext::is_complex_v<T>) {
+			};
+			//template<typename T>
+			//inline static constexpr std::enable_if_t<std::is_same_v<T, long double>, hid_t> getType(const T&) {
+			//	return H5T_NATIVE_LDOUBLE;
+			//};
+			template<typename T>
+			inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
 				const std::array<std::size_t, 1> size{ { 2 } };
 				return H5Tarray_create(getType(val.real()), 1, size.data());
-			}
-			else if constexpr(std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
 				return H5T_C_S1;
-			}
-			else if constexpr(std::is_same_v<T, bool>) {
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<std::is_same_v<T, bool>, hid_t> getType(const T&) {
 				return H5T_STD_B8BE;
-			}
-			else if constexpr(stdext::is_string_v<T>) {
-				return H5Tcreate(H5T_STRING, val.size() * sizeof(typename T::value_type));
-			}
-			else {
-				static_assert(!std::is_same_v<T, void>, "Type definied!");
-			}
-		}
+			};
+			template<typename T>
+			inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+				auto hdf5typeid = H5Tcopy(H5T_C_S1);
+				H5Tset_size(hdf5typeid, H5T_VARIABLE);
+				return hdf5typeid;
+			}; 			
 	};
 	struct DatatypeRuntimeSelector
 	{
@@ -233,8 +260,14 @@ namespace HDF5_Wrapper
 		}
 	};
 
+	template<class T>
+	using get_HDF5_datatyp_t = decltype(DatatypeSelector<HDF5_Datatype::Native>::getType(std::declval<std::decay_t<T&>>()));
 
-	inline bool isTypeImmutable(const hid_t& dtype)
+	template<typename T>
+	struct has_HDF5_datatype : stdext::is_detected_exact<hid_t, get_HDF5_datatyp_t, T> {};
+
+	// Maybe copying in the selector is better than this if statement
+	inline bool isTypeImmutable(const hid_t& dtype) 
 	{
 		if (dtype == H5T_IEEE_F32BE)
 			return true;

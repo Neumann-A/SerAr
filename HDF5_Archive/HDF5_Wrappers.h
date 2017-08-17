@@ -680,6 +680,20 @@ namespace HDF5_Wrapper
 			//else {	return { {1} };		}
 		}
 
+		auto setOffset(const std::vector<std::int64_t>& offset)
+		{
+			return H5Soffset_simple(*this, offset.data());
+		}
+
+		auto selectSlab(const H5S_seloper_t& oper, const std::vector<std::size_t>& start, const std::vector<std::size_t>& stride, const std::vector<std::size_t>& count, const std::vector<std::size_t>& block)
+		{
+			return H5Sselect_hyperslab(*this, oper, start.data(),stride.data(),count.data(),block.data());
+		}
+
+		auto removeSelection()
+		{
+			return H5Sselect_none(*this);
+		}
 	};
 
 	struct HDF5_MemoryOptions
@@ -731,8 +745,9 @@ namespace HDF5_Wrapper
 				else { // does not exist
 					return HDF5_LocationWrapper(H5Dcreate(loc, path.string().c_str(), storeoptions.datatype, storeoptions.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist));
 				}
-				return HDF5_LocationWrapper(-1);
 			}
+			default:
+				return HDF5_LocationWrapper(-1);	
 			}
 		};
 
@@ -750,7 +765,7 @@ namespace HDF5_Wrapper
 		template<typename T, typename _ = void>
 		auto writeData(const T& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
-			if constexpr(stdext::is_container_v<std::decay_t<T>>)
+			if constexpr(stdext::is_memory_sequentiel_container_v<std::decay_t<T>>)
 			{
 				return H5Dwrite(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val[0]);
 			}

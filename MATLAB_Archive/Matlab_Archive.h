@@ -715,10 +715,10 @@ namespace Archives
 			const auto ndims = mxGetNumberOfDimensions(fieldptr);
 			const auto dims = mxGetDimensions(fieldptr);
 
-			std::size_t elemcountMATLAB{ 0 };
+			std::size_t elemcountMATLAB{ 1 };
 			for (std::size_t index{ 0 }; index < ndims; ++index )
 			{
-				elemcountMATLAB = elemcountMATLAB + dims[index]; //TODO: Check for Overflow!
+				elemcountMATLAB = elemcountMATLAB * dims[index]; //TODO: Check for Overflow!
 			}
 
 			if (dimarray[0] == 0) // If the Tensor Type has unintialized dimensions we will use the dimension given by MATLAB to Map to the tensor!
@@ -748,7 +748,7 @@ namespace Archives
 			}
 			else
 			{
-				const std::size_t countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 0ull);
+				const std::size_t countTensor = std::accumulate(dimarray.begin(), dimarray.end(), 1ull, std::multiplies<std::size_t>());
 				if (countTensor != elemcountMATLAB) //To many or to few elements; will either cut or leave values empty
 				{ //Should this really throw? Even in the case Tensor < Matlab? 
 					throw std::runtime_error{ std::string{"Element count between the provided Tensor and MATLAB disagree!"} };
