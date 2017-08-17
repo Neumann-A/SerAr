@@ -293,6 +293,7 @@ namespace HDF5_Wrapper
 			}
 			else
 			{
+				static_assert(std::is_same_v<void, T>, "What are you doing? Calling function with wrong Type!!");
 				// TODO: Throw meaningfull error!
 				return (hid_t)(-1);
 			}
@@ -345,6 +346,9 @@ namespace HDF5_Wrapper
 
 		inline bool isValid() const noexcept { return (mLocation >= 0); };
 	public:
+		DISALLOW_COPY_AND_ASSIGN(HDF5_LocationWrapper)
+		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_LocationWrapper)
+
 		inline explicit HDF5_LocationWrapper(hid_t locID) : mLocation(std::move(locID))
 		{
 			if (!isValid()) {
@@ -415,7 +419,7 @@ namespace HDF5_Wrapper
 	class HDF5_GeneralType 
 	{
 		static_assert(std::is_same_v<T, std::decay_t<T>>); // T should be a Type without any qualifiers!
-
+	
 		HDF5_LocationWrapper mLoc;
 		bool wasMoved{ false };
 	protected:
@@ -425,7 +429,7 @@ namespace HDF5_Wrapper
 		DISALLOW_COPY_AND_ASSIGN(HDF5_GeneralType)
 			
 	public:
-		explicit HDF5_GeneralType(HDF5_LocationWrapper &&locID) : mLoc(std::move(locID)) {};
+		explicit HDF5_GeneralType(HDF5_LocationWrapper &&locID, HDF5_Options_t<T> options = HDF5_Options_t<T>{}) : mLoc(std::move(locID)), mOptions(std::move(options)) {};
 	public:	
 		template<typename U>
 		explicit HDF5_GeneralType(const HDF5_GeneralType<U>& loc, const hdf5path& path, HDF5_Options_t<T> options)
@@ -566,14 +570,25 @@ namespace HDF5_Wrapper
 	class HDF5_DatatypeWrapper : public HDF5_GeneralType<HDF5_DatatypeWrapper>
 	{
 		using ThisClass = HDF5_DatatypeWrapper;
-	public:
-
+	private:
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
-
+	public:
 		template<typename T>
 		HDF5_DatatypeWrapper(const T& val, const HDF5_DatatypeOptions &options) : 
-			HDF5_GeneralType<HDF5_DatatypeWrapper>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val) ) ) {};
+			HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val)),options) {};
 
+
+		HDF5_DatatypeWrapper() : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(0)) {};
+
+
+		HDF5_DatatypeWrapper(const HDF5_DatatypeWrapper& tocopy) : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(H5Tcopy(tocopy)), tocopy.mOptions)
+		{};
+
+		HDF5_DatatypeWrapper& operator=(const HDF5_DatatypeWrapper& tocopy) 
+		{
+			*this = HDF5_DatatypeWrapper(tocopy);
+			return *this;
+		};
 
 		bool HDF5_DatatypeWrapper::operator==(const HDF5_DatatypeWrapper& other) {
 			return H5Tequal(*this,other);
@@ -581,6 +596,7 @@ namespace HDF5_Wrapper
 		bool HDF5_DatatypeWrapper::operator!=(const HDF5_DatatypeWrapper& other) {
 			return !(*this == other);
 		}
+
 
 	};
 
@@ -642,11 +658,16 @@ namespace HDF5_Wrapper
 	public:
 		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
 
-		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts = HDF5_DataspaceOptions{}) : HDF5_GeneralType<ThisClass>(createDataspace(type, opts))
+		HDF5_DataspaceWrapper() : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(H5S_ALL)) {}; 
+
+		HDF5_DataspaceWrapper(const H5S_class_t& type, const HDF5_DataspaceOptions& opts = HDF5_DataspaceOptions{}) : HDF5_GeneralType<ThisClass>(createDataspace(type, opts),opts)
 		{}
 
 		template<typename T>
 		HDF5_DataspaceWrapper(const HDF5_DataspaceOptions& opts, const T& val) : HDF5_GeneralType<ThisClass>(createDataspace(opts, val)) {};
+
+		HDF5_DataspaceWrapper(const HDF5_DataspaceWrapper& tocopy) : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(H5Scopy(tocopy)), tocopy.mOptions)
+		{		};
 
 		std::vector<std::size_t> getDimensions() const 
 		{
@@ -658,6 +679,7 @@ namespace HDF5_Wrapper
 			//{	}
 			//else {	return { {1} };		}
 		}
+
 	};
 
 	struct HDF5_MemoryOptions
@@ -665,48 +687,90 @@ namespace HDF5_Wrapper
 		HDF5_DatatypeWrapper   datatype;
 		HDF5_DataspaceWrapper  dataspace;
 	};
+	struct HDF5_StorageOptions
+	{
+		HDF5_DatatypeWrapper   datatype{};
+		HDF5_DataspaceWrapper  dataspace{};
+
+		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_StorageOptions)
+	};
 
 	struct HDF5_DatasetOptions : HDF5_GeneralOptions
 	{
-		HDF5_DataspaceWrapper  dataspace;
-		HDF5_DatatypeWrapper   datatype;
-		
 		hid_t link_creation_propertylist{ H5P_DEFAULT };
 		hid_t transfer_propertylist{ H5P_DEFAULT };
-
-		HDF5_DatasetOptions(HDF5_DatatypeWrapper dtype, HDF5_DataspaceWrapper dspace, hid_t lcpl = H5P_DEFAULT)
-			: datatype(std::move(dtype)), dataspace(std::move(dspace)), link_creation_propertylist(std::move(lcpl)) {};
-
-		DISALLOW_COPY_AND_ASSIGN(HDF5_DatasetOptions)
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_DatasetOptions)
 	};
 
 	
 	class HDF5_DatasetWrapper : public HDF5_GeneralType<HDF5_DatasetWrapper>
 	{
 		using ThisClass = HDF5_DatasetWrapper;
-	public:
-		using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
 
-		//TODO: Correctly initialize the options for read operations!
+		static HDF5_LocationWrapper createOrOpenDataset(const HDF5_LocationWrapper& loc, const hdf5path& path, const HDF5_Options_t<ThisClass>& options,const HDF5_StorageOptions& storeoptions)
+		{
+			switch (options.mode)
+			{
+			case HDF5_GeneralOptions::HDF5_Mode::Open:
+				return HDF5_LocationWrapper{ H5Dopen(loc, path.string().c_str(), options.access_propertylist) };
+			case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
+			{
+				if (loc.checkLinkExists<ThisClass>(path, options)) { //Link does exist
+					H5O_info_t oinfo;
+					const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+
+					assert(herr >= 0); // we checked that the link exists so the above should never fail!
+
+					if (oinfo.type == H5O_TYPE_DATASET) {
+						return HDF5_LocationWrapper(H5Dopen(loc, path.string().c_str(), options.access_propertylist));
+					}
+					else {
+						std::runtime_error{ "Given path is neither empty nor points to a HDF5 Dataset!" };
+					}
+
+				}
+				else { // does not exist
+					return HDF5_LocationWrapper(H5Dcreate(loc, path.string().c_str(), storeoptions.datatype, storeoptions.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist));
+				}
+				return HDF5_LocationWrapper(-1);
+			}
+			}
+		};
+
+	public:
+		//template<typename U>
+		//HDF5_DatasetWrapper(const HDF5_GeneralType<U>& loc, const hdf5path& path, const HDF5_StorageOptions& storeoptions, HDF5_Options_t<ThisClass> options = HDF5_Options_t<ThisClass>{}) :
+		//	HDF5_GeneralType<HDF5_DatasetWrapper>(createOrOpenDataset(loc,path,options, storeoptions),options){};
+
+		HDF5_DatasetWrapper(const HDF5_LocationWrapper& loc, const hdf5path& path, const HDF5_StorageOptions& storeoptions,const HDF5_Options_t<ThisClass> &options = HDF5_Options_t<ThisClass>{}) :
+			HDF5_GeneralType<HDF5_DatasetWrapper>(createOrOpenDataset(loc, path, options, storeoptions), options) {};
+
+		HDF5_DatasetWrapper(const HDF5_LocationWrapper& loc, const hdf5path& path, const HDF5_Options_t<ThisClass> &options = HDF5_Options_t<ThisClass>{}) :
+			HDF5_GeneralType<HDF5_DatasetWrapper>(createOrOpenDataset(loc, path, options, {}),options) {};
 
 		template<typename T, typename _ = void>
-		auto writeData(const T& val, const HDF5_MemoryOptions& memopts) const
+		auto writeData(const T& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
-			return H5Dwrite(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, &val);
+			if constexpr(stdext::is_container_v<std::decay_t<T>>)
+			{
+				return H5Dwrite(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val[0]);
+			}
+			else
+			{
+				return H5Dwrite(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val);
+			}
 		}
 
 		template<typename T>
-		auto readData(T& val, const HDF5_MemoryOptions& memopts) const
+		auto readData(T& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
-			return H5Dread(*this, memopts.datatype, memopts.dataspace, getDataspace(), mOptions.transfer_propertylist, &val);
+			return H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val);
 		}
 
 		template<typename CharT,typename TraitsT, typename AllocatorT>
-		auto readData(std::basic_string<CharT,TraitsT,AllocatorT>& val, const HDF5_MemoryOptions& memopts) const
+		auto readData(std::basic_string<CharT, TraitsT, AllocatorT>& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
 			char **rdata = (char **)malloc(sizeof(char *));
-			const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, getDataspace(), mOptions.transfer_propertylist, rdata);
+			const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, rdata);
 			val = *rdata;
 			H5Dvlen_reclaim(getDatatype(), memopts.dataspace, H5P_DEFAULT, rdata);
 			free(rdata);
@@ -714,9 +778,9 @@ namespace HDF5_Wrapper
 		}
 
 		template<typename T>
-		auto readData(T* val, const HDF5_MemoryOptions& memopts) const
+		auto readData(T* val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
-			return H5Dread(*this, memopts.datatype, memopts.dataspace, mOptions.dataspace, mOptions.transfer_propertylist, val);
+			return H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, val);
 		}
 
 		HDF5_DatatypeWrapper getDatatype() const noexcept
@@ -726,7 +790,7 @@ namespace HDF5_Wrapper
 
 		HDF5_DataspaceWrapper getDataspace() const noexcept
 		{
-			return HDF5_DataspaceWrapper( HDF5_LocationWrapper{ H5Dget_space(*this) } );
+			return HDF5_DataspaceWrapper( HDF5_LocationWrapper(H5Dget_space(*this)) );
 		}
 	};
 
