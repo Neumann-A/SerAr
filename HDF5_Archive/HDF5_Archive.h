@@ -300,12 +300,12 @@ namespace Archives
 		template <typename T>
 		std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>>> write(const T& val)
 		{
+			using namespace HDF5_Wrapper;
+
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
 			if constexpr (stdext::is_memory_sequentiel_container_v<std::decay_t<T>>)
 			{
-				using namespace HDF5_Wrapper;
-
-				const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
-
 				//Creating the dataset! 
 				const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
@@ -319,6 +319,8 @@ namespace Archives
 				HDF5_DatasetOptions datasetopts;
 				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
 
+				//Creating the storage dataspace selection (default is enough -> All space)
+
 				//Creating the memory space
 				const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
 				const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
@@ -330,6 +332,39 @@ namespace Archives
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
 				dataset.writeData(val, memoryopts);
+			}
+			else if constexpr (!stdext::is_associative_container_v<std::decay_t<T>>)
+			{
+				//Creating the dataset! 
+				const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+				const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+				//Settings storage dimensions
+				HDF5_DataspaceOptions dataspaceopts;
+				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.maxdims = std::vector<std::size_t>{ { val.size() } };
+
+				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
+				HDF5_DatasetOptions datasetopts;
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
+			
+				//Creating the storage dataspace selection
+				HDF5_DataspaceWrapper stordataspace(dataspacetype, dataspaceopts);
+				stordataspace.removeSelection();
+				stordataspace.selectSlab(H5S_SELECT_SET, { 0 }, { 1 }, { 1 }, { 1 });
+
+				//Creating the memory space
+				const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+				const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), stordataspace };
+
+				std::vector<std::int64_t> offset{ { 0 } };
+				for (const auto& str : val)
+				{
+					dataset.writeData(str, memoryopts, stordataspace);
+					++(offset[0]);
+					stordataspace.setOffset(offset);
+				}
 			}
 			else
 			{
@@ -358,20 +393,15 @@ namespace Archives
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 				HDF5_DatasetOptions datasetopts;
 				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
-
-
-				//Creating the memory space
+				
+				//Creating the storage dataspace selection
 				HDF5_DataspaceWrapper stordataspace(dataspacetype, dataspaceopts);
 				stordataspace.removeSelection();
 				stordataspace.selectSlab(H5S_SELECT_SET, { 0 }, { 1 }, { 1 }, { 1 });
 
+				//Creating the memory space
 				const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
 				const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
-
-				//Settings memory dimensions
-				//HDF5_DataspaceOptions memoryspaceopt;
-				//memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-				//memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), stordataspace };
 
 				std::vector<std::int64_t> offset{ {0} };
@@ -428,6 +458,51 @@ namespace Archives
 				dataset.writeData(val, memoryopts);
 			}
 		}
+
+		//template <typename T>
+		//std::enable_if_t<stdext::is_container_with_eigen_type_v<std::decay_t<T>>> write(const T& val)
+		//{
+		//	using namespace HDF5_Wrapper;
+
+		//	const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
+		//	//Creating the dataset! 
+		//	const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+		//	const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+
+		//	//Settings storage dimensions
+		//	HDF5_DataspaceOptions dataspaceopts;
+		//	dataspaceopts.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+		//	dataspaceopts.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+
+		//	HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
+		//	HDF5_DatasetOptions datasetopts;
+		//	HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
+
+		//	//Creating the memory space
+		//	const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+		//	const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
+
+		//	//Settings memory dimensions
+		//	HDF5_DataspaceOptions memoryspaceopt;
+		//	memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+		//	memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+		//	HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
+
+		//	//HDF5_DataspaceWrapper memoryspace(memoryspacetype, memoryspaceopt);
+
+		//	if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
+		//	{ //Converting from Columnmajor to rowmajor
+		//		Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
+		//		//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
+		//		dataset.writeData(TransposedMatrix, memoryopts);
+		//	}
+		//	else
+		//	{
+		//		//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
+		//		dataset.writeData(val, memoryopts);
+		//	}
+		//}
 
 		template <typename T>
 		std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> write(const T& val)
@@ -503,20 +578,9 @@ namespace Archives
 		template<typename T>
 		inline void load(Archives::NamedValue<T>& value)
 		{
-			//if constexpr(is_NamedValue_v<T>)
-			//{
-			//	setNextPath(value.getName());
-			//	openGroup(value);
-			//	clearNextPath();
-
-			//	this->operator()(value.getValue());
-			//}
-			//else
-			//{
-				setNextPath(value.getName());		//Sets the name for the next Dataset or Group
-				this->operator()(value.getValue()); //Write Data to the Group or Dataset
-				clearNextPath();	//Remove the Fieldname
-			//}
+			setNextPath(value.getName());		//Sets the name for the next Dataset or Group
+			this->operator()(value.getValue()); //Write Data to the Group or Dataset
+			clearNextPath();	//Remove the Fieldname
 		};
 
 		template<typename T>
@@ -635,36 +699,80 @@ namespace Archives
 
 
 		template<typename T>
-		std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>> &&
-						 stdext::is_memory_sequentiel_container_v<std::decay_t<T>> > getData(T& val)
+		std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>> && !stdext::is_associative_container_v<std::decay_t<T>> > getData(T& val)
 		{
 			using namespace HDF5_Wrapper;
 
 			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
 
-			const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
-			HDF5_DataspaceOptions spaceopts;
+			if constexpr (stdext::is_memory_sequentiel_container_v<std::decay_t<T>>)
+			{
+				const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+				HDF5_DataspaceOptions spaceopts;
 
-			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+				const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
-			HDF5_DatasetOptions datasetopts{};
-			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+				HDF5_DatasetOptions datasetopts{};
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
 
-			HDF5_DatatypeWrapper type(val[0], datatypeopts);
-			assert(dataset.getDatatype() == type);
+				HDF5_DatatypeWrapper type(val[0], datatypeopts);
+				assert(dataset.getDatatype() == type);
 
-			const auto& dataspace{ dataset.getDataspace() };
-			const auto dims = dataspace.getDimensions();
+				const auto& dataspace{ dataset.getDataspace() };
+				const auto dims = dataspace.getDimensions();
 
-			assert(dims.size() == 1);
+				assert(dims.size() == 1);
 
-			val.resize(dims.at(0));
-				
-			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
-			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
-			dataset.readData(val.data(), memoryopts);
+				val.resize(dims.at(0));
+
+				HDF5_DataspaceOptions memoryspaceopt;
+				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
+				dataset.readData(val.data(), memoryopts);
+			}
+			else if constexpr(!stdext::is_associative_container_v<std::decay_t<T>>)
+			{
+				const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+				HDF5_DataspaceOptions spaceopts;
+
+				const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+
+				HDF5_DatasetOptions datasetopts{};
+				HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
+
+				HDF5_DatatypeWrapper type(val[0], datatypeopts);
+				assert(dataset.getDatatype() == type);
+
+				const auto& dataspace{ dataset.getDataspace() };
+				const auto dims = dataspace.getDimensions();
+
+				assert(dims.size() == 1);
+
+				val.resize(dims.at(0));
+
+				HDF5_DataspaceWrapper stordataspace(dataspace);
+				stordataspace.removeSelection();
+				stordataspace.selectSlab(H5S_SELECT_SET, { 0 }, { 1 }, { 1 }, { 1 });
+
+				HDF5_DataspaceOptions memoryspaceopt;
+				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), stordataspace };
+				std::vector<std::int64_t> offset{ { 0 } };
+				for (auto& elem : val)
+				{
+					dataset.readData(elem, memoryopts, stordataspace);
+					++(offset[0]);
+					stordataspace.setOffset(offset);
+				}
+			}
+			else
+			{
+				static_assert(!stdext::is_memory_sequentiel_container_v<std::decay_t<T>>, "Case not implemented yet! Please implement it!");
+				//How to do it: For sequentiell containers: Write elements one at a time in a for loop into the dataset. Needs selection of appropiate dataspaces!
+				// For associative containers: Open 
+			}
 		}
 
 		template<typename T>
