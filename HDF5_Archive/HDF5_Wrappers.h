@@ -25,6 +25,7 @@
 #include <variant>
 #include <limits>
 #include <iostream>
+#include <memory>
 
 #include "basics/BasicMacros.h"
 
@@ -597,6 +598,10 @@ namespace HDF5_Wrapper
 			return !(*this == other);
 		}
 
+		std::size_t getSize() const noexcept
+		{
+			return H5Tget_size(*this);
+		}
 
 	};
 
@@ -763,7 +768,7 @@ namespace HDF5_Wrapper
 			HDF5_GeneralType<HDF5_DatasetWrapper>(createOrOpenDataset(loc, path, options, {}),options) {};
 
 		template<typename T, typename _ = void>
-		auto writeData(const T& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
+		auto writeData(const T& val, const HDF5_MemoryOptions& memopts = HDF5_MemoryOptions{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
 			if constexpr(stdext::is_memory_sequentiel_container_v<std::decay_t<T>>)
 			{
@@ -776,24 +781,37 @@ namespace HDF5_Wrapper
 		}
 
 		template<typename T>
-		auto readData(T& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
+		auto readData(T& val, const HDF5_MemoryOptions& memopts = HDF5_MemoryOptions{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
 			return H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val);
 		}
 
 		template<typename CharT,typename TraitsT, typename AllocatorT>
-		auto readData(std::basic_string<CharT, TraitsT, AllocatorT>& val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
+		auto readData(std::basic_string<CharT, TraitsT, AllocatorT>& val, const HDF5_MemoryOptions& memopts = HDF5_MemoryOptions{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
-			char **rdata = (char **)malloc(sizeof(char *));
-			const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, rdata);
-			val = *rdata;
-			H5Dvlen_reclaim(getDatatype(), memopts.dataspace, H5P_DEFAULT, rdata);
-			free(rdata);
-			return err;
+			const auto type = getDatatype();
+			const auto size = type.getSize();
+			if (size == sizeof(char *)) // => variable length string!
+			{
+				//If an exceptions is thrown between the lines we will leak memory (The HDF5 part)!
+				//char **rdata = (char **)malloc(sizeof(char *));
+				std::unique_ptr<char *> rdata(new char*);
+				const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, (void*)rdata.get());
+				val = *rdata; //Copy the const char* into string object. May throw if not enough memory is available!
+				H5Dvlen_reclaim(type, memopts.dataspace, H5P_DEFAULT, (void*)rdata.get());
+				//free(rdata);
+				return err;
+			}
+			else // => fixed size string
+			{
+				val.resize(size);
+				return H5Dread(*this, type, memopts.dataspace, storespace, mOptions.transfer_propertylist, val.data());
+			}
+			
 		}
 
 		template<typename T>
-		auto readData(T* val, const HDF5_MemoryOptions& memopts = HDF5_DataspaceWrapper{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
+		auto readData(T* val, const HDF5_MemoryOptions& memopts = HDF5_MemoryOptions{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
 		{
 			return H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, val);
 		}

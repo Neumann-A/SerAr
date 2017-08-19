@@ -687,7 +687,14 @@ namespace Archives
 			HDF5_DatasetOptions datasetopts{};
 			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(datasetopts));
 			
-			assert(dataset.getDatatype() == HDF5_DatatypeWrapper(val, datatypeopts));
+			if constexpr(!stdext::is_string_v<std::decay_t<T>>)
+			{
+				assert(dataset.getDatatype() == HDF5_DatatypeWrapper(val, datatypeopts));
+			}
+			else
+			{
+				//assert(HDF5_DatatypeWrapper(H5Tget_super(dataset.getDatatype())) == HDF5_DatatypeWrapper(H5Tget_super(HDF5_DatatypeWrapper(val, datatypeopts))));
+			}
 
 			const auto& dataspace{ dataset.getDataspace() };
 

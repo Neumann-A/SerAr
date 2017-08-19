@@ -100,7 +100,7 @@ namespace HDF5_Wrapper
 			return H5T_NATIVE_B8;
 		};
 		template<typename T>
-		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T&) {
 			auto hdf5typeid = H5Tcopy(H5T_C_S1);
 			//H5Tset_size(hdf5typeid, val.size());
 			H5Tset_size(hdf5typeid, H5T_VARIABLE);
@@ -168,7 +168,7 @@ namespace HDF5_Wrapper
 			return H5T_STD_B8LE;
 		};
 		template<typename T>
-		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+		inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T&) {
 			auto hdf5typeid = H5Tcopy(H5T_C_S1);
 			H5Tset_size(hdf5typeid, H5T_VARIABLE);
 			return hdf5typeid;
@@ -235,7 +235,7 @@ namespace HDF5_Wrapper
 				return H5T_STD_B8BE;
 			};
 			template<typename T>
-			inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T& val) {
+			inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T&) {
 				auto hdf5typeid = H5Tcopy(H5T_C_S1);
 				H5Tset_size(hdf5typeid, H5T_VARIABLE);
 				return hdf5typeid;
