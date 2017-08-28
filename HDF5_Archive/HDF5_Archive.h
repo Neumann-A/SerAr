@@ -115,6 +115,45 @@ namespace Archives
 	
 
 	/*****************************************************************************************/
+	/****************** HDF5 Archive Helper								 *********************/
+	/*****************************************************************************************/
+
+	class HDF5_ArchiveHelper
+	{
+	public:
+		template<typename T>
+		static std::vector<std::size_t> calculateDimensions(const T& val)
+		{
+			if constexpr(stdext::is_arithmetic_container_v<std::decay_t<T>>)
+			{
+				return std::vector<std::size_t>{ { val.size() } };
+			}
+			else if constexpr (stdext::is_eigen_type_v<std::decay_t<T>>)
+			{
+				return std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			}
+			else if constexpr (stdext::is_container_with_eigen_type_v< std::decay_t<T>>)
+			{
+				//TODO: check for a dynamic matrix
+				const auto begin = val.begin();
+				return std::vector<std::size_t>{ { val.size(), static_cast<std::size_t>(*begin.rows()), static_cast<std::size_t>(*begin.cols()) } };
+			}
+			else
+			{
+				static_assert("Can not calculate dimensions for given type! Implementation not defined!");
+				return { 0 };
+			}
+		}
+
+		template<typename T>
+		static HDF5_Wrapper::HDF5_DataspaceWrapper getDataspaceSelection(const T& val)
+		{
+
+		}
+	};
+
+
+	/*****************************************************************************************/
 	/****************** Output Archive									 *********************/
 	/*****************************************************************************************/
 
@@ -130,6 +169,7 @@ namespace Archives
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 
 	public:
+		bool										 dontReorderData {false} ;
 		HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite };
 		HDF5_Wrapper::HDF5_DatatypeOptions			 DefaultDatatypeOptions{};
 		HDF5_Wrapper::HDF5_DataspaceOptions			 DefaultDataspaceOptions{};
@@ -313,7 +353,7 @@ namespace Archives
 				//Settings storage dimensions
 				HDF5_DataspaceOptions dataspaceopts;
 				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
-				dataspaceopts.maxdims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.maxdims = dataspaceopts.dims;
 
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 				HDF5_DatasetOptions datasetopts;
@@ -328,7 +368,8 @@ namespace Archives
 				//Settings memory dimensions
 				HDF5_DataspaceOptions memoryspaceopt;
 				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-				memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.maxdims = memoryspaceopt.dims;
+
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
 				dataset.writeData(val, memoryopts);
@@ -342,7 +383,7 @@ namespace Archives
 				//Settings storage dimensions
 				HDF5_DataspaceOptions dataspaceopts;
 				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
-				dataspaceopts.maxdims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.maxdims = dataspaceopts.dims;
 
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 				HDF5_DatasetOptions datasetopts;
@@ -410,8 +451,7 @@ namespace Archives
 					dataset.writeData(str.c_str(), memoryopts, stordataspace);
 					++(offset[0]);
 					stordataspace.setOffset(offset);
-				}
-			
+				}	
 		}
 
 		template <typename T>
@@ -444,13 +484,64 @@ namespace Archives
 			memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
 			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
+			if (mOptions.dontReorderData)
+			{
+				if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
+				{ //Converting from Columnmajor to rowmajor
+					Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
+					dataset.writeData(TransposedMatrix, memoryopts);
+				}
+				else
+				{
+					dataset.writeData(val, memoryopts);
+				}
+			}
+			else
+			{
+				dataset.writeData(val, memoryopts);
+			}
+		}
+
+		template <typename T>
+		std::enable_if_t<stdext::is_container_with_eigen_type_v< std::decay_t<T> >> write(const T& val)
+		{
+			using namespace HDF5_Wrapper;
+			const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
+
+
+			using EigenType = std::decay_t<typename std::decay_t<T>::value_type>;
+			using Scalar = typename EigenType::Scalar;
+
+			//Creating the dataset! 
+			const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
+			const auto dataspacetype = DataspaceTypeSelector<EigenType>::value();
+
+			//Settings storage dimensions
+			HDF5_DataspaceOptions dataspaceopts;
+			dataspaceopts.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			dataspaceopts.maxdims = dataspaceopts.dims;
+
+			HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
+			HDF5_DatasetOptions datasetopts;
+			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
+
+			//Creating the memory space
+			const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
+			const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
+
+			//Settings memory dimensions
+			HDF5_DataspaceOptions memoryspaceopt;
+			memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
+
 			//HDF5_DataspaceWrapper memoryspace(memoryspacetype, memoryspaceopt);
 
 			if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
 			{ //Converting from Columnmajor to rowmajor
 				Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
 				//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
-				dataset.writeData(TransposedMatrix, memoryopts);		
+				dataset.writeData(TransposedMatrix, memoryopts);
 			}
 			else
 			{
@@ -458,51 +549,6 @@ namespace Archives
 				dataset.writeData(val, memoryopts);
 			}
 		}
-
-		//template <typename T>
-		//std::enable_if_t<stdext::is_container_with_eigen_type_v<std::decay_t<T>>> write(const T& val)
-		//{
-		//	using namespace HDF5_Wrapper;
-
-		//	const HDF5_LocationWrapper& currentLoc = mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
-
-		//	//Creating the dataset! 
-		//	const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
-		//	const auto dataspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
-
-		//	//Settings storage dimensions
-		//	HDF5_DataspaceOptions dataspaceopts;
-		//	dataspaceopts.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-		//	dataspaceopts.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-
-		//	HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
-		//	HDF5_DatasetOptions datasetopts;
-		//	HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
-
-		//	//Creating the memory space
-		//	const auto memoryspacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
-		//	const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
-
-		//	//Settings memory dimensions
-		//	HDF5_DataspaceOptions memoryspaceopt;
-		//	memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-		//	memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-		//	HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
-
-		//	//HDF5_DataspaceWrapper memoryspace(memoryspacetype, memoryspaceopt);
-
-		//	if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
-		//	{ //Converting from Columnmajor to rowmajor
-		//		Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
-		//		//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
-		//		dataset.writeData(TransposedMatrix, memoryopts);
-		//	}
-		//	else
-		//	{
-		//		//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
-		//		dataset.writeData(val, memoryopts);
-		//	}
-		//}
 
 		template <typename T>
 		std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> write(const T& val)
@@ -554,6 +600,7 @@ namespace Archives
 	class HDF5_InputOptions : InputArchive_Options<HDF5_InputOptions, HDF5_InputArchive>
 	{
 	public:
+		bool										 dontReorderData{ false };
 		HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::Open };
 		HDF5_Wrapper::HDF5_DatatypeOptions			 DefaultDatatypeOptions{};
 		HDF5_Wrapper::HDF5_DataspaceOptions			 DefaultDataspaceOptions{};

@@ -587,14 +587,18 @@ namespace HDF5_Wrapper
 
 		HDF5_DatatypeWrapper& operator=(const HDF5_DatatypeWrapper& tocopy) 
 		{
+			if (&tocopy == this)
+				return *this;
+
 			*this = HDF5_DatatypeWrapper(tocopy);
 			return *this;
+			//return HDF5_DatatypeWrapper(tocopy);
 		};
 
-		bool HDF5_DatatypeWrapper::operator==(const HDF5_DatatypeWrapper& other) {
+		bool operator==(const HDF5_DatatypeWrapper& other) {
 			return H5Tequal(*this,other);
 		}
-		bool HDF5_DatatypeWrapper::operator!=(const HDF5_DatatypeWrapper& other) {
+		bool operator!=(const HDF5_DatatypeWrapper& other) {
 			return !(*this == other);
 		}
 
