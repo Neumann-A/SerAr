@@ -151,7 +151,7 @@ namespace Archives
 
 };
 
-#define BASIC_CREATE_NV(val) Basic::createNamedValue(#val,val)
+#define ARCHIVE_CREATE_NV(val) Archives::createNamedValue(#val,val)
 
 #endif	// INC_NamedValue_H
 // end of NamedValue.h
