@@ -258,6 +258,7 @@
     <ClInclude Include="HDF5_Archive\HDF5_Type_Selector.h" />
     <ClInclude Include="HDF5_Archive\HDF5_Wrappers.h" />
     <ClInclude Include="HDF5_Archive\HDF5_Archive.h" />
+    <ClInclude Include="HDF5_FwdDecl.h" />
     <ClInclude Include="MATLAB_Archive\Matlab_Archive.h" />
   </ItemGroup>
   <ItemGroup>

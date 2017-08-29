@@ -1,3 +1,16 @@
+///---------------------------------------------------------------------------------------------------
+// file:		HDF5_Archive\HDF5_Type_Selector.h
+//
+// summary: 	Declares hdf5 type selectors
+//
+// Copyright (c) 2017 Alexander Neumann.
+//
+// author: Alexander
+// date: 26.08.2017
+
+#ifndef INC_HDF5_Type_Selector_H
+#define INC_HDF5_Type_Selector_H
+///---------------------------------------------------------------------------------------------------
 #pragma once
 
 #include <cstdint>
@@ -10,17 +23,26 @@
 
 #include "stdext/std_extensions.h"
 
-
+#include "HDF5_FwdDecl.h"
 
 namespace HDF5_Wrapper
 {
-
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	A dataspace type selector. </summary>
+	///
+	/// <typeparam name="T">	Generic type parameter. </typeparam>
+	///-------------------------------------------------------------------------------------------------
 	template<typename T, typename = void>
 	struct DataspaceTypeSelector
 	{
-		//A scalar dataspace, H5S_SCALAR, has a single element, though that element may be of a complex datatype, such as a compound or array datatype.
-		//A simple dataspace, H5S_SIMPLE, consists of a regular array of elements.
-		//A null dataspace, H5S_NULL, has no data elements.
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	A scalar dataspace, H5S_SCALAR, has a single element, though that element may be
+		/// 			of a complex datatype, such as a compound or array datatype. A simple dataspace,
+		/// 			H5S_SIMPLE, consists of a regular array of elements. A null dataspace, H5S_NULL,
+		/// 			has no data elements. </summary>
+		///
+		/// <returns>	A H5S_class_t. </returns>
+		///-------------------------------------------------------------------------------------------------
 		static constexpr inline H5S_class_t value()
 		{
 			if constexpr (std::is_arithmetic_v<T> || stdext::is_string_v<T> || stdext::is_complex_v<T>)
@@ -34,8 +56,15 @@ namespace HDF5_Wrapper
 		};
 	};
 
+	/// <summary>	Values that represent possible hdf 5 datatype layouts </summary>
 	enum class HDF5_Datatype { Native, LittleEndian, BigEndian };
 
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	A datatype selector. </summary>
+	///
+	/// <typeparam name="types">	Type of the request storage layout. 
+	/// 							See Enum HDF5_Datatype for valid values </typeparam>
+	///-------------------------------------------------------------------------------------------------
 	template<HDF5_Datatype types = HDF5_Datatype::Native>
 	struct DatatypeSelector {};
 
@@ -88,8 +117,14 @@ namespace HDF5_Wrapper
 		};
 		template<typename T>
 		inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
-			const std::array<std::size_t, 1> size{ { 2 } };
-			return H5Tarray_create(getType(val.real()), 1, size.data());
+			const auto type_size = sizeof(std::decay_t<typename T::value_type>);
+			auto type_id_compound = H5Tcreate(H5T_COMPOUND, 2 * type_size);
+			auto base_type_id = getType(val.real());
+			H5Tinsert(type_id_compound, "r", 0, base_type_id);
+			H5Tinsert(type_id_compound, "i", type_size, base_type_id);
+			if (!isTypeImmutable(base_type_id))
+				H5Tclose(base_type_id);
+			return type_id_compound;
 		};
 		template<typename T>
 		inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
@@ -156,8 +191,14 @@ namespace HDF5_Wrapper
 		//};
 		template<typename T>
 		inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
-			const std::array<std::size_t, 1> size{ { 2 } };
-			return H5Tarray_create(getType(val.real()), 1, size.data());
+			const auto type_size = sizeof(std::decay_t<typename T::value_type>);
+			auto type_id_compound = H5Tcreate(H5T_COMPOUND, 2 * type_size);
+			auto base_type_id = getType(val.real());
+			H5Tinsert(type_id_compound, "r", 0, base_type_id);
+			H5Tinsert(type_id_compound, "i", type_size, base_type_id);
+			if (!isTypeImmutable(base_type_id))
+				H5Tclose(base_type_id);
+			return type_id_compound;
 		};
 		template<typename T>
 		inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
@@ -173,6 +214,7 @@ namespace HDF5_Wrapper
 			H5Tset_size(hdf5typeid, H5T_VARIABLE);
 			return hdf5typeid;
 		};
+
 	};
 	template<>
 	struct DatatypeSelector<HDF5_Datatype::BigEndian>
@@ -223,8 +265,14 @@ namespace HDF5_Wrapper
 			//};
 			template<typename T>
 			inline static constexpr std::enable_if_t<stdext::is_complex_v<T>, hid_t> getType(const T& val) {
-				const std::array<std::size_t, 1> size{ { 2 } };
-				return H5Tarray_create(getType(val.real()), 1, size.data());
+				const auto type_size = sizeof(std::decay_t<typename T::value_type>);
+				auto type_id_compound = H5Tcreate(H5T_COMPOUND, 2 * type_size);
+				auto base_type_id = getType(val.real());
+				H5Tinsert(type_id_compound, "r", 0, base_type_id);
+				H5Tinsert(type_id_compound, "i", type_size, base_type_id);
+				if (!isTypeImmutable(base_type_id))
+					H5Tclose(base_type_id);
+				return type_id_compound;
 			};
 			template<typename T>
 			inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
@@ -260,13 +308,24 @@ namespace HDF5_Wrapper
 		}
 	};
 
+	/// <summary>	Metaprogramming helper to check if datatype has a corresponding hdf5 type </summary>
 	template<class T>
 	using get_HDF5_datatyp_t = decltype(DatatypeSelector<HDF5_Datatype::Native>::getType(std::declval<std::decay_t<T&>>()));
 
+	/// <summary>	Metaprogramming helper to check if datatype has a corresponding hdf5 type </summary>
 	template<typename T>
-	struct has_HDF5_datatype : stdext::is_detected_exact<hid_t, get_HDF5_datatyp_t, T> {};
+	struct has_HDF5_datatype : stdext::is_detected_exact<hid_t, get_HDF5_datatyp_t, T > {};
 
-	// Maybe copying in the selector is better than this if statement
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>	Needed to check wether a type can be closed or not!
+	/// 			Maybe copying in the selector is better than this if statement Or add a flag
+	/// 			needsClosing in the Datatype Wrapper? grr just a hack because there is no way to
+	/// 			check for locked HDF5 datatypes. </summary>
+	///
+	/// <param name="dtype">	The hdf5 datatype to check. </param>
+	///
+	/// <returns>	True if type immutable, false if not. </returns>
+	///-------------------------------------------------------------------------------------------------
 	inline bool isTypeImmutable(const hid_t& dtype) 
 	{
 		if (dtype == H5T_IEEE_F32BE)
@@ -401,3 +460,7 @@ namespace HDF5_Wrapper
 	};
 	
 }
+
+#endif	// INC_HDF5_Type_Selector_H
+// end of HDF5_Archive\HDF5_Type_Selector.h
+///---------------------------------------------------------------------------------------------------

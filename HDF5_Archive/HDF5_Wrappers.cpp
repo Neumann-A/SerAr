@@ -5,7 +5,7 @@
 ///-------------------------------------------------------------------------------------------------
 #include "HDF5_Wrappers.h"
 
-namespace HDF5_Wrappers
+namespace HDF5_Wrapper
 {
 #ifdef _MSC_VER
 	__declspec(dllexport) void getRidOfLNK4221() {};

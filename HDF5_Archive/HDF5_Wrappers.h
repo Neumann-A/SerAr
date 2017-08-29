@@ -70,7 +70,9 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
+#include "HDF5_FwdDecl.h"
 #include "HDF5_Type_Selector.h"
+
 
 namespace HDF5_Wrapper
 {
@@ -86,28 +88,6 @@ namespace HDF5_Wrapper
 	//		using namespace ::std::experimental::filesystem;
 	//	}
 	//}
-
-	//Forward Declarations
-	class HDF5_FileWrapper;
-	class HDF5_GroupWrapper;
-	class HDF5_DatasetWrapper;
-	class HDF5_DataspaceWrapper;
-	class HDF5_AttributeWrapper;
-	class HDF5_DatatypeWrapper;
-	class HDF5_LocationWrapper;
-	template<typename T>
-	class HDF5_GeneralType;
-	template<typename T>
-	struct HDF5_OpenCreateCloseWrapper;
-
-	struct HDF5_DummyOptions {};
-	struct HDF5_GeneralOptions;
-	struct HDF5_FileOptions;
-	struct HDF5_GroupOptions;
-	struct HDF5_DatasetOptions;
-	//Extra Options without linkage
-	struct HDF5_DataspaceOptions;
-	struct HDF5_DatatypeOptions;
 
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	Option type selection for HDF5 wrappers. </summary>

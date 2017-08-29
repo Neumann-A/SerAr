@@ -78,6 +78,9 @@
     <ClInclude Include="HDF5_Archive\HDF5_Wrappers.h">
       <Filter>HDF5</Filter>
     </ClInclude>
+    <ClInclude Include="HDF5_FwdDecl.h">
+      <Filter>HDF5</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Archive\CMakeLists.txt">
