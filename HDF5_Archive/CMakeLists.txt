@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 3.4)
+cmake_minimum_required (VERSION 3.9)
 project (HDF5_Archive)
 
-find_package(HDF5 COMPONENTS CXX HL REQUIRED)
+find_package(HDF5 COMPONENTS C REQUIRED)
 #set(HDF5_USE_STATIC_LIBRARIES ON)
 #find_package(HDF5 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIRS})
@@ -30,4 +30,7 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
                                  ${Basic_Library_INCLUDE_DIRS}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)	
+	
+	
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR}/lib)
