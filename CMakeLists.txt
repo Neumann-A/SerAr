@@ -34,14 +34,14 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${CerealWrappers_INCLUDE_DIRS})
 set(Archive_LIBS ${Archive_LIBS} CerealWrappers)
 endif()
 
-include_directories(${INCLUDE_DIRS})
+
 file(GLOB CPP_FILES Archive/*.cpp)
 
 #add_library(${PROJECT_NAME} STATIC ${BASEARCHIVE_INCLUDES})
 #set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(${PROJECT_NAME} INTERFACE)
-
+target_include_directories(${PROJECT_NAME} INTERFACE ${INCLUDE_DIRS})
 #  HACK: have the files showing in the IDE
 #set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
 add_custom_target(${PROJECT_NAME}_Base SOURCES ${BASEARCHIVE_INCLUDES})

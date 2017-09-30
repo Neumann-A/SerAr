@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 3.6 FATAL_ERROR)
 project (BaseArchive)
 
-include_directories(${Basic_Library_INCLUDE_DIRS})
-
 file(GLOB CPP_FILES *.cpp)
 file(GLOB BASEARCHIVE_H_FILES *.h)
 
 add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${H_FILES})
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${Basic_Library_INCLUDE_DIRS})
 
 # Required on Unix OS family to be able to be linked into shared libraries.
 #set_target_properties(${PROJECT_NAME}
