@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 3.6 FATAL_ERROR)
 project (CerealWrappers)
 
 find_package(Cereal)
-#find_path(EIGEN_INCLUDE NAMES "signature_of_eigen3_matrix_library")
 
 FUNCTION(PREPEND var prefix)
    SET(listVar "")
