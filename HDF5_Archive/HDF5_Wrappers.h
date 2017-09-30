@@ -31,8 +31,6 @@
 
 #include "stdext/std_extensions.h"
 
-#define H5_BUILT_AS_DYNAMIC_LIB
-
 #ifdef _DEBUG
 #ifdef H5_BUILT_AS_DYNAMIC_LIB
 //#pragma comment(lib,"hdf5_hl_cpp_D.lib")
@@ -68,7 +66,7 @@
 #endif
 
 #include <hdf5.h>
-#include <hdf5_hl.h>
+//#include <hdf5_hl.h>
 
 #include "HDF5_FwdDecl.h"
 #include "HDF5_Type_Selector.h"

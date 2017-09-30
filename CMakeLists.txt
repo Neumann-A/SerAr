@@ -45,7 +45,8 @@ add_library(${PROJECT_NAME} INTERFACE)
 #  HACK: have the files showing in the IDE
 #set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
 add_custom_target(${PROJECT_NAME}_Base SOURCES ${BASEARCHIVE_INCLUDES})
-set_target_properties (${PROJECT_NAME}_Base PROPERTIES FOLDER Archive)				  
+set_target_properties (${PROJECT_NAME}_Base PROPERTIES FOLDER Archive)	
+target_include_directories(${PROJECT_NAME} INTERFACE ${Basic_Library_INCLUDE_DIRS})		  
 target_link_libraries(${PROJECT_NAME} INTERFACE Basic_Library ${Archive_LIBS})
 message(STATUS "Archive Libs: ${Archive_LIBS}")
 

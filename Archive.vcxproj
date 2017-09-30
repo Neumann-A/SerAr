@@ -29,7 +29,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{17D40573-AEAA-4C3D-AE64-1B90B96F6F16}</ProjectGuid>
     <RootNamespace>ArchiveTest</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>Archives</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -125,7 +125,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>

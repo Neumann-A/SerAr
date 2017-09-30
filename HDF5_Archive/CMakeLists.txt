@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 3.9)
 project (HDF5_Archive)
 
+message(WARNING "If you see an error related to HDF5 you need to download the latest FindHDF5 for cmake! (This is only a warning to stand out more)")
 find_package(HDF5 COMPONENTS C REQUIRED)
+
 #set(HDF5_USE_STATIC_LIBRARIES ON)
 #find_package(HDF5 REQUIRED)
 include_directories(${HDF5_INCLUDE_DIRS})
