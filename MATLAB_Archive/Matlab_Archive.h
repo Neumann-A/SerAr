@@ -400,7 +400,7 @@ namespace Archives
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
 			//Cast needed since mxGetPr always returns an double pointer!
-			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+			DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
 			assert(dataposition != nullptr);
 
 			for (const auto& tmp : value)
@@ -462,7 +462,7 @@ namespace Archives
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+			DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
 		
 			assert(dataposition != nullptr);
 
@@ -495,7 +495,7 @@ namespace Archives
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-			DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+			DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
 			/* Inserting Data into Array */
 			if constexpr (T::IsRowMajor && !T::IsVectorAtCompileTime)
 			{

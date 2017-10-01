@@ -580,7 +580,7 @@ namespace Archives
 		private:
 			static inline bool removeBraces(std::string &value)
 			{
-				auto startbracket{ value.find_first_of(SpecialCharacters::openbracket, 0) };
+				const auto startbracket{ value.find_first_of(SpecialCharacters::openbracket, 0) };
 				auto endbracket{ value.find_last_of(SpecialCharacters::closebracket) };
 
 				if (value.find_first_not_of(" \t\v", 0) != startbracket || value.find_last_not_of(" \t\v") != endbracket)
