@@ -910,12 +910,17 @@ namespace Archives
 		class Logic
 		{
 		private:
+			std::stack<std::string> NameStack{};
+			std::string currentsection{};	// Cache for the current Section //So that we do not have to build it!
+			const std::string SectionSeperator{ "." };
+
 			/// <summary>	Appends the curr key to the current section </summary>
 			inline void appendCurrKeyToSec()
 			{
 				if (currentsection.empty())
 				{
-					currentsection = NameStack.top();
+					const std::string tmp = NameStack.top();
+					currentsection = tmp;
 				}
 				else
 				{
@@ -924,10 +929,6 @@ namespace Archives
 			};
 
 
-			std::stack<std::string> NameStack;
-			std::string currentsection{ "" };	// Cache for the current Section //So that we do not have to build it!
-
-			const std::string SectionSeperator{ "." };
 
 		public:
 			///-------------------------------------------------------------------------------------------------

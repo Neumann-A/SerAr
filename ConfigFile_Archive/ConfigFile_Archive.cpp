@@ -106,6 +106,7 @@ void ConfigFile::FileParser::removeComment(std::string &line)
 	if (std::regex_search(line, match, SpecialCharacters::comments_regex))
 	{
 		line.erase(match.position());
+		//line.erase(static_cast<std::size_t>(match.position()));
 	}
 }
 
@@ -356,7 +357,7 @@ ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchi
 	return ConfigFile_InputArchive{ std::move(CFG) };
 };
 
-ConfigFile_InputArchive::~ConfigFile_InputArchive() 
+ConfigFile_InputArchive::~ConfigFile_InputArchive()
 {
 	if (mStreamOwner)
 	{
@@ -371,6 +372,9 @@ void ConfigFile_InputArchive::SkipBOM(std::ifstream &in)
 	if ((unsigned char)test[0] == 0xEF &&
 		(unsigned char)test[1] == 0xBB &&
 		(unsigned char)test[2] == 0xBF)
+	//if (static_cast<unsigned char>(test[0]) == 0xEF &&
+	//	static_cast<unsigned char>(test[1]) == 0xBB &&
+	//	static_cast<unsigned char>(test[2]) == 0xBF)
 	{
 		return;
 	}

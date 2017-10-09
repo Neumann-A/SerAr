@@ -11,12 +11,7 @@
 #ifndef INC_OutputArchive_H
 #define INC_OutputArchive_H
 ///---------------------------------------------------------------------------------------------------
-#ifdef _MSC_VER
 #pragma once
-#pragma warning(push)
-#endif
-
-//#pragma warning( disable : 4814) // in c++14 constexpr is not implicit const 
 
 #include "basics/BasicMacros.h"
 #include "ArchiveHelper.h"
@@ -51,7 +46,7 @@ namespace Archives
 	{
 	protected:
 		constexpr IOutputArchive() = default;
-		~IOutputArchive() = default;
+		virtual ~IOutputArchive() = default;
 		DISALLOW_COPY_AND_ASSIGN(IOutputArchive)
 	public:
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(IOutputArchive)
@@ -59,7 +54,7 @@ namespace Archives
 	};
 
 	template <typename Archive>
-	class OutputArchive : private IOutputArchive
+	class OutputArchive //: private IOutputArchive
 	{
 	public:
 		using ArchiveType = Archive;
@@ -179,6 +174,7 @@ namespace Archives
 
 	protected:
 		constexpr OutputArchive(ArchiveType * const) noexcept {};
+		
 		//CRTP class should not be assigned and copied
 		DISALLOW_COPY_AND_ASSIGN(OutputArchive)
 	public:
@@ -192,10 +188,6 @@ namespace Archives
 		}
 	};
 }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif	// INC_OutputArchive_H
 // end of OutputArchive.h

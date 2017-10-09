@@ -52,7 +52,7 @@ namespace Archives
 	};
 
 	template<typename Archive>
-	class InputArchive : private IInputArchive
+	class InputArchive //: private IInputArchive
 	{
 	public:
 		using ArchiveType = Archive;

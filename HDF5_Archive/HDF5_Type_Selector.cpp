@@ -8,6 +8,6 @@
 namespace HDF5_Wrapper
 {
 #ifdef _MSC_VER
-	__declspec(dllexport) void getRidOfLNK4221() {};
+	__declspec(dllexport) void getRidOfLNK4221HDF5TypeSelector() {};
 #endif
 }

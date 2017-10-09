@@ -349,13 +349,9 @@ namespace HDF5_Wrapper
 		///-------------------------------------------------------------------------------------------------
 		inline std::string getHDF5Path() const noexcept
 		{
-			std::string res;
-			
-			auto size = H5Iget_name(mLocation, nullptr, 0);
-			res.resize(size+1);
-
-			H5Iget_name(mLocation, res.data(), size+1);
-			
+			const auto size = static_cast<std::size_t>(H5Iget_name(mLocation, nullptr, 0) + 1); // +1 for null terminator
+			std::string res(size, ' ');
+			H5Iget_name(mLocation, res.data(), size);
 			return res;
 		}
 
@@ -366,13 +362,9 @@ namespace HDF5_Wrapper
 		///-------------------------------------------------------------------------------------------------
 		inline std::string getHDF5Fullpath() const noexcept
 		{
-			std::string res;
-
-			auto size = H5Fget_name(mLocation, nullptr, 0);
-			res.resize(size + 1);
-
-			H5Fget_name(mLocation, res.data(), size + 1);
-
+			const auto size = static_cast<std::size_t>(H5Fget_name(mLocation, nullptr, 0) +1);
+			std::string res(size, ' ');
+			H5Fget_name(mLocation, res.data(), size);
 			return res;
 		}
 
@@ -514,7 +506,7 @@ namespace HDF5_Wrapper
 		}
 		hid_t getCreationFlags() const noexcept
 		{
-			return creation_propertylist;
+			return static_cast<hid_t>(creation_propertylist);
 		}
 		hid_t getAccessFlags() const noexcept
 		{
@@ -604,7 +596,7 @@ namespace HDF5_Wrapper
 
 		void makeUnlimited()
 		{
-			maxdims = std::vector<hsize_t>(dims.size(), H5S_UNLIMITED);
+			maxdims = std::vector<hsize_t>(static_cast<hsize_t>(dims.size()), H5S_UNLIMITED);
 		}
 
 		bool isUnlimited() const noexcept
@@ -658,7 +650,7 @@ namespace HDF5_Wrapper
 
 		std::vector<std::size_t> getDimensions() const 
 		{
-			const auto ndims = H5Sget_simple_extent_ndims(*this);
+			const auto ndims = static_cast<std::size_t>(H5Sget_simple_extent_ndims(*this));
 			std::vector<std::size_t> dims(ndims);
 			H5Sget_simple_extent_dims(*this, dims.data(), nullptr);
 			return dims;
