@@ -420,8 +420,8 @@ namespace Archives
 			using EigenMatrix = typename std::decay_t<T>::value_type;
 			using DataType = typename EigenMatrix::Scalar;
 			const auto& first = value.begin();
-			const mwSize rows = first->rows();
-			const mwSize cols = first->cols();
+			const mwSize rows = static_cast<mwSize>(first->rows());
+			const mwSize cols = static_cast<mwSize>(first->cols());
 
 			constexpr mwSize ndim = 3;
 
