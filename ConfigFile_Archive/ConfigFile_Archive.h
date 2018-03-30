@@ -1083,18 +1083,16 @@ namespace Archives
 			//using type = typename std::decay_t<T>;
 			try
 			{
-				try
+				auto res = mStorage._contents.find(currentsection);
+				if (res == mStorage._contents.end())
 				{
-					mStorage._contents.at(currentsection);
-				}
-				catch (std::out_of_range &)
-				{
+					//Did not find the section
 					throw ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::Section_not_found };
 				}
 				//TODO:: Empty Key
 				//if (nokey = currentkey.empty())
 				//	currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
-				std::string valstr{ (mStorage._contents.at(currentsection)).at(currentkey) };
+				std::string valstr{ res->second.at(currentkey) };
 				val = ConfigFile::fromString::from_string_selector<T>(valstr);
 			}
 			catch (ConfigFile::Parse_error &e)
