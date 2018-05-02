@@ -602,7 +602,10 @@ namespace Archives
 				{
 					if (str.find_first_not_of(" \t\n\v\f\r", 0, 1) != str.npos)
 					{
-						throw std::invalid_argument{ "String not empty after conversion! " };
+						Parse_error e{ Parse_error::error_enum::Invalid_expression };
+						e.append( std::string{ "String not empty after conversion! Remaining: " } +str.c_str() +  '\n' );
+						throw e;
+						//throw std::invalid_argument{ std::string{"String not empty after conversion! Remaining: "} + str.c_str() };
 					}
 					else
 					{
