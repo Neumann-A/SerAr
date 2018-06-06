@@ -29,7 +29,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{17D40573-AEAA-4C3D-AE64-1B90B96F6F16}</ProjectGuid>
     <RootNamespace>ArchiveTest</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>Archives</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -104,13 +104,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <TargetName>$(ProjectName)_D</TargetName>
     <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLB LLVM|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
@@ -120,12 +120,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
     <IncludePath>$(SolutionDir)..\..\Extern\MATLAB\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)..\..\Extern\MATLAB\lib\win64\microsoft;$(SolutionDir)$(Platform)\Lib\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release LLB LLVM|x64'">
     <OutDir>$(SolutionDir)$(Platform)\Lib\</OutDir>
