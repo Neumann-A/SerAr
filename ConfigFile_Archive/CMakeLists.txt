@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.4)
-project (ConfigFile_Archive)
+project (ConfigFile_Archive CXX)
 
 include_directories(${Basic_Library_INCLUDE_DIRS})
 include_directories(${Archive_SOURCE_DIR})

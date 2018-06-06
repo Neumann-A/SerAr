@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.4)
-project (MATLAB_Archive)
+project (MATLAB_Archive CXX)
 
 #Important: To find MATLAB correctly it has to be written as Matlab in FindPackage!
 #(Do not ask me why!)

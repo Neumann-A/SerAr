@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.4)
-project (Archive)
+project(Archive CXX)
 
 set(INCLUDE_DIRS ${Basic_Library_INCLUDE_DIRS})
 file(GLOB BASEARCHIVE_INCLUDES Archive/*.h)

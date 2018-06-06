@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.6 FATAL_ERROR)
-project (BaseArchive)
+project (BaseArchive CXX)
 
 file(GLOB CPP_FILES *.cpp)
 file(GLOB BASEARCHIVE_H_FILES *.h)

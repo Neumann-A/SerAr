@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.9)
-project (HDF5_Archive)
+project (HDF5_Archive CXX)
 
 message(WARNING "If you see an error related to HDF5 you need to download the latest FindHDF5 for cmake! (This is only a warning to stand out more)")
 find_package(HDF5 COMPONENTS C REQUIRED)

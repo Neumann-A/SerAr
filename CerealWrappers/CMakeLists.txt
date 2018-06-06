@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.6 FATAL_ERROR)
-project (CerealWrappers)
+project (CerealWrappers CXX)
 
 find_package(Cereal)
 
