@@ -158,8 +158,16 @@ namespace Archives
 		{
 			//Game Over
 			static_assert(!traits::not_any_load_v<T, ArchiveType>, "Type cannot be loaded from Archive. No implementation has been defined for it!");
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#endif
 			static_assert(!traits::not_any_load_v<T, ArchiveType>, __FUNCSIG__);
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
+
 #else
 			static_assert(!traits::not_any_load_v<T, ArchiveType>);
 #endif
