@@ -48,6 +48,8 @@ add_custom_target(${PROJECT_NAME}_Base SOURCES ${BASEARCHIVE_INCLUDES})
 set_target_properties (${PROJECT_NAME}_Base PROPERTIES FOLDER Archive)	
 target_include_directories(${PROJECT_NAME} INTERFACE ${Basic_Library_INCLUDE_DIRS})		  
 target_link_libraries(${PROJECT_NAME} INTERFACE Basic_Library ${Archive_LIBS})
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+
 message(STATUS "Archive Libs: ${Archive_LIBS}")
 
 set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
