@@ -1,14 +1,7 @@
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.11)
 project (HDF5_Archive CXX)
 
-message(WARNING "If you see an error related to HDF5 you need to download the latest FindHDF5 for cmake! (This is only a warning to stand out more)")
-find_package(HDF5 COMPONENTS C REQUIRED)
-
-#set(HDF5_USE_STATIC_LIBRARIES ON)
-#find_package(HDF5 REQUIRED)
-include_directories(${HDF5_INCLUDE_DIRS})
-include_directories(${Basic_Library_INCLUDE_DIRS})
-include_directories(${Archive_SOURCE_DIR})
+find_package(HDF5 CONFIG COMPONENTS C REQUIRED)
 
 if(NOT HDF5_FOUND)
   message(FATAL_ERROR "HDF5 not found!")
@@ -17,22 +10,23 @@ endif()
 file(GLOB CPP_FILES *.cpp)
 file(GLOB H_FILES *.h)
 add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${H_FILES})
+
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
 set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
 # Required on Unix OS family to be able to be linked into shared libraries.
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${Basic_Library_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${Archive_SOURCE_DIR} ${PROJECT_SOURCE_DIR})
 					  
-target_link_libraries(${PROJECT_NAME} Basic_Library ${HDF5_LIBRARIES})
-#message(STATUS "HDF5 libraries:" ${HDF5_LIBRARIES})
-#message(STATUS "HDF5 libraries:" ${HDF5_CXX_LIBRARY})
-#message(STATUS "HDF5 libraries:" ${HDF5_CXX_HL_LIBRARY})
+target_link_libraries(${PROJECT_NAME} PRIVATE Basic_Library)
 
-set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
-								 ${HDF5_INCLUDE_DIRS}
-                                 ${Basic_Library_INCLUDE_DIRS}
-    CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
-
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)	
-	
+if(HDF5_USE_STATIC_LIBRARIES)
+	target_link_libraries(${PROJECT_NAME} PRIVATE hdf5::hdf5-static)
+else()
+	target_link_libraries(${PROJECT_NAME} PRIVATE hdf5::hdf5-shared)
+endif()
 	
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR}/lib)
