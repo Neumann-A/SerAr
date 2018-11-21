@@ -105,6 +105,7 @@ void ConfigFile::FileParser::removeComment(std::string &line)
 	std::smatch match;
 	if (std::regex_search(line, match, SpecialCharacters::comments_regex))
 	{
+        // The If Means match.position() > 0
 		line.erase(match.position());
 		//line.erase(static_cast<std::size_t>(match.position()));
 	}
@@ -187,7 +188,7 @@ void ConfigFile::FileParser::parseLine(const std::string &line, const size_t &li
 		str << " is not valid. Section:" << sec << "; Line is: " << line << std::endl;
 		std::cout << str.str();
 		throw std::runtime_error{ str.str() };
-		return;
+		//return;
 	}
 };
 
@@ -344,14 +345,14 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(const std::experimental::filesy
 	parseStream();
 };
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream)
+ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream) 
 {
 	std::swap(this->mStreamOwner, CFG.mStreamOwner);
 	std::swap(this->mStorage, CFG.mStorage);
 	CFG.mStreamOwner = false;
 };
 
-ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG)
+ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
 {
 	//delegate to move constructor
 	return ConfigFile_InputArchive{ std::move(CFG) };

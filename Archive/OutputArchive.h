@@ -173,7 +173,7 @@ namespace Archives
 		}
 
 	protected:
-		constexpr OutputArchive(ArchiveType * const) noexcept {};
+		constexpr OutputArchive(ArchiveType * const) noexcept {}
 		
 		//CRTP class should not be assigned and copied
 		DISALLOW_COPY_AND_ASSIGN(OutputArchive)

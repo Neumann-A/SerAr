@@ -315,14 +315,14 @@ namespace Archives
 
 				afterConversionStringCheck(str);
 				return num;
-			};
+			}
 
 			template <typename T>
 			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::decay_t<T>> from_string(std::string &str)
 			{
 				std::regex rx{ "^\\s*[Tt][Rr][Uu][Ee]\\s*$" };
 				return std::regex_search(str, rx);
-			};
+			}
 
 			/// <summary>	Convert a string into a complex number. </summary>
 			template <typename T>
@@ -507,7 +507,7 @@ namespace Archives
 					}
 				}
 				return T{ real, complex };
-			};
+			}
 
 			/// <summary>	Convert containers into a braced string representation. </summary>
 			template<typename T>
@@ -529,7 +529,7 @@ namespace Archives
 				}
 
 				return resvec;
-			};
+			}
 
 			/// <summary>	Convert string into a pair </summary>
 			template <typename T>
@@ -545,7 +545,7 @@ namespace Archives
 				afterConversionStringCheck(str);
 
 				return T{ first,second };
-			};
+			}
 
 			/// <summary>	Convert tuples into a braced string representation. </summary>
 			template<typename T>
@@ -553,7 +553,7 @@ namespace Archives
 			{
 				removeBraces(str);
 				return buildtupletype<0, T>(str);
-			};
+			}
 
 #ifdef EIGEN_CORE_H
 			template <typename Derived>
@@ -701,7 +701,7 @@ namespace Archives
 				str.erase(0, seperator);
 				auto tail{ buildtupletype<N,Tuple>(str) };
 				return std::tuple_cat(head, tail);
-			};
+			}
 			/// <summary>	Helper to convert string into tuple types </summary>
 			template <std::size_t N, typename Tuple>
 			static inline std::enable_if_t< (N == std::tuple_size<Tuple>::value - 2), std::tuple<>> buildtupletype(std::string &str)
@@ -714,7 +714,7 @@ namespace Archives
 				auto tail{ from_string_selector<type2>(str) };
 				afterConversionStringCheck(str);
 				return std::tuple_cat(head, tail);
-			};
+			}
 		};
 		
 		/// <summary>	Class which has all the to_string Logic for Configuration Files </summary>
@@ -760,7 +760,7 @@ namespace Archives
 					str.replace(pos, SpecialCharacters::stringidentifier.size(), SpecialCharacters::escapestringidentifier); //Escaping or special characters
 				}
 				return SpecialCharacters::stringidentifier + str + SpecialCharacters::stringidentifier; //Escaping string
-			};
+			}
 
 			/***End to_string Selector***/
 
@@ -770,14 +770,14 @@ namespace Archives
 			{
 				return BasicTools::toStringScientific(val);
 				//std::to_string(val); Does a silly rounding to 0.00000 for small doubles (1E-7) 
-			};
+			}
 
 			/// <summary>	Convert numbers into a string representation. </summary>
 			template <typename T>
 			static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::string> to_string(T&& val)
 			{
 				return (val ? std::string{ "TRUE" } : std::string{ "FALSE" });
-			};
+			}
 
 			/***End Simple Arithmetic numbers***/
 
@@ -787,7 +787,7 @@ namespace Archives
 			{
 				std::string sign{ (val.imag() < 0 ? "" : "+") };
 				return to_string_selector(val.real()) + sign + to_string_selector(val.imag()) + "i";
-			};
+			}
 
 			/***End complex number***/
 
@@ -813,7 +813,7 @@ namespace Archives
 				}
 				sstr << SpecialCharacters::closebracket;
 				return sstr.str();
-			};
+			}
 
 			/// <summary>	Convert pairs into a string representation. </summary>
 			template <typename T>
@@ -822,7 +822,7 @@ namespace Archives
 				std::stringstream sstr;
 				sstr << SpecialCharacters::openbracket << to_string_selector(val.first) << " " << SpecialCharacters::seperator << " " << to_string_selector(val.second) << SpecialCharacters::closebracket;
 				return sstr.str();
-			};
+			}
 
 			/// <summary>	Convert tuples into a braced string representation. </summary>
 			template<typename T>
@@ -833,7 +833,7 @@ namespace Archives
 				sstr << buildtuplestring<std::tuple_size_v<T>-1, T>(val);
 				sstr << SpecialCharacters::closebracket;
 				return sstr.str();
-			};
+			}
 
 #ifdef EIGEN_CORE_H
 			template <typename Derived>
@@ -857,7 +857,7 @@ namespace Archives
 			static inline std::enable_if_t< (N == 0), std::string> buildtuplestring(const Tuple &val)
 			{
 				return to_string_selector(std::get<0>(val));
-			};
+			}
 
 		};
 
@@ -873,7 +873,7 @@ namespace Archives
 			sections _contents;	//Contents of the CFG
 		public:
 			void writeContentsToStream(std::ostream &stream) const;
-			inline sections& accessContents() noexcept { return _contents; };
+			inline sections& accessContents() noexcept { return _contents; }
 		};
 
 		/// <summary>	Used to Parse the Input Stream </summary>
@@ -929,7 +929,7 @@ namespace Archives
 				{
 					currentsection.append(SectionSeperator + NameStack.top());
 				}
-			};
+			}
 
 
 
@@ -946,7 +946,7 @@ namespace Archives
 					appendCurrKeyToSec();
 				}
 				NameStack.push(str);
-			};
+			}
 			/// <summary>	Resets the current key and maybe section. </summary>
 			inline void resetCurrKey()
 			{
@@ -960,10 +960,10 @@ namespace Archives
 					else
 						currentsection.clear();
 				}
-			};
+			}
 
-			inline const std::string& getSection() noexcept { return currentsection; };
-			inline const std::string& getKey() noexcept { return NameStack.top(); };
+			inline const std::string& getSection() noexcept { return currentsection; }
+			inline const std::string& getKey() noexcept { return NameStack.top(); }
 		};
 	};
 
@@ -994,7 +994,7 @@ namespace Archives
 			ConfigLogic.setCurrKey(value.getName());
 			this->operator()(value.getValue());
 			ConfigLogic.resetCurrKey();
-		};
+		}
 		//Saves the data if it is known how to convert the given type to a string. 
 		//If the type has a seperate save operation than that one should be most likely used instead of the to_string operation
 		template<typename T> 
@@ -1005,7 +1005,7 @@ namespace Archives
 			mStorage._contents[ConfigLogic.getSection()][ConfigLogic.getKey()] = valstr;
 		}
 
-		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };
+		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; }
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	
@@ -1055,7 +1055,7 @@ namespace Archives
 			const auto tmp {list(value.getValue())};
 			ConfigLogic.resetCurrKey();
 			return tmp;
-		};
+		}
 
 		auto list(std::string value) -> typename ConfigFile::Storage::keyvalues;
 		auto list() -> typename ConfigFile::Storage::sections;
@@ -1066,7 +1066,7 @@ namespace Archives
 			ConfigLogic.setCurrKey(value.getName());
 			this->operator()(value.getValue());
 			ConfigLogic.resetCurrKey();
-		};
+		}
 
 		template<typename T>
 		std::enable_if_t<traits::use_from_string_v<std::decay_t<T> , ConfigFile::fromString, ConfigFile_InputArchive> > load(T&& val)
@@ -1122,7 +1122,7 @@ namespace Archives
 			//	currentsection.clear();
 		}
 
-		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; };
+		inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; }
 	protected:
 		ConfigFile::Logic ConfigLogic{};
 	private:

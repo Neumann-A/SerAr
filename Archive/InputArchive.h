@@ -174,7 +174,7 @@ namespace Archives
 		}
 
 	protected:
-		constexpr InputArchive(ArchiveType* const) noexcept {};
+		constexpr InputArchive(ArchiveType* const) noexcept {}
 		DISALLOW_COPY_AND_ASSIGN(InputArchive)
 	public:
 		ALLOW_DEFAULT_MOVE_AND_ASSIGN(InputArchive)

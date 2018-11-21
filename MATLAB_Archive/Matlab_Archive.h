@@ -238,7 +238,7 @@ namespace Archives
 			setNextFieldname(value.getName());  //Set the Name of the next Field
 			this->operator()(value.getValue()); //Write Data to the Field/struct
 			clearNextFieldname();				//Remove the last Fieldname
-		};
+		}
 
 		
 		template<typename T>
@@ -283,19 +283,19 @@ namespace Archives
 				throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
 
 			return *pMAT;
-		};
+		}
 		
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
 		{
 			checkNextFieldname(value);	//Check the Fieldname for validity
 			startMATLABArray(value);	//Start a new Matlab Array or Struct
-		};
+		}
 		template<typename T>
 		inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > epilogue(const T&)
 		{
 			finishMATLABArray();	//Finish the Array (write it to the Array above)
-		};
+		}
 		
 		//For nested NamedValue
 		template<typename T>
@@ -304,12 +304,12 @@ namespace Archives
 			setNextFieldname(value.getName());
 			startMATLABArray(value);
 			clearNextFieldname();
-		};
+		}
 		template<typename T>
 		inline std::enable_if_t<is_nested_NamedValue_v<T>> epilogue(const T&)
 		{
 			finishMATLABArray();
-		};
+		}
 
 
 		inline void setNextFieldname(const std::string &str) noexcept
@@ -362,7 +362,7 @@ namespace Archives
 			}
 
 			Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
-		};
+		}
 
 		void finishMATLABArray();
 	
@@ -562,7 +562,7 @@ namespace Archives
 				mFields.pop();
 			}
 			matClose(&m_MatlabFile);
-		};
+		}
 		DISALLOW_COPY_AND_ASSIGN(MatlabInputArchive)
 		//TODO: Write load function!
 		template<typename T>
@@ -572,7 +572,7 @@ namespace Archives
 			loadNextField(value.getName());     //Loads the next Field with given name; (Move Down)
 			this->operator()(value.getValue()); //Load Data from the Field or struct.
 			releaseField();						//Remove the last Fieldname (Move Up)
-		};
+		}
 
 		template<typename T>
 		inline std::enable_if_t<MATLAB_traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)

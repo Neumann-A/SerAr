@@ -59,7 +59,7 @@ namespace Archives
 		///
 		/// <returns>	The type name. </returns>
 		///-------------------------------------------------------------------------------------------------
-		BASIC_ALWAYS_INLINE static const char * getTypeName() noexcept { return typeid(type).name(); };
+		BASIC_ALWAYS_INLINE static const char * getTypeName() noexcept { return typeid(type).name(); }
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Constructor for named value. </summary>
@@ -68,21 +68,21 @@ namespace Archives
 		/// <param name="value">	[in,out] The value. </param>
 		///-------------------------------------------------------------------------------------------------
 		//inline explicit NamedValue(const char * const name, T&& value) : valname(name), val(std::forward<T>(value))	{};
-		BASIC_ALWAYS_INLINE explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(std::forward<T>(value)) {};
+		BASIC_ALWAYS_INLINE explicit NamedValue(std::string name, T&& value) : valname(std::move(name)), val(std::forward<T>(value)) {}
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the value. </summary>
 		///
 		/// <returns>	The Value </returns>
 		///-------------------------------------------------------------------------------------------------
-		BASIC_ALWAYS_INLINE internal_type getValue() const noexcept { return val; };
+		BASIC_ALWAYS_INLINE internal_type getValue() const noexcept { return val; }
 
 		///-------------------------------------------------------------------------------------------------
 		/// <summary>	Gets the name. </summary>
 		///
 		/// <returns>	The name of the value. </returns>
 		///-------------------------------------------------------------------------------------------------
-		BASIC_ALWAYS_INLINE const std::string& getName() const noexcept { return valname; };
+		BASIC_ALWAYS_INLINE const std::string& getName() const noexcept { return valname; }
 	};
 
 	///-------------------------------------------------------------------------------------------------
