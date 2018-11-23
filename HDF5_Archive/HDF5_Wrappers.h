@@ -588,8 +588,8 @@ namespace HDF5_Wrapper
 		{
 			assert(dims.size() == maxdims.size());
 			const auto ndims = dims.size();
-
-			if (std::numeric_limits<std::int32_t>::max() < ndims)
+            constexpr const auto int32max = std::numeric_limits<std::int32_t>::max();
+			if (int32max < ndims)
 				throw std::runtime_error{ "Too many dimension. Cannot determine rank due to overflow!" };
 			return static_cast<std::int32_t>(ndims);
 		}
@@ -685,7 +685,7 @@ namespace HDF5_Wrapper
 		HDF5_DatatypeWrapper   datatype{};
 		HDF5_DataspaceWrapper  dataspace{};
 
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_StorageOptions)
+		//ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_StorageOptions)
 	};
 
 	struct HDF5_DatasetOptions : HDF5_GeneralOptions
