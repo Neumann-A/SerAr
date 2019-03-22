@@ -33,46 +33,7 @@
 #include <exception>
 #include <memory>
 #include <stack>
-
-//If you want dynamic lib for HDF5 define H5_BUILT_AS_DYNAMIC_LIB
-//#ifdef _MSC_VER
-//#ifdef _DEBUG
-//#ifdef H5_BUILT_AS_DYNAMIC_LIB
-//#pragma comment(lib,"hdf5_D.lib")
-////#pragma comment(lib,"hdf5_hl_D.lib")
-////#pragma comment(lib,"hdf5_hl_cpp_D.lib")
-////#pragma comment(lib,"hdf5_cpp_D.lib")
-////#pragma comment(lib,"szip.lib")
-////#pragma comment(lib,"zlib.lib")
-//#else
-//#pragma comment(lib,"libhdf5_D.lib")
-////#pragma comment(lib,"libhdf5_hl_D.lib")
-////#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
-////#pragma comment(lib,"libhdf5_cpp_D.lib")
-////#pragma comment(lib,"libszip.lib")
-////#pragma comment(lib,"libzlib.lib")
-//#endif
-//#else
-//#ifdef H5_BUILT_AS_DYNAMIC_LIB
-//#pragma comment(lib,"hdf5.lib")
-////#pragma comment(lib,"hdf5_hl.lib")
-////#pragma comment(lib,"hdf5_hl_cpp.lib")
-////#pragma comment(lib,"hdf5_cpp.lib")
-////#pragma comment(lib,"szip.lib")
-////#pragma comment(lib,"zlib.lib")
-//#else
-//#pragma comment(lib,"libhdf5.lib")
-//#pragma comment(lib,"libhdf5_hl.lib")
-////#pragma comment(lib,"libhdf5_hl_cpp.lib")
-////#pragma comment(lib,"libhdf5_cpp.lib")
-////#pragma comment(lib,"libszip.lib")
-////#pragma comment(lib,"libzlib.lib")
-//#endif
-//#endif
-//#endif
-
 #include <hdf5.h>
-//#include <hdf5_hl.h>
 
 #include "basics/BasicMacros.h"
 #include "basics/BasicIncludes.h"
@@ -184,7 +145,9 @@ namespace Archives
 	{
 		using ThisClass = HDF5_OutputArchive;
 	public:
-		HDF5_OutputArchive(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options)
+        using Options = HDF5_OutputOptions;
+       
+        HDF5_OutputArchive(const std::filesystem::path &path, const HDF5_OutputOptions& options = HDF5_OutputOptions{})
 			: OutputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {
 			static_assert(std::is_same_v<ThisClass, std::decay_t<decltype(*this)>>);
 		};
@@ -234,7 +197,7 @@ namespace Archives
 		std::stack<CurrentGroup> mGroupStack;
 		std::string nextPath;
 		HDF5_OutputOptions mOptions;
-		static File openOrCreateFile(const std::experimental::filesystem::path &path, const HDF5_OutputOptions& options)
+		static File openOrCreateFile(const std::filesystem::path &path, const HDF5_OutputOptions& options)
 		{
 			using namespace HDF5_Wrapper;
 			HDF5_FileOptions opt{};
@@ -518,10 +481,10 @@ namespace Archives
 
 			//Settings storage dimensions
 			HDF5_DataspaceOptions dataspaceopts;
-			dataspaceopts.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			dataspaceopts.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
 			dataspaceopts.maxdims = dataspaceopts.dims;
 
-			HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
+            HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(Scalar{}, datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 			HDF5_DatasetOptions datasetopts;
 			HDF5_DatasetWrapper dataset(currentLoc, nextPath, std::move(storeopts), std::move(datasetopts));
 
@@ -531,15 +494,15 @@ namespace Archives
 
 			//Settings memory dimensions
 			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
+			memoryspaceopt.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
+			memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
+            HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(Scalar{}, memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
 			//HDF5_DataspaceWrapper memoryspace(memoryspacetype, memoryspaceopt);
 
-			if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
+			if constexpr (!(EigenType::IsRowMajor) && !EigenType::IsVectorAtCompileTime)
 			{ //Converting from Columnmajor to rowmajor
-				Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
+				Eigen::Matrix<typename EigenType::Scalar, EigenType::RowsAtCompileTime, EigenType::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
 				//HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
 				dataset.writeData(TransposedMatrix, memoryopts);
 			}
@@ -615,7 +578,9 @@ namespace Archives
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 		
 	public:
-		HDF5_InputArchive(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
+        using Options = HDF5_InputOptions;
+
+		HDF5_InputArchive(const std::filesystem::path &path, const HDF5_InputOptions& options)
 			: InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
 			static_assert(std::is_same_v<ThisClass, std::decay_t<decltype(*this)>>);
 		};
@@ -667,7 +632,7 @@ namespace Archives
 
 		HDF5_InputOptions mOptions;
 
-		static File openFile(const std::experimental::filesystem::path &path, const HDF5_InputOptions& options)
+		static File openFile(const std::filesystem::path &path, const HDF5_InputOptions& options)
 		{
 			using namespace HDF5_Wrapper;
 			HDF5_FileOptions opt{};
