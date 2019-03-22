@@ -229,7 +229,9 @@ namespace Archives
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 
 	public:
-		MatlabOutputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update);
+        using Options = MatlabOptions;
+
+		MatlabOutputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update);
 		~MatlabOutputArchive();
 		DISALLOW_COPY_AND_ASSIGN(MatlabOutputArchive)
 		template<typename T>
@@ -261,7 +263,7 @@ namespace Archives
 
 	//private:
 	private:
-		const std::experimental::filesystem::path m_filepath;
+		const std::filesystem::path m_filepath;
 		MatlabOptions m_options;
 		MATFile &m_MatlabFile;
 		
@@ -270,7 +272,7 @@ namespace Archives
 	
 		std::string nextFieldname;	//Storage for next fieldname which has not been pushed on the Fields stack yet since the mxArray* was not yet created 
 
-		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
+		MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
 		{	
 			assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
 
@@ -549,7 +551,9 @@ namespace Archives
 		friend class InputArchive<MatlabOutputArchive>;
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 	public:
-		MatlabInputArchive(const std::experimental::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
+        using Options = MatlabOptions;
+
+		MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
 			: InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
 		~MatlabInputArchive() 
 		{
@@ -768,7 +772,7 @@ namespace Archives
 		using Field = std::tuple<std::string, mxArray * const>;
 		std::stack<Field> mFields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
 
-		MATFile& getMatlabFile(const std::experimental::filesystem::path &fpath, const MatlabOptions &options) const
+		MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
 		{
 			assert(options == MatlabOptions::read || options == MatlabOptions::update);// , "Cannot have a MatlabInputArchive with write-only access!");
 

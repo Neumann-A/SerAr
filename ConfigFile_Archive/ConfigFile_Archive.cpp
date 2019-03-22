@@ -292,7 +292,7 @@ void ConfigFile::toString::checkSyntax(const std::string& section, const std::st
 ///-------------------------------------------------------------------------------------------------
 
 ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream) {};
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::experimental::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {};
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {};
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
 	mStorage.writeContentsToStream(mOutputstream);
@@ -304,7 +304,7 @@ ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 	}
 }
 
-std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::experimental::filesystem::path &path)
+std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem::path &path)
 {
 	if (!path.has_filename())
 	{
@@ -340,7 +340,7 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : 
 {
 };
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(const std::experimental::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path))
+ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path))
 {
 	parseStream();
 };
@@ -382,7 +382,7 @@ void ConfigFile_InputArchive::SkipBOM(std::ifstream &in)
 	in.seekg(0);
 }
 
-std::ifstream& ConfigFile_InputArchive::createFileStream(const std::experimental::filesystem::path &path)
+std::ifstream& ConfigFile_InputArchive::createFileStream(const std::filesystem::path &path)
 {
 	if (!path.has_filename())
 	{

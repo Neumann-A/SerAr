@@ -74,18 +74,9 @@
 
 namespace HDF5_Wrapper
 {
-	using hdf5path = std::experimental::filesystem::path;
-	using filepath = std::experimental::filesystem::path;
-	////Remove this section when filesystme is moved out of experimental!
-	//namespace std
-	//{
-	//	//silly hack to use the correct namespace for filesystem ;)
-	//	using namespace ::std;
-	//	namespace filesystem
-	//	{
-	//		using namespace ::std::experimental::filesystem;
-	//	}
-	//}
+	using hdf5path = typename std::filesystem::path;
+	using filepath = typename std::filesystem::path;
+
 
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	Option type selection for HDF5 wrappers. </summary>
@@ -332,7 +323,7 @@ namespace HDF5_Wrapper
 		{
 			if (!isValid()) {
 				throw std::runtime_error{ "Invalid HDF5 location." };
-			};
+			}
 		};
 
 		/// <summary>	Implicit conversion to hid_t </summary>
@@ -472,7 +463,7 @@ namespace HDF5_Wrapper
 				return H5F_ACC_TRUNC;
 			default:
 				std::runtime_error{ "Invalid file creation mode!" };
-			};
+			}
 			return 0;
 		}
 		unsigned int getAccessFlags() const noexcept
@@ -486,7 +477,7 @@ namespace HDF5_Wrapper
 			default:
 				std::runtime_error{ "Invalid access mode!" };
 
-			};
+			}
 			return 0;
 		};
 	};

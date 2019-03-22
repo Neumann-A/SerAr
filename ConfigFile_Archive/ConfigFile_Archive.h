@@ -981,8 +981,9 @@ namespace Archives
 	{
 		template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
 	public:
+        using Options = ConfigFile_Options;
 		ConfigFile_OutputArchive(std::ostream& stream);
-		ConfigFile_OutputArchive(const std::experimental::filesystem::path &path);
+		ConfigFile_OutputArchive(const std::filesystem::path &path);
 		~ConfigFile_OutputArchive();
 
 		//ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_OutputArchive)
@@ -1021,7 +1022,7 @@ namespace Archives
 			
 		ConfigFile::Storage mStorage;
 
-		std::ofstream& createFileStream(const std::experimental::filesystem::path &path);
+		std::ofstream& createFileStream(const std::filesystem::path &path);
 	};
 
 	
@@ -1035,9 +1036,10 @@ namespace Archives
 	{
 		
 	public:
+        using Options = ConfigFile_Options;
 		ConfigFile_InputArchive(std::istream& stream);
 		ConfigFile_InputArchive(ConfigFile::Storage storage);
-		ConfigFile_InputArchive(const std::experimental::filesystem::path &path);
+		ConfigFile_InputArchive(const std::filesystem::path &path);
 		ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG);
 		~ConfigFile_InputArchive();
 
@@ -1130,7 +1132,7 @@ namespace Archives
 		std::istream& mInputstream;
 		ConfigFile::Storage mStorage;
 
-		std::ifstream& createFileStream(const std::experimental::filesystem::path &path);
+		std::ifstream& createFileStream(const std::filesystem::path &path);
 		void SkipBOM(std::ifstream &in);
 
 		void parseStream();
