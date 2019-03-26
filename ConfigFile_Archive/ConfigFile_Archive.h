@@ -569,7 +569,7 @@ namespace Archives
 						std::to_string(ret.cols()*ret.rows()) +" Found: " + std::to_string(tmpvec.size()) + " !" };
 				}
 								
-				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), tmpvec.size());
+				ret = Eigen::Map<decltype(ret)>(tmpvec.data(), static_cast<Eigen::Index>(tmpvec.size()));
 
 				afterConversionStringCheck(str);
 
@@ -641,7 +641,7 @@ namespace Archives
 
 							if (searchpos == str.npos) //Missing string identifier
 								throw Parse_error{ Parse_error::error_enum::Missing_string_identifier }; //Nothing found kills the loop!
-						};
+						}
 
 						if (searchpos > seperatorpos) //wrong comma get next after closing string pos
 						{
