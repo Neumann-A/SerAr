@@ -493,7 +493,7 @@ namespace Archives
 			using DataType = typename T::Scalar;
 
 			//Be Aware: Matlab stores the matrix in column-major order, Eigen in row major!
-			mxArray *valarray = mxCreateNumericMatrix(value.rows(), value.cols(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
+			mxArray *valarray = mxCreateNumericMatrix(static_cast<std::size_t>(value.rows()), static_cast<std::size_t>(value.cols()), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
 			if (valarray == nullptr)
 				throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
