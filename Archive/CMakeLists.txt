@@ -1,11 +1,17 @@
 cmake_minimum_required (VERSION 3.6 FATAL_ERROR)
-project (BaseArchive CXX)
+project(BaseArchive CXX)
 
-file(GLOB CPP_FILES *.cpp)
-file(GLOB BASEARCHIVE_H_FILES *.h)
+set(H_FILES ArchiveHelper.h
+            ArchiveVisitor.h
+            BaseArchiveType.h
+            InputArchive.h
+            LoadConstructor.h
+            NamedValue.h
+            OutputArchive.h
+            Serializeable.h
+            TestIOArchive.h)
 
-add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${H_FILES})
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${Basic_Library_INCLUDE_DIRS})
-
-#install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR}/lib)
+add_library(${PROJECT_NAME} INTERFACE)
+#target_sources(${PROJECT_NAME} INTERFACE ${H_FILES})
+target_include_directories(${PROJECT_NAME} INTERFACE ${Basic_Library_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

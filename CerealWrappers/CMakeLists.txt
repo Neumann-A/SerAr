@@ -11,7 +11,6 @@ FUNCTION(PREPEND var prefix)
    SET(${var} "${listVar}" PARENT_SCOPE)
 ENDFUNCTION(PREPEND)
 
-#file(GLOB CPP_FILES *.cpp)
 set(H_FILES "BinaryArchiveWrapper.h;CerealAdapter.h;JSONArchiveWrapper.h;PortableBinaryArchiveWrapper.h;XMLArchiveWrapper.h")
 
 PREPEND(${H_FILES} ${CMAKE_CURRENT_SOURCE_DIR} ${H_FILES_NEW})
