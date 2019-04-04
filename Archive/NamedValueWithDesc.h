@@ -94,11 +94,11 @@ namespace Archives
         return typeid(T).name();
     }
        
-    template<typename T>
-    inline NamedValue<T> createNamedValue(std::string_view name, T&& value)
-    {
-        return NamedValue<T>{name, std::forward<T>(value)};
-    }
+    //template<typename T>
+    //inline NamedValue<T> createNamedValue(std::string_view name, T&& value)
+    //{
+    //    return NamedValue<T>{name, std::forward<T>(value)};
+    //}
 
 };
 
