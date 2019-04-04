@@ -12,6 +12,6 @@ set(H_FILES ArchiveHelper.h
             TestIOArchive.h)
 
 add_library(${PROJECT_NAME} INTERFACE)
-#target_sources(${PROJECT_NAME} INTERFACE ${H_FILES})
-target_include_directories(${PROJECT_NAME} INTERFACE ${Basic_Library_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} INTERFACE Basic_Library)
+target_include_directories(${PROJECT_NAME} INTERFACE "${PROJECT_SOURCE_DIR}/..")
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)

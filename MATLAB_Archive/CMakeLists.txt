@@ -15,14 +15,12 @@ set(H_FILES Matlab_Archive.h)
 add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${H_FILES})
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_definitions(${PROJECT_NAME} PUBLIC "UINT64_T=unsigned long long")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "INT64_T=long long")
 
 set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
-# Required on Unix OS family to be able to be linked into shared libraries.
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${Basic_Library_INCLUDE_DIRS} ${Matlab_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME} PRIVATE ${Archive_SOURCE_DIR} ${PROJECT_SOURCE_DIR} )
 
 set(Matlab_LIBS ${Matlab_MAT_LIBRARY} ${Matlab_MX_LIBRARY})
 
