@@ -106,7 +106,8 @@ void ConfigFile::FileParser::removeComment(std::string &line)
 	if (std::regex_search(line, match, SpecialCharacters::comments_regex))
 	{
         // The If Means match.position() > 0
-		line.erase(match.position());
+		if (match.position() > 0) // Thats a double check since the if above already makes sure there is a match
+			line.erase(static_cast<std::size_t>(match.position()));
 		//line.erase(static_cast<std::size_t>(match.position()));
 	}
 }
@@ -430,11 +431,17 @@ void ConfigFile_InputArchive::parseStream()
 			continue; //Empty Line
 
 		ConfigFile::FileParser::removeComment(temp);
-		temp.shrink_to_fit();
+        if (temp.empty())
+            continue; //Empty Line
+		//temp.shrink_to_fit();
 		temp = ConfigFile::FileParser::trimWhitespaces(temp);
-		temp.shrink_to_fit();
+        if (temp.empty())
+            continue; //Empty Line
+	
 		if (ConfigFile::FileParser::onlyWhitespace(temp) || temp.empty()) 
 			continue; //Only Whitespaces or Comments
+
+        temp.shrink_to_fit();
 
 		if (FirstRun)
 		{

@@ -37,6 +37,7 @@
 
 //#include "ArchiveHelper.h"
 #include "Archive/NamedValue.h"
+#include "Archive/NamedValueWithDesc.h"
 #include "Archive/InputArchive.h"
 #include "Archive/OutputArchive.h"
 
@@ -237,11 +238,17 @@ namespace Archives
 		template<typename T>
 		inline void save(const Archives::NamedValue<T>& value)
 		{
-			setNextFieldname(value.getName());  //Set the Name of the next Field
-			this->operator()(value.getValue()); //Write Data to the Field/struct
+			setNextFieldname(value.name);  //Set the Name of the next Field
+			this->operator()(value.val); //Write Data to the Field/struct
 			clearNextFieldname();				//Remove the last Fieldname
 		}
-
+		template<typename T>
+		inline void save(const Archives::NamedValueWithDesc<T>& value)
+		{
+			setNextFieldname(value.name);  //Set the Name of the next Field
+			this->operator()(value.val); //Write Data to the Field/struct
+			clearNextFieldname();				//Remove the last Fieldname
+		}
 		
 		template<typename T>
 		inline std::enable_if_t<MATLAB_traits::has_create_MATLAB_v<MatlabOutputArchive,  std::decay_t<T>>> save(const T& value)
@@ -573,11 +580,18 @@ namespace Archives
 		inline void load(Archives::NamedValue<T>& value)
 		{
 			checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
-			loadNextField(value.getName());     //Loads the next Field with given name; (Move Down)
-			this->operator()(value.getValue()); //Load Data from the Field or struct.
+			loadNextField(value.name);			//Loads the next Field with given name; (Move Down)
+			this->operator()(value.val);		//Load Data from the Field or struct.
 			releaseField();						//Remove the last Fieldname (Move Up)
 		}
-
+		template<typename T>
+		inline void load(Archives::NamedValueWithDesc<T>& value)
+		{
+			checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
+			loadNextField(value.name);			//Loads the next Field with given name; (Move Down)
+			this->operator()(value.val);		//Load Data from the Field or struct.
+			releaseField();						//Remove the last Fieldname (Move Up)
+		}
 		template<typename T>
 		inline std::enable_if_t<MATLAB_traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
 		{			

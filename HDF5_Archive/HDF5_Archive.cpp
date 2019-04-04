@@ -6,9 +6,8 @@
 
 #include "HDF5_Archive.h"
 
-namespace Archives
-{
 #ifdef _MSC_VER
-	__declspec(dllexport) void getRidOfLNK4221() {};
+#pragma warning( push )
+#pragma warning( disable : 4221)
+#pragma warning( pop ) 
 #endif
-}

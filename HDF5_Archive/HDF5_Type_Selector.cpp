@@ -5,9 +5,8 @@
 ///-------------------------------------------------------------------------------------------------
 #include "HDF5_Type_Selector.h"
 
-namespace HDF5_Wrapper
-{
 #ifdef _MSC_VER
-	__declspec(dllexport) void getRidOfLNK4221HDF5TypeSelector() {};
+#pragma warning( push )
+#pragma warning( disable : 4221)
+#pragma warning( pop ) 
 #endif
-}

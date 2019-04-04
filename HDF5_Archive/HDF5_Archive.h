@@ -979,7 +979,6 @@ namespace Archives
 		}
 
 	};
-
 }
 
 #endif	// INC_HDF5_Archive_H

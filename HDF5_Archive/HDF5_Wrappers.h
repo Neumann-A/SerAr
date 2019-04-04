@@ -183,7 +183,7 @@ namespace HDF5_Wrapper
 				{
 					if (loc.checkLinkExists<T>(path, options)) { //Link does exist
 						H5O_info_t oinfo;
-						const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+						MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
 						assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
@@ -700,7 +700,7 @@ namespace HDF5_Wrapper
 			{
 				if (loc.checkLinkExists<ThisClass>(path, options)) { //Link does exist
 					H5O_info_t oinfo;
-					const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+					MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
 					assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
@@ -709,6 +709,7 @@ namespace HDF5_Wrapper
 					}
 					else {
 						std::runtime_error{ "Given path is neither empty nor points to a HDF5 Dataset!" };
+						return HDF5_LocationWrapper(-1);
 					}
 
 				}
@@ -799,8 +800,6 @@ namespace HDF5_Wrapper
 	public:
 	};
 }
-
-
 
 #endif	// INC_HDF5_FileWrapper_H
 // end of HDF5_Archive\HDF5_FileWrapper.h

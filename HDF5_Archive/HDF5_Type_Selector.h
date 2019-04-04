@@ -458,7 +458,6 @@ namespace HDF5_Wrapper
 			return false; //TODO add more types!
 
 	};
-	
 }
 
 #endif	// INC_HDF5_Type_Selector_H

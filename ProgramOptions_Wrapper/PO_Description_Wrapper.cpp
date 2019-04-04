@@ -1,12 +1,11 @@
 ///-------------------------------------------------------------------------------------------------
-// file:	C:\Sources\Repos\Everything\Archive\ProgramOptions_Wrapper\ProgramOptions_Wrapper.cpp
+// file:	C:\Sources\Repos\Everything\Archive\ProgramOptions_Wrapper\PO_Description_Wrapper.cpp
 //
-// summary:	Implements the program options wrapper class
+// summary:	Implements the po description wrapper class
 ///-------------------------------------------------------------------------------------------------
-#include "ProgramOptions_Wrapper.h"
-
-
+#include "PO_Description_Wrapper.h"
 
 namespace Archives
 {
+
 }

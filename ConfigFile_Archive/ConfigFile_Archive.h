@@ -524,7 +524,7 @@ namespace Archives
 						resvec.push_back(from_string_selector<typename T::value_type>(tmpstr));
 						str.erase(0, commapos+ SpecialCharacters::seperator.size());
 						commapos = findNextCommaSeperator(str);
-					};
+					}
 					resvec.push_back(from_string_selector<typename T::value_type>(str));
 				}
 
