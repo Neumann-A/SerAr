@@ -15,7 +15,8 @@ set(BASEARCHIVE_INCLUDES    Archive/dummy.cpp
                             Archive/NamedValueWithDesc.h
                             Archive/OutputArchive.h
                             Archive/Serializeable.h
-                            Archive/TestIOArchive.h)
+                            Archive/TestIOArchive.h
+							Archive/AllArchiveIncludes.h)
 
 add_subdirectory(Archive)
 
@@ -23,35 +24,44 @@ set(Archive_LIBS)
 
 if(${Archive_MATLAB})
  add_subdirectory(MATLAB_Archive)
- set(Archive_LIBS ${Archive_LIBS} MATLAB_Archive)
+ list(APPEND Archive_LIBS MATLAB_Archive)
+ list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_MATLAB)
 endif()
 
 if(${Archive_ConfigFile})
  add_subdirectory(ConfigFile_Archive)
- set(Archive_LIBS ${Archive_LIBS} ConfigFile_Archive)
+ list(APPEND Archive_LIBS ConfigFile_Archive)
+ list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_ConfigFile)
 endif()
 
 if(${Archive_HDF5})
  if(${Archive_MATLAB}) 
-  set(HDF5_USE_STATIC_LIBRARIES ON)
+  if(NOT Archive_USE_STATIC_HDF5)
+   message(STATUS "HDF5 and MATLAB Archives will be used! Can only link static HDF5!")
+   set(Archive_USE_STATIC_HDF5 ON)
+  endif()
  endif()
  add_subdirectory(HDF5_Archive)
- set(Archive_LIBS ${Archive_LIBS} HDF5_Archive)
+ list(APPEND Archive_LIBS HDF5_Archive)
+ list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_HDF5)
 endif()
 
 if(${Archive_CerealWrappers})
  add_subdirectory(CerealWrappers)
- set(Archive_LIBS ${Archive_LIBS} CerealWrappers)
+ list(APPEND Archive_LIBS CerealWrappers)
+ list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_CEREAL)
 endif()
 
 if(${Archive_ProgramOptions_Wrapper})
  add_subdirectory(ProgramOptions_Wrapper)
- set(Archive_LIBS ${Archive_LIBS} ProgramOptions_Wrapper)
+ list(APPEND Archive_LIBS ProgramOptions_Wrapper)
+ list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_BOOST_PO)
 endif()
 
 # Bundle of all build Archives
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME} INTERFACE ${Archive_LIBS})
+target_compile_definitions(${PROJECT_NAME} INTERFACE ${Archive_DEFINITIONS})
 
 
 #  HACK: have the files showing in the IDE

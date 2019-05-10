@@ -25,7 +25,7 @@ set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
 target_link_libraries(${PROJECT_NAME} PUBLIC Basic_Library)
 target_link_libraries(${PROJECT_NAME} PUBLIC BaseArchive)
 
-if(HDF5_USE_STATIC_LIBRARIES)
+if(Archive_USE_STATIC_HDF5)
     target_link_libraries(${PROJECT_NAME} PRIVATE hdf5::hdf5-static)
 else()
     target_link_libraries(${PROJECT_NAME} PRIVATE hdf5::hdf5-shared)
