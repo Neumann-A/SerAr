@@ -5,7 +5,6 @@
 #include <ostream>
 #include <fstream>
 
-//#include<cereal\cereal.hpp>
 
 using namespace Archives;
 ///-------------------------------------------------------------------------------------------------
@@ -494,3 +493,28 @@ auto ConfigFile_InputArchive::list() -> typename ConfigFile::Storage::sections
 	const auto& tmp = mStorage.accessContents();
 	return tmp;
 };
+
+template void ConfigFile_InputArchive::load<bool>(Archives::NamedValue<bool>& value);
+template void ConfigFile_InputArchive::load<short>(Archives::NamedValue<short>& value);
+template void ConfigFile_InputArchive::load<int>(Archives::NamedValue<int>& value);
+template void ConfigFile_InputArchive::load<long>(Archives::NamedValue<long>& value);
+template void ConfigFile_InputArchive::load<long long>(Archives::NamedValue<long long>& value);
+template void ConfigFile_InputArchive::load<unsigned int>(Archives::NamedValue<unsigned int>& value);
+template void ConfigFile_InputArchive::load<unsigned long>(Archives::NamedValue<unsigned long>& value);
+template void ConfigFile_InputArchive::load<unsigned long long>(Archives::NamedValue<unsigned long long>& value);
+template void ConfigFile_InputArchive::load<float>(Archives::NamedValue<float>& value);
+template void ConfigFile_InputArchive::load<double>(Archives::NamedValue<double>& value);
+template void ConfigFile_InputArchive::load<long double>(Archives::NamedValue<long double>& value);
+template void ConfigFile_InputArchive::load<std::string>(Archives::NamedValue<std::string>& value);
+template void ConfigFile_InputArchive::load<bool&>(Archives::NamedValue<bool&>& value);
+template void ConfigFile_InputArchive::load<short&>(Archives::NamedValue<short&>& value);
+template void ConfigFile_InputArchive::load<int&>(Archives::NamedValue<int&>& value);
+template void ConfigFile_InputArchive::load<long&>(Archives::NamedValue<long&>& value);
+template void ConfigFile_InputArchive::load<long long&>(Archives::NamedValue<long long&>& value);
+template void ConfigFile_InputArchive::load<unsigned int&>(Archives::NamedValue<unsigned int&>& value);
+template void ConfigFile_InputArchive::load<unsigned long&>(Archives::NamedValue<unsigned long&>& value);
+template void ConfigFile_InputArchive::load<unsigned long long&>(Archives::NamedValue<unsigned long long&>& value);
+template void ConfigFile_InputArchive::load<float&>(Archives::NamedValue<float&>& value);
+template void ConfigFile_InputArchive::load<double&>(Archives::NamedValue<double&>& value);
+template void ConfigFile_InputArchive::load<long double&>(Archives::NamedValue<long double&>& value);
+template void ConfigFile_InputArchive::load<std::string&>(Archives::NamedValue<std::string&>& value);

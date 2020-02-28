@@ -33,7 +33,6 @@
 #include "basics/BasicIncludes.h"
 
 #include "Archive/NamedValue.h"
-//#include "ArchiveHelper.h"
 #include "Archive/InputArchive.h"
 #include "Archive/OutputArchive.h"
 
@@ -621,7 +620,6 @@ namespace Archives
 				//	    Could have a temp. cache for faster access
 
 				auto seperatorpos{ str.find_first_of(SpecialCharacters::seperator, 0) };
-
 				std::size_t searchpos{ 0 };
 				std::int32_t bracelvl{ 0 };
 
@@ -1144,7 +1142,33 @@ namespace Archives
 	{
 
 	};
+
+	extern template void ConfigFile_InputArchive::load<bool>(Archives::NamedValue<bool>& value);
+	extern template void ConfigFile_InputArchive::load<short>(Archives::NamedValue<short>& value);
+	extern template void ConfigFile_InputArchive::load<int>(Archives::NamedValue<int>& value);
+	extern template void ConfigFile_InputArchive::load<long>(Archives::NamedValue<long>& value);
+	extern template void ConfigFile_InputArchive::load<long long>(Archives::NamedValue<long long>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned int>(Archives::NamedValue<unsigned int>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned long>(Archives::NamedValue<unsigned long>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned long long>(Archives::NamedValue<unsigned long long>& value);
+	extern template void ConfigFile_InputArchive::load<float>(Archives::NamedValue<float>& value);
+	extern template void ConfigFile_InputArchive::load<double>(Archives::NamedValue<double>& value);
+	extern template void ConfigFile_InputArchive::load<long double>(Archives::NamedValue<long double>& value);
+	extern template void ConfigFile_InputArchive::load<std::string>(Archives::NamedValue<std::string>& value);
+	extern template void ConfigFile_InputArchive::load<bool&>(Archives::NamedValue<bool&>& value);
+	extern template void ConfigFile_InputArchive::load<short&>(Archives::NamedValue<short&>& value);
+	extern template void ConfigFile_InputArchive::load<int&>(Archives::NamedValue<int&>& value);
+	extern template void ConfigFile_InputArchive::load<long&>(Archives::NamedValue<long&>& value);
+	extern template void ConfigFile_InputArchive::load<long long&>(Archives::NamedValue<long long&>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned int&>(Archives::NamedValue<unsigned int&>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned long&>(Archives::NamedValue<unsigned long&>& value);
+	extern template void ConfigFile_InputArchive::load<unsigned long long&>(Archives::NamedValue<unsigned long long&>& value);
+	extern template void ConfigFile_InputArchive::load<float&>(Archives::NamedValue<float&>& value);
+	extern template void ConfigFile_InputArchive::load<double&>(Archives::NamedValue<double&>& value);
+	extern template void ConfigFile_InputArchive::load<long double&>(Archives::NamedValue<long double&>& value);
+	extern template void ConfigFile_InputArchive::load<std::string&>(Archives::NamedValue<std::string&>& value);
 }
+
 
 #endif	// INC_ConfigFile_Archive_H
 // ConfigFile_Archive.h

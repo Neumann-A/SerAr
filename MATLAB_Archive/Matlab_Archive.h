@@ -913,6 +913,30 @@ namespace Archives
 
 	};
 
+	extern template void MatlabOutputArchive::save<bool>(const Archives::NamedValue<bool>& value);
+	extern template void MatlabOutputArchive::save<short>(const Archives::NamedValue<short>& value);
+	extern template void MatlabOutputArchive::save<int>(const Archives::NamedValue<int>& value);
+	//extern template void MatlabOutputArchive::save<long>(const Archives::NamedValue<long>& value);
+	extern template void MatlabOutputArchive::save<long long>(const Archives::NamedValue<long long>& value);
+	extern template void MatlabOutputArchive::save<unsigned int>(const Archives::NamedValue<unsigned int>& value);
+	//extern template void MatlabOutputArchive::save<unsigned long>(const Archives::NamedValue<unsigned long>& value);
+	extern template void MatlabOutputArchive::save<unsigned long long>(const Archives::NamedValue<unsigned long long>& value);
+	extern template void MatlabOutputArchive::save<float>(const Archives::NamedValue<float>& value);
+	extern template void MatlabOutputArchive::save<double>(const Archives::NamedValue<double>& value);
+	extern template void MatlabOutputArchive::save<long double>(const Archives::NamedValue<long double>& value);
+	extern template void MatlabOutputArchive::save<std::string>(const Archives::NamedValue<std::string>& value);
+	extern template void MatlabOutputArchive::save<bool&>(const Archives::NamedValue<bool&>& value);
+	extern template void MatlabOutputArchive::save<short&>(const Archives::NamedValue<short&>& value);
+	extern template void MatlabOutputArchive::save<int&>(const Archives::NamedValue<int&>& value);
+	//extern template void MatlabOutputArchive::save<long&>(const Archives::NamedValue<long&>& value);
+	extern template void MatlabOutputArchive::save<long long&>(const Archives::NamedValue<long long&>& value);
+	extern template void MatlabOutputArchive::save<unsigned int&>(const Archives::NamedValue<unsigned int&>& value);
+	//extern template void MatlabOutputArchive::save<unsigned long&>(const Archives::NamedValue<unsigned long&>& value);
+	extern template void MatlabOutputArchive::save<unsigned long long&>(const Archives::NamedValue<unsigned long long&>& value);
+	extern template void MatlabOutputArchive::save<float&>(const Archives::NamedValue<float&>& value);
+	extern template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
+	extern template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
+	extern template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
 }
 
 #endif	// INC_Matlab_Archive_H
