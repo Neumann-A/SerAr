@@ -53,7 +53,16 @@
 //#pragma comment (lib, "libeng")
 //#pragma comment (lib, "libmex")
 
+//Avoid a makro redefinition error in mat.h
+#ifdef __STDC__
+#define ARCHIVE__STDC__GUARD
+#else
+#define __STDC__
+#endif
 #include <mat.h>
+#ifndef ARCHIVE__STDC__GUARD
+#undef __STDC__
+#endif
 
 
 //Needs the following PATH = C:\Program Files\Matlab\R2015b\bin\win64; %PATH%
