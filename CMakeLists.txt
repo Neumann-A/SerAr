@@ -1,9 +1,10 @@
-cmake_minimum_required (VERSION 3.11)
-project(Archive CXX)
+cmake_minimum_required (VERSION 3.16)
+project(Archive VERSION 1.0.0 LANGUAGES CXX)
+set(PARENT_PROJECT_NAME ${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 
-#set(INCLUDE_DIRS ${Basic_Library_INCLUDE_DIRS})
-#set(ADDITONAL_SRCS "")
-#set(Archive_LIBS "")
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+include(cmake/ArchiveOptions.cmake)
 
 set(BASEARCHIVE_INCLUDES    Archive/dummy.cpp
                             Archive/ArchiveHelper.h
@@ -16,7 +17,7 @@ set(BASEARCHIVE_INCLUDES    Archive/dummy.cpp
                             Archive/OutputArchive.h
                             Archive/Serializeable.h
                             Archive/TestIOArchive.h
-							Archive/AllArchiveIncludes.h)
+                            Archive/AllArchiveIncludes.h)
 
 add_subdirectory(Archive)
 
@@ -56,22 +57,50 @@ if(${Archive_ProgramOptions_Wrapper})
  add_subdirectory(ProgramOptions_Wrapper)
  list(APPEND Archive_LIBS ProgramOptions_Wrapper)
  list(APPEND Archive_DEFINITIONS ARCHIVE_HAS_BOOST_PO)
+ 
 endif()
 
 # Bundle of all build Archives
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME} INTERFACE ${Archive_LIBS})
 target_compile_definitions(${PROJECT_NAME} INTERFACE ${Archive_DEFINITIONS})
+target_include_directories(${PROJECT_NAME} INTERFACE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                                                       $<INSTALL_INTERFACE:include/${PROJECT_NAME}> )
 
-
-#  HACK: have the files showing in the IDE
-#set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER Archive)
-#add_custom_target(${PROJECT_NAME}_Base SOURCES ${BASEARCHIVE_INCLUDES})
 #Dummy Target for Visual Studio Folders View
 add_library(${PROJECT_NAME}_Base STATIC EXCLUDE_FROM_ALL ${BASEARCHIVE_INCLUDES})
-#set_target_properties(${PROJECT_NAME}_Base PROPERTIES LINKER_LANGUAGE Cxx) 
 set_target_properties (${PROJECT_NAME}_Base PROPERTIES FOLDER Archive)
 target_compile_features(${PROJECT_NAME}_Base PUBLIC cxx_std_17)
 target_link_libraries(${PROJECT_NAME}_Base PUBLIC BaseArchive)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR}/lib)
+install(TARGETS ${PROJECT_NAME} BaseArchive ${Archive_LIBS}
+        EXPORT ${PROJECT_NAME}-exports
+        LIBRARY 
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE 
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(EXPORT ${PROJECT_NAME}-exports
+        FILE
+            ${PROJECT_NAME}Targets.cmake
+        NAMESPACE
+            ${PROJECT_NAME}::
+        DESTINATION
+            ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake COMPATIBILITY SameMajorVersion)
+
+configure_package_config_file(
+    ${PROJECT_NAME}Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  INSTALL_DESTINATION 
+    ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+install(FILES 
+            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION 
+            ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME} 
+)
