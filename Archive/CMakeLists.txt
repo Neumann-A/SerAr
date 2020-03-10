@@ -15,7 +15,7 @@ set(H_FILES ArchiveHelper.h
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME} INTERFACE Basic_Library)
 target_include_directories(${PROJECT_NAME} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-                                                     $<INSTALL_INTERFACE:include/${PARENT_PROJECT_NAME}>)
+                                                     $<INSTALL_INTERFACE:include/${PARENT_PROJECT_NAME}/Archive>)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
 install(FILES 
