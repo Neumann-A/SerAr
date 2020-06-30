@@ -1,0 +1,22 @@
+# This file will be directly passed to cmcs_project()
+PROJECT_NAME    # Project Name
+    HDF5
+DESCRIPTION 
+    "HDF5 archive of SerializationArchive (SerAr)"
+HOMEPAGE_URL
+    "https://github.com/Neumann-A/SerAr"
+LANGUAGES 
+    CXX
+CONDITION
+    SerAr_WITH_HDF5
+REQUIRED_PACKAGES
+    MyCEL
+TARGET_FILES
+    HDF5.target.cmakecs
+OPTIONAL_CONDITIONAL_PACKAGES
+    hdf5
+EXTENDED_PACKAGES_INFO      
+hdf5_FIND_OPTIONS
+    CONFIG
+hdf5_CONDITION
+    SerAr_WITH_HDF5

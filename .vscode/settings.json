@@ -1,0 +1,9 @@
+{
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "cmake.configureOnOpen": true,
+    "cmake.saveBeforeBuild": true,
+    "cmake.configureArgs": [
+       "-DVCPKG_TARGET_TRIPLET=x64-windows-static"
+    ]
+    
+}

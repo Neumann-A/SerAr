@@ -1,0 +1,22 @@
+# This file will be directly passed to cmcs_project()
+PROJECT_NAME    # Project Name
+    ProgramOptionsWrapper
+DESCRIPTION 
+    "Boost program_options wrapper of SerializationArchive (SerAr)"
+HOMEPAGE_URL
+    "https://github.com/Neumann-A/SerAr"
+LANGUAGES 
+    CXX
+CONDITION
+    SerAr_WITH_ProgramOptions
+REQUIRED_PACKAGES
+    MyCEL
+TARGET_FILES
+    ProgramOptionsWrapper.target.cmakecs
+OPTIONAL_CONDITIONAL_PACKAGES
+    Boost
+EXTENDED_PACKAGES_INFO
+Boost_COMPONENTS
+    program_options
+Boost_CONDITION
+    SerAr_WITH_ProgramOptions

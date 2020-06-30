@@ -1,0 +1,20 @@
+# This file will be directly passed to cmcs_project()
+PROJECT_NAME    # Project Name
+    CerealWrappers
+DESCRIPTION 
+    "Wrappers for Cereal archives of SerializationArchive (SerAr)"
+HOMEPAGE_URL
+    "https://github.com/Neumann-A/SerAr"
+LANGUAGES 
+    CXX
+CONDITION
+    SerAr_WITH_Cereal
+REQUIRED_PACKAGES
+    MyCEL
+TARGET_FILES
+    CerealWrappers.target.cmakecs
+OPTIONAL_CONDITIONAL_PACKAGES
+    cereal
+EXTENDED_PACKAGES_INFO # Parse blocker for dynamic/unknown options. 
+cereal_CONDITION
+    SerAr_WITH_Cereal
