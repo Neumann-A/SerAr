@@ -14,6 +14,7 @@ INTERFACE_SOURCES
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/InputArchive.h>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/LoadConstructor.h>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValue.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValueWithDesc.h>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/OutputArchive.h>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Serializeable.h>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/TestIOArchive.h>
@@ -24,6 +25,7 @@ PUBLIC_HEADER
     include/InputArchive.h
     include/LoadConstructor.h
     include/NamedValue.h
+    include/NamedValueWithDesc.h
     include/OutputArchive.h
     include/Serializeable.h
     include/TestIOArchive.h
