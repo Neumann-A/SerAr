@@ -44,10 +44,10 @@
 //#include <engine.h> //To connect to matlab engine (we dont work directly with matlab so does not matter)
 //MATLAB includes
 
-#ifdef _MSC_VER
-#pragma comment (lib, "libmx")
-#pragma comment (lib, "libmat")
-#endif
+// #ifdef _MSC_VER
+// #pragma comment (lib, "libmx")
+// #pragma comment (lib, "libmat")
+// #endif
 
 //Not used!
 //#pragma comment (lib, "libeng")

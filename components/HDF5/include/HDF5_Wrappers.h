@@ -31,38 +31,38 @@
 
 #include <MyCEL/stdext/std_extensions.h>
 
-#ifdef _DEBUG
-#ifdef H5_BUILT_AS_DYNAMIC_LIB
-//#pragma comment(lib,"hdf5_hl_cpp_D.lib")
-//#pragma comment(lib,"hdf5_cpp_D.lib")
-//#pragma comment(lib,"hdf5_hl_D.lib")
-#pragma comment(lib,"hdf5_D")
-//#pragma comment(lib,"szip_D.lib")
-#else
-//#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
-//#pragma comment(lib,"libhdf5_cpp_D.lib")
-//#pragma comment(lib,"libhdf5_hl_D.lib")
-#pragma comment(lib,"libhdf5_D")
-//#pragma comment(lib,"libszip_D.lib")
-#endif
-//#pragma comment(lib,"zlibd.lib")
-#else
-#ifdef H5_BUILT_AS_DYNAMIC_LIB
-//#pragma comment(lib,"hdf5_hl_cpp.lib")
-//#pragma comment(lib,"hdf5_cpp.lib")
-//#pragma comment(lib,"hdf5_hl.lib")
-#pragma comment(lib,"hdf5")
-//#pragma comment(lib,"szip.lib")
-//#pragma comment(lib,"zlib.lib")
-#else
-//#pragma comment(lib,"libhdf5_hl_cpp.lib")
-//#pragma comment(lib,"libhdf5_cpp.lib")
-//#pragma comment(lib,"libhdf5_hl.lib")
-#pragma comment(lib,"libhdf5")
-//#pragma comment(lib,"libszip.lib")
-//#pragma comment(lib,"zlib.lib")
-#endif
-#endif
+// #ifdef _DEBUG
+// #ifdef H5_BUILT_AS_DYNAMIC_LIB
+// //#pragma comment(lib,"hdf5_hl_cpp_D.lib")
+// //#pragma comment(lib,"hdf5_cpp_D.lib")
+// //#pragma comment(lib,"hdf5_hl_D.lib")
+// #pragma comment(lib,"hdf5_D")
+// //#pragma comment(lib,"szip_D.lib")
+// #else
+// //#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
+// //#pragma comment(lib,"libhdf5_cpp_D.lib")
+// //#pragma comment(lib,"libhdf5_hl_D.lib")
+// #pragma comment(lib,"libhdf5_D")
+// //#pragma comment(lib,"libszip_D.lib")
+// #endif
+// //#pragma comment(lib,"zlibd.lib")
+// #else
+// #ifdef H5_BUILT_AS_DYNAMIC_LIB
+// //#pragma comment(lib,"hdf5_hl_cpp.lib")
+// //#pragma comment(lib,"hdf5_cpp.lib")
+// //#pragma comment(lib,"hdf5_hl.lib")
+// #pragma comment(lib,"hdf5")
+// //#pragma comment(lib,"szip.lib")
+// //#pragma comment(lib,"zlib.lib")
+// #else
+// //#pragma comment(lib,"libhdf5_hl_cpp.lib")
+// //#pragma comment(lib,"libhdf5_cpp.lib")
+// //#pragma comment(lib,"libhdf5_hl.lib")
+// #pragma comment(lib,"libhdf5")
+// //#pragma comment(lib,"libszip.lib")
+// //#pragma comment(lib,"zlib.lib")
+// #endif
+// #endif
 
 #include <hdf5.h>
 //#include <hdf5_hl.h>
