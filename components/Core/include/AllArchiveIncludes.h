@@ -12,7 +12,7 @@
 #define INC_AllArchiveIncludes_H
 ///---------------------------------------------------------------------------------------------------
 
-#ifdef ARCHIVE_HAS_MATLAB
+#ifdef SERAR_HAS_MATLAB
 #include <SerAr/MATLAB/Matlab_Archive.h>
 #else
 namespace Archives {
@@ -21,7 +21,7 @@ namespace Archives {
 	class MatlabInputArchive;
 }
 #endif
-#ifdef ARCHIVE_HAS_HDF5
+#ifdef SERAR_HAS_HDF5
 #include <SerAr/HDF5/HDF5_Archive.h>
 #else
 namespace Archives {

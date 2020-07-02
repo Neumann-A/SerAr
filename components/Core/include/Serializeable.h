@@ -14,8 +14,8 @@
 #pragma once
 #include <cassert>
 
-#include "../Core/InputArchive.h"
-#include "../Core/OutputArchive.h"
+#include <SerAr/Core/InputArchive.h>
+#include <SerAr/Core/OutputArchive.h>
 
 #define IMPLEMENT_INDEXABLE_CLASS(SomeClass) \
 	static int& GetClassIndexStatic()\

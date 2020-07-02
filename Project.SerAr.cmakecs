@@ -20,4 +20,6 @@ SUBDIRECTORIES
     components/MATLAB
     components/CerealWrappers
     components/ProgramOptionsWrapper
+TARGET_FILES
+    SerAr.target.cmakecs
 SYMLINKED_BUILD_INCLUDEDIR # Components include folder gets symlinked into ${CMAKE_BINARY_DIR}/include/component which mirrors the installed include directory
