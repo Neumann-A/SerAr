@@ -10,6 +10,8 @@ PUBLIC_LINK_LIBRARIES
     $<IF:$<BOOL:SerAr_WITH_STATIC_HDF5>,hdf5::hdf5-static,hdf5::hdf5-shared>
 PUBLIC_COMPILE_FEATURES
     cxx_std_17
+PUBLIC_COMPILE_DEFINITIONS
+    H5_USE_110_API
 SOURCES
     src/HDF5_Archive.cpp
     src/HDF5_Type_Selector.cpp
