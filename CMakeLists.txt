@@ -4,7 +4,9 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE CACHE STRING "CMake message log level (defau
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(CMakeCS REQUIRED)
+if(NOT CMakeCS_FOUND)
+    find_package(CMakeCS REQUIRED)
+endif()
 
 include(options.cmake)
 
