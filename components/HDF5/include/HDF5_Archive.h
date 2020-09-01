@@ -416,7 +416,7 @@ namespace Archives
 					stordataspace.setOffset(offset);
 				}	
 		}
-
+#ifdef EIGEN_CORE_H
 		template <typename T>
 		std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<T>>> write(const T& val)
 		{
@@ -549,9 +549,9 @@ namespace Archives
 			std::reverse_copy(valdims.begin(), valdims.end(), memoryspaceopt.dims.begin());
 			std::reverse_copy(valdims.begin(), valdims.end(), memoryspaceopt.maxdims.begin());
 			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
-;
 			dataset.writeData(*val.data(), memoryopts);
-		};
+		}
+#endif
 	};
 
 
@@ -837,7 +837,7 @@ namespace Archives
 			}
 		
 		}
-
+#ifdef EIGEN_CORE_H
 		template<typename T>
 		std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<T>>> getData(T& val)
 		{
@@ -977,6 +977,7 @@ namespace Archives
 
 			static_cast<T&>(val) = Eigen::TensorMap<Type, Eigen::Unaligned>(readstorage.data(), dimarray);
 		}
+#endif
 
 	};
 }
