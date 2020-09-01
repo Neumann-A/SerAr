@@ -114,6 +114,75 @@ namespace HDF5_Wrapper
 
 	};
 
+	/// <summary>	Wrapper for HDF5 hid_t </summary>
+	class HDF5_LocationWrapper
+	{
+	private:
+		hid_t mLocation;
+
+		inline bool isValid() const noexcept { return (mLocation >= 0); };
+	public:
+		DISALLOW_COPY_AND_ASSIGN(HDF5_LocationWrapper)
+		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_LocationWrapper)
+
+		inline explicit HDF5_LocationWrapper(hid_t locID) : mLocation(std::move(locID))
+		{
+			if (!isValid()) {
+				throw std::runtime_error{ "Invalid HDF5 location." };
+			}
+		};
+
+		/// <summary>	Implicit conversion to hid_t </summary>
+		inline operator const hid_t&() const 
+		{ 
+			return mLocation; 
+				
+		}; //Implicit Conversion Operator! 
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Gets the relative path within the HDF5 file </summary>
+		///
+		/// <returns>	The HDF5 path to the object. </returns>
+		///-------------------------------------------------------------------------------------------------
+		inline std::string getHDF5Path() const noexcept
+		{
+			const auto size = static_cast<std::size_t>(H5Iget_name(mLocation, nullptr, 0) + 1); // +1 for null terminator
+			std::string res(size, ' ');
+			H5Iget_name(mLocation, res.data(), size);
+			return res;
+		}
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Gets the full path including the filename </summary>
+		///
+		/// <returns>	The full path to the HDF5 object </returns>
+		///-------------------------------------------------------------------------------------------------
+		inline std::string getHDF5Fullpath() const noexcept
+		{
+			const auto size = static_cast<std::size_t>(H5Fget_name(mLocation, nullptr, 0) +1);
+			std::string res(size, ' ');
+			H5Fget_name(mLocation, res.data(), size);
+			return res;
+		}
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>	Queries if a given link exists. </summary>
+		///
+		/// <typeparam name="U">	Type to inderectly define the HDF5 options. </typeparam>
+		/// <param name="path">   	HDF5 path to the HDF5 object </param>
+		/// <param name="options">	Options needed to access the object </param>
+		///
+		/// <returns>	True if it succeeds, false if it fails. </returns>
+		///-------------------------------------------------------------------------------------------------
+		template<typename U>
+		bool checkLinkExists(const hdf5path& path, const HDF5_Options_t<U>& options) const noexcept
+		{
+			//TODO: recursive check if path is complete path to an object! Meaning Path = <Linkname> is ok but  Path =<somepath>/<linkname> must be checked recursivly. 
+			const auto herr = H5Lexists(mLocation, path.string().c_str(), options.access_propertylist);
+			return herr > 0;
+		}
+	};
+
 	///-------------------------------------------------------------------------------------------------
 	/// <summary>	HDF5 open, create and close wrapper. To create or open HDF5 types </summary>
 	///
@@ -303,76 +372,6 @@ namespace HDF5_Wrapper
 					return H5Tclose(mLoc);
 				return 0;
 			}
-		}
-	};
-	
-	
-	/// <summary>	Wrapper for HDF5 hid_t </summary>
-	class HDF5_LocationWrapper
-	{
-	private:
-		hid_t mLocation;
-
-		inline bool isValid() const noexcept { return (mLocation >= 0); };
-	public:
-		DISALLOW_COPY_AND_ASSIGN(HDF5_LocationWrapper)
-		ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_LocationWrapper)
-
-		inline explicit HDF5_LocationWrapper(hid_t locID) : mLocation(std::move(locID))
-		{
-			if (!isValid()) {
-				throw std::runtime_error{ "Invalid HDF5 location." };
-			}
-		};
-
-		/// <summary>	Implicit conversion to hid_t </summary>
-		inline operator const hid_t&() const 
-		{ 
-			return mLocation; 
-				
-		}; //Implicit Conversion Operator! 
-
-		///-------------------------------------------------------------------------------------------------
-		/// <summary>	Gets the relative path within the HDF5 file </summary>
-		///
-		/// <returns>	The HDF5 path to the object. </returns>
-		///-------------------------------------------------------------------------------------------------
-		inline std::string getHDF5Path() const noexcept
-		{
-			const auto size = static_cast<std::size_t>(H5Iget_name(mLocation, nullptr, 0) + 1); // +1 for null terminator
-			std::string res(size, ' ');
-			H5Iget_name(mLocation, res.data(), size);
-			return res;
-		}
-
-		///-------------------------------------------------------------------------------------------------
-		/// <summary>	Gets the full path including the filename </summary>
-		///
-		/// <returns>	The full path to the HDF5 object </returns>
-		///-------------------------------------------------------------------------------------------------
-		inline std::string getHDF5Fullpath() const noexcept
-		{
-			const auto size = static_cast<std::size_t>(H5Fget_name(mLocation, nullptr, 0) +1);
-			std::string res(size, ' ');
-			H5Fget_name(mLocation, res.data(), size);
-			return res;
-		}
-
-		///-------------------------------------------------------------------------------------------------
-		/// <summary>	Queries if a given link exists. </summary>
-		///
-		/// <typeparam name="U">	Type to inderectly define the HDF5 options. </typeparam>
-		/// <param name="path">   	HDF5 path to the HDF5 object </param>
-		/// <param name="options">	Options needed to access the object </param>
-		///
-		/// <returns>	True if it succeeds, false if it fails. </returns>
-		///-------------------------------------------------------------------------------------------------
-		template<typename U>
-		bool checkLinkExists(const hdf5path& path, const HDF5_Options_t<U>& options) const noexcept
-		{
-			//TODO: recursive check if path is complete path to an object! Meaning Path = <Linkname> is ok but  Path =<somepath>/<linkname> must be checked recursivly. 
-			const auto herr = H5Lexists(mLocation, path.string().c_str(), options.access_propertylist);
-			return herr > 0;
 		}
 	};
 	
