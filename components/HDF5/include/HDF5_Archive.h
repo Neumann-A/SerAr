@@ -892,7 +892,7 @@ namespace Archives
 				dataset.readData(val, memoryopts);
 			}
 		}
-		
+#ifdef EIGEN_CXX11_TENSOR_TENSOR_H
 		template<typename T>
 		std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> getData(T& val)
 		{
@@ -977,6 +977,7 @@ namespace Archives
 
 			static_cast<T&>(val) = Eigen::TensorMap<Type, Eigen::Unaligned>(readstorage.data(), dimarray);
 		}
+#endif
 #endif
 
 	};
