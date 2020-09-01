@@ -641,7 +641,7 @@ namespace HDF5_Wrapper
 		{
 			const auto ndims = static_cast<std::size_t>(H5Sget_simple_extent_ndims(*this));
 			std::vector<std::size_t> dims(ndims);
-			H5Sget_simple_extent_dims(*this, dims.data(), nullptr);
+			H5Sget_simple_extent_dims(*this, static_cast<hsize_t*>(dims.data()), nullptr);
 			return dims;
 			//if (H5Sis_simple(*this)) // Currently this will always be true according to HDF5 documnetation
 			//{	}
@@ -650,12 +650,12 @@ namespace HDF5_Wrapper
 
 		auto setOffset(const std::vector<std::int64_t>& offset)
 		{
-			return H5Soffset_simple(*this, offset.data());
+			return H5Soffset_simple(*this, static_cast<const hssize_t*>(offset.data()));
 		}
 
 		auto selectSlab(const H5S_seloper_t& oper, const std::vector<std::size_t>& start, const std::vector<std::size_t>& stride, const std::vector<std::size_t>& count, const std::vector<std::size_t>& block)
 		{
-			return H5Sselect_hyperslab(*this, oper, start.data(),stride.data(),count.data(),block.data());
+			return H5Sselect_hyperslab(*this, oper, static_cast<const hsize_t*>(start.data()),static_cast<const hsize_t*>(stride.data()),static_cast<const hsize_t*>(count.data()),static_cast<const hsize_t*>(block.data()));
 		}
 
 		auto removeSelection()
