@@ -105,7 +105,7 @@ namespace Archives
 
 	template<typename T>
 	static constexpr bool is_nested_NamedValue_v = is_nested_NamedValue<T>::value;
-};
+}
 
 #define ARCHIVE_CREATE_NV(val) Archives::createNamedValue(#val,val)
 

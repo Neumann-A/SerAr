@@ -11,8 +11,8 @@ using namespace Archives;
 ///ConfigFile::Exceptions
 ///-------------------------------------------------------------------------------------------------
 
-ConfigFile::Parse_error::Parse_error(const error_enum& err) : std::runtime_error(getErrorInfoString(err)), _err(err) { };
-ConfigFile::Parse_error::Parse_error(const error_enum& err, std::string &&str) : std::runtime_error(str), _err(err) { };
+ConfigFile::Parse_error::Parse_error(const error_enum& err) : std::runtime_error(getErrorInfoString(err)), _err(err) { }
+ConfigFile::Parse_error::Parse_error(const error_enum& err, std::string &&str) : std::runtime_error(str), _err(err) { }
 
 const char * ConfigFile::Parse_error::what() const noexcept
 {
@@ -190,7 +190,7 @@ void ConfigFile::FileParser::parseLine(const std::string &line, const size_t &li
 		throw std::runtime_error{ str.str() };
 		//return;
 	}
-};
+}
 
 //void ConfigFile::FileParser::loadIntoStorage(std::istream& stream, ConfigFile::Storage &storage)
 //{
@@ -262,7 +262,7 @@ void  ConfigFile::Storage::writeContentsToStream(std::ostream &stream) const
 		stream << /*"[EOS]" << '\n' <<*/ '\n';
 	}
 	stream << /*"[END]" << */'\n' << '\n';
-};
+}
 
 
 ///-------------------------------------------------------------------------------------------------
@@ -291,8 +291,8 @@ void ConfigFile::toString::checkSyntax(const std::string& section, const std::st
 ///ConfigFile::Output Archive
 ///-------------------------------------------------------------------------------------------------
 
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream) {};
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {};
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream) {}
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {}
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
 	mStorage.writeContentsToStream(mOutputstream);
@@ -334,29 +334,29 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem:
 ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream)
 {
 	parseStream();
-};
+}
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : InputArchive(this), mInputstream(std::cin), mStorage(std::move(storage))
 {
-};
+}
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path))
 {
 	parseStream();
-};
+}
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream) 
 {
 	std::swap(this->mStreamOwner, CFG.mStreamOwner);
 	std::swap(this->mStorage, CFG.mStorage);
 	CFG.mStreamOwner = false;
-};
+}
 
 ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
 {
 	//delegate to move constructor
 	return ConfigFile_InputArchive{ std::move(CFG) };
-};
+}
 
 ConfigFile_InputArchive::~ConfigFile_InputArchive()
 {
@@ -364,7 +364,7 @@ ConfigFile_InputArchive::~ConfigFile_InputArchive()
 	{
 		delete (&mInputstream); // We created the Stream object we also have to delete it!
 	}
-};
+}
 
 void ConfigFile_InputArchive::SkipBOM(std::ifstream &in)
 {
@@ -481,18 +481,18 @@ auto ConfigFile_InputArchive::list(std::string value) -> typename ConfigFile::St
 	ConfigLogic.resetCurrKey();
 	ConfigLogic.resetCurrKey();
 	return data;
-};
+}
 
 auto ConfigFile_InputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues
 {
 	return list(value.getName());
-};
+}
 
 auto ConfigFile_InputArchive::list() -> typename ConfigFile::Storage::sections
 {
 	const auto& tmp = mStorage.accessContents();
 	return tmp;
-};
+}
 
 template void ConfigFile_InputArchive::load<bool>(Archives::NamedValue<bool>& value);
 template void ConfigFile_InputArchive::load<short>(Archives::NamedValue<short>& value);

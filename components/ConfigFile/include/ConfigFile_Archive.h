@@ -166,7 +166,7 @@ namespace Archives
 		template<typename TypeToConvert, typename HelperClass>
 		static constexpr bool use_type_member_from_string_v = use_type_member_from_string<TypeToConvert, HelperClass>::value;
 
-	};
+	}
 
 	class ConfigFile
 	{
