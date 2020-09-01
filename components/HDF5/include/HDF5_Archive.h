@@ -315,7 +315,7 @@ namespace Archives
 				
 				//Settings storage dimensions
 				HDF5_DataspaceOptions dataspaceopts;
-				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.dims = std::vector<hsize_t>{ { val.size() } };
 				dataspaceopts.maxdims = dataspaceopts.dims;
 
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
@@ -330,7 +330,7 @@ namespace Archives
 
 				//Settings memory dimensions
 				HDF5_DataspaceOptions memoryspaceopt;
-				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.dims = std::vector<hsize_t>{ { val.size() } };
 				memoryspaceopt.maxdims = memoryspaceopt.dims;
 
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
@@ -345,7 +345,7 @@ namespace Archives
 
 				//Settings storage dimensions
 				HDF5_DataspaceOptions dataspaceopts;
-				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.dims = std::vector<hsize_t>{ { val.size() } };
 				dataspaceopts.maxdims = dataspaceopts.dims;
 
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
@@ -391,8 +391,8 @@ namespace Archives
 
 				//Settings storage dimensions
 				HDF5_DataspaceOptions dataspaceopts;
-				dataspaceopts.dims = std::vector<std::size_t>{ { val.size() } };
-				dataspaceopts.maxdims = std::vector<std::size_t>{ { val.size() } };
+				dataspaceopts.dims = std::vector<hsize_t>{ { val.size() } };
+				dataspaceopts.maxdims = std::vector<hsize_t>{ { val.size() } };
 
 				HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.begin(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 				HDF5_DatasetOptions datasetopts;
@@ -430,8 +430,8 @@ namespace Archives
 
 			//Settings storage dimensions
 			HDF5_DataspaceOptions dataspaceopts;
-			dataspaceopts.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-			dataspaceopts.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			dataspaceopts.dims = std::vector<hsize_t>{ { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) } };
+			dataspaceopts.maxdims = std::vector<hsize_t>{ { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) } };
 
 			HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
 			HDF5_DatasetOptions datasetopts;
@@ -443,8 +443,8 @@ namespace Archives
 
 			//Settings memory dimensions
 			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
+			memoryspaceopt.dims = std::vector<hsize_t>{ { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) } };
+			memoryspaceopt.maxdims = std::vector<hsize_t>{ { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) } };
 			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
 			if (mOptions.dontReorderData)
@@ -481,7 +481,7 @@ namespace Archives
 
 			//Settings storage dimensions
 			HDF5_DataspaceOptions dataspaceopts;
-			dataspaceopts.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
+			dataspaceopts.dims = std::vector<hsize_t>{ { val.size(),static_cast<hsize_t>(val[0].rows()), static_cast<hsize_t>(val[0].cols()) } };
 			dataspaceopts.maxdims = dataspaceopts.dims;
 
             HDF5_StorageOptions storeopts{ HDF5_DatatypeWrapper(Scalar{}, datatypeopts), HDF5_DataspaceWrapper(dataspacetype, dataspaceopts) };
@@ -494,8 +494,8 @@ namespace Archives
 
 			//Settings memory dimensions
 			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size(),static_cast<std::size_t>(val[0].rows()), static_cast<std::size_t>(val[0].cols()) } };
+			memoryspaceopt.dims = std::vector<hsize_t>{ { val.size(),static_cast<hsize_t>(val[0].rows()), static_cast<hsize_t>(val[0].cols()) } };
+			memoryspaceopt.maxdims = std::vector<hsize_t>{ { val.size(),static_cast<hsize_t>(val[0].rows()), static_cast<hsize_t>(val[0].cols()) } };
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(Scalar{}, memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
 
 			//HDF5_DataspaceWrapper memoryspace(memoryspacetype, memoryspaceopt);
@@ -745,8 +745,8 @@ namespace Archives
 				val.resize(dims.at(0));
 
 				HDF5_DataspaceOptions memoryspaceopt;
-				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-				memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.dims = std::vector<hsize_t>{ { val.size() } };
+				memoryspaceopt.maxdims = std::vector<hsize_t>{ { val.size() } };
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
 				dataset.readData(val.data(), memoryopts);
 			}
@@ -775,8 +775,8 @@ namespace Archives
 				stordataspace.selectSlab(H5S_SELECT_SET, { 0 }, { 1 }, { 1 }, { 1 });
 
 				HDF5_DataspaceOptions memoryspaceopt;
-				memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-				memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+				memoryspaceopt.dims = std::vector<hsize_t>{ { val.size() } };
+				memoryspaceopt.maxdims = std::vector<hsize_t>{ { val.size() } };
 				HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), stordataspace };
 				std::vector<std::int64_t> offset{ { 0 } };
 				for (auto& elem : val)
@@ -825,8 +825,8 @@ namespace Archives
 			stordataspace.selectSlab(H5S_SELECT_SET, { 0 }, { 1 }, { 1 }, { 1 });
 
 			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { val.size() } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { val.size() } };
+			memoryspaceopt.dims = std::vector<hsize_t>{ { val.size() } };
+			memoryspaceopt.maxdims = std::vector<hsize_t>{ { val.size() } };
 			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), stordataspace };
 			std::vector<std::int64_t> offset{ { 0 } };
 			for (auto& str : val)
@@ -869,8 +869,8 @@ namespace Archives
 			//Eigen::Matrix<typename T::Scalar, Eigen::Dynamic, Eigen::Dynamic> Storage(cols, rows);
 
 			HDF5_DataspaceOptions memoryspaceopt;
-			memoryspaceopt.dims = std::vector<std::size_t>{ { static_cast<std::size_t>(rows), static_cast<std::size_t>(cols) } };
-			memoryspaceopt.maxdims = std::vector<std::size_t>{ { static_cast<std::size_t>(rows), static_cast<std::size_t>(cols) } };
+			memoryspaceopt.dims = std::vector<hsize_t>{ { static_cast<hsize_t>(rows), static_cast<hsize_t>(cols) } };
+			memoryspaceopt.maxdims = std::vector<hsize_t>{ { static_cast<hsize_t>(rows), static_cast<hsize_t>(cols) } };
 			HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
 
 			//TODO: add code for dynamic sized matrix!
