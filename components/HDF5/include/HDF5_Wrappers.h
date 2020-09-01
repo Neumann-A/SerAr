@@ -180,7 +180,7 @@ namespace HDF5_Wrapper
 				{
 				case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
 				{
-					if (loc.checkLinkExists<T>(path, options)) { //Link does exist
+					if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
 						H5O_info_t oinfo;
 						MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
@@ -227,7 +227,7 @@ namespace HDF5_Wrapper
 					return H5Dopen(loc, path.string().c_str(), options.access_propertylist);
 				case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
 				{
-					if (loc.checkLinkExists<T>(path, options)) { //Link does exist
+					if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
 						H5O_info_t oinfo;
 						const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
 
@@ -248,7 +248,7 @@ namespace HDF5_Wrapper
 				}
 				case HDF5_GeneralOptions::HDF5_Mode::Create:
 				{
-					if (!loc.checkLinkExists<T>(path, options)) { //Link does exist
+					if (!loc.template checkLinkExists<T>(path, options)) { //Link does exist
 						return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
 					}
 					else {
