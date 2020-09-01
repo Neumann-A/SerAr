@@ -163,6 +163,12 @@ namespace Archives
 		//NOTE: Narrowing conversion to MATLAB. There seems to be no long double conversion in MATLAB!
 		template<>
 		struct MATLABClassFinder<long double> : MATLAB_DoubleClass {}; 
+#ifndef WIN32
+		template<>
+		struct MATLABClassFinder<long long int> : MATLAB_Int64Class {};
+		template<>
+		struct MATLABClassFinder<long long unsigned int> : MATLAB_UInt64Class {};
+#endif
 #ifdef EIGEN_CORE_H
 		template<typename T>
 		struct MATLABClassFinder<Eigen::EigenBase<T>> : MATLABClassFinder<typename T::Scalar> {};
