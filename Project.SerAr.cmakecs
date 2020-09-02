@@ -22,4 +22,6 @@ SUBDIRECTORIES
     components/ProgramOptionsWrapper
 TARGET_FILES
     SerAr.target.cmakecs
+INCLUDES_AFTER_TARGETS
+    SerAr.target.setup.cmake # Required for stuff which cannot be done in generator expressions
 SYMLINKED_BUILD_INCLUDEDIR # Components include folder gets symlinked into ${CMAKE_BINARY_DIR}/include/component which mirrors the installed include directory

@@ -11,10 +11,6 @@ CONDITION
     SerAr_WITH_Cereal
 REQUIRED_PACKAGES
     MyCEL
+    cereal
 TARGET_FILES
     CerealWrappers.target.cmakecs
-OPTIONAL_CONDITIONAL_PACKAGES
-    cereal
-EXTENDED_PACKAGES_INFO # Parse blocker for dynamic/unknown options. 
-cereal_CONDITION
-    SerAr_WITH_Cereal

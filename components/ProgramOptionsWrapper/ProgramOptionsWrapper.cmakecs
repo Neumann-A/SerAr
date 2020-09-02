@@ -11,12 +11,9 @@ CONDITION
     SerAr_WITH_ProgramOptions
 REQUIRED_PACKAGES
     MyCEL
+    Boost
 TARGET_FILES
     ProgramOptionsWrapper.target.cmakecs
-OPTIONAL_CONDITIONAL_PACKAGES
-    Boost
 EXTENDED_PACKAGES_INFO
 Boost_COMPONENTS
     program_options
-Boost_CONDITION
-    SerAr_WITH_ProgramOptions
