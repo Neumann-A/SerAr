@@ -10,8 +10,9 @@ if(SerAr_WITH_MATLAB AND NOT SerAr_WITH_STATIC_HDF5)
     message(FATAL_ERROR "[SerAr]: Building HDF5 and MATLAB components requires static HDF5 linkage due to version conflicts with the version in MATLAB.")
 endif()
 
-project("HDF5.cmakecs")
-
+if(SerAr_WITH_HDF5)
+    project("HDF5.cmakecs")
+endif()
 
 # cmake_minimum_required (VERSION 3.11)
 # project (HDF5_Archive CXX)
