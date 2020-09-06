@@ -1,0 +1,19 @@
+# This file will be directly passed to cmcs_project()
+PROJECT_NAME    # Project Name
+    MATLAB
+DESCRIPTION 
+    "MATLAB archive of SerializationArchive (SerAr)"
+HOMEPAGE_URL
+    "https://github.com/Neumann-A/SerAr"
+LANGUAGES 
+    CXX
+CONDITION
+    SerAr_WITH_MATLAB
+REQUIRED_PACKAGES
+    MyCEL
+    Matlab
+TARGET_FILES
+    Matlab.target.cmakecs
+EXTENDED_PACKAGES_INFO
+Matlab_COMPONENTS
+    MAT_LIBRARY

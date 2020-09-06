@@ -1,0 +1,33 @@
+TARGET_NAME
+    ${PROJECT_NAME}
+LIBRARY_TYPE
+    INTERFACE    
+INTERFACE_LINK_LIBRARIES
+    MyCEL::MyCEL
+INTERFACE_COMPILE_FEATURES
+    cxx_std_17
+IDE_INTERFACE_TARGET
+INTERFACE_SOURCES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ArchiveHelper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ArchiveVisitor.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/BaseArchiveType.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/InputArchive.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/LoadConstructor.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValue.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValueWithDesc.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/OutputArchive.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Serializeable.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/TestIOArchive.h>
+PUBLIC_HEADER
+    include/ArchiveHelper.h
+    include/ArchiveVisitor.h
+    include/BaseArchiveType.h
+    include/InputArchive.h
+    include/LoadConstructor.h
+    include/NamedValue.h
+    include/NamedValueWithDesc.h
+    include/OutputArchive.h
+    include/Serializeable.h
+    include/TestIOArchive.h
+INTERFACE_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

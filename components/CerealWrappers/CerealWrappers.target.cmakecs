@@ -1,0 +1,25 @@
+TARGET_NAME
+    ${PROJECT_NAME}
+LIBRARY_TYPE
+    INTERFACE    
+INTERFACE_LINK_LIBRARIES
+    MyCEL::MyCEL
+INTERFACE_DEPENDS
+    Core
+INTERFACE_COMPILE_FEATURES
+    cxx_std_17
+INTERFACE_SOURCES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/BinaryArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/CerealAdapter.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/JSONArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/PortableBinaryArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/XMLArchiveWrapper.h>
+PUBLIC_HEADER
+    include/BinaryArchiveWrapper.h
+    include/CerealAdapter.h
+    include/JSONArchiveWrapper.h
+    include/PortableBinaryArchiveWrapper.h
+    include/XMLArchiveWrapper.h
+INTERFACE_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    ${CEREAL_INCLUDE_DIRS}

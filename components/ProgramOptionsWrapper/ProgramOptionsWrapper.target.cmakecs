@@ -1,0 +1,22 @@
+TARGET_NAME
+    ${PROJECT_NAME}
+LIBRARY_TYPE
+    STATIC    
+PUBLIC_LINK_LIBRARIES
+    MyCEL::MyCEL
+PUBLIC_DEPENDS
+    Core
+PRIVATE_LINK_LIBRARIES
+    Boost::program_options
+PUBLIC_COMPILE_FEATURES
+    cxx_std_17
+SOURCES
+    src/ProgramOptions_Wrapper.cpp 
+    src/PO_Description_Wrapper.cpp
+    include/ProgramOptions_Wrapper.h
+    include/PO_Description_Wrapper.h
+PUBLIC_HEADER
+    include/ProgramOptions_Wrapper.h
+    include/PO_Description_Wrapper.h
+PRIVATE_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
