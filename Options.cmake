@@ -1,6 +1,6 @@
 include(FeatureSummary)
 
-OPTION(SerAr_WITH_HDF5 "Enable HDF5 Component" ON)
+OPTION(SerAr_WITH_HDF5 "Enable HDF5 Component" OFF)
 add_feature_info(HDF5 SerAr_WITH_HDF5 "Enable HDF5 archives")
 
 OPTION(SerAr_WITH_MATLAB "Enable MATLAB Archives" ON)
