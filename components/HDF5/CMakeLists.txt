@@ -11,7 +11,7 @@ if(SerAr_WITH_MATLAB AND NOT SerAr_WITH_STATIC_HDF5)
 endif()
 
 project("HDF5.cmakecs")
-if(SerAr_WITH_STATIC_HDF5 AND NOT TARGET hdf5::hdf5-static)
+if(SerAr_WITH_HDF5 AND SerAr_WITH_STATIC_HDF5 AND NOT TARGET hdf5::hdf5-static)
     message(FATAL_ERROR "Requested static hdf5 linkage but target hdf5::hdf5-static is not available")
 endif()
 
