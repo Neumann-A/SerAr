@@ -1,0 +1,18 @@
+TARGET_NAME
+    ${PROJECT_NAME}
+LIBRARY_TYPE
+    STATIC
+PUBLIC_LINK_LIBRARIES
+    MyCEL::MyCEL
+    nlohmann_json::nlohmann_json
+PUBLIC_DEPENDS
+    Core
+PUBLIC_COMPILE_FEATURES
+    cxx_std_20
+SOURCES
+    src/json_archive.cpp
+    include/json_archive.hpp
+PUBLIC_HEADER
+    include/json_archive.hpp
+PRIVATE_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

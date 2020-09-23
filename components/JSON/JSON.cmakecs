@@ -1,0 +1,16 @@
+# This file will be directly passed to cmcs_project()
+PROJECT_NAME    # Project Name
+    JSON
+DESCRIPTION 
+    "JSON archive of SerializationArchive (SerAr)"
+HOMEPAGE_URL
+    "https://github.com/Neumann-A/SerAr"
+LANGUAGES 
+    CXX
+CONDITION
+    SerAr_WITH_JSON
+REQUIRED_PACKAGES
+    MyCEL
+    nlohmann_json
+TARGET_FILES
+    JSON.target.cmakecs
