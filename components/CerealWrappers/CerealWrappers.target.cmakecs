@@ -9,17 +9,17 @@ INTERFACE_DEPENDS
 INTERFACE_COMPILE_FEATURES
     cxx_std_17
 INTERFACE_SOURCES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/BinaryArchiveWrapper.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/CerealAdapter.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/JSONArchiveWrapper.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/PortableBinaryArchiveWrapper.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/XMLArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers/BinaryArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers/CerealAdapter.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers/JSONArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers/PortableBinaryArchiveWrapper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers/XMLArchiveWrapper.h>
 PUBLIC_HEADER
-    include/BinaryArchiveWrapper.h
-    include/CerealAdapter.h
-    include/JSONArchiveWrapper.h
-    include/PortableBinaryArchiveWrapper.h
-    include/XMLArchiveWrapper.h
+    include/SerAr/ConfigFile/BinaryArchiveWrapper.h
+    include/SerAr/ConfigFile/CerealAdapter.h
+    include/SerAr/ConfigFile/JSONArchiveWrapper.h
+    include/SerAr/ConfigFile/PortableBinaryArchiveWrapper.h
+    include/SerAr/ConfigFile/XMLArchiveWrapper.h
 INTERFACE_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/CerealWrappers>
     ${CEREAL_INCLUDE_DIRS}

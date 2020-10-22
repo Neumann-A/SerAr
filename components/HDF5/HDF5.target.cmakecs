@@ -16,15 +16,15 @@ SOURCES
     src/HDF5_Archive.cpp
     src/HDF5_Type_Selector.cpp
     src/HDF5_Wrappers.cpp
-    include/HDF5_Archive.h
-    include/HDF5_FwdDecl.h
-    include/HDF5_Type_Selector.h
-    include/HDF5_Wrappers.h    
+    include/SerAr/HDF5/HDF5_Archive.h
+    include/SerAr/HDF5/HDF5_FwdDecl.h
+    include/SerAr/HDF5/HDF5_Type_Selector.h
+    include/SerAr/HDF5/HDF5_Wrappers.h    
 PUBLIC_HEADER
-    include/HDF5_Archive.h
-    include/HDF5_FwdDecl.h
-    include/HDF5_Type_Selector.h
-    include/HDF5_Wrappers.h
+    include/SerAr/HDF5/HDF5_Archive.h
+    include/SerAr/HDF5/HDF5_FwdDecl.h
+    include/SerAr/HDF5/HDF5_Type_Selector.h
+    include/SerAr/HDF5/HDF5_Wrappers.h
 PRIVATE_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/HDF5/>
 

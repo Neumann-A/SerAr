@@ -8,26 +8,26 @@ INTERFACE_COMPILE_FEATURES
     cxx_std_17
 IDE_INTERFACE_TARGET
 INTERFACE_SOURCES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ArchiveHelper.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ArchiveVisitor.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/BaseArchiveType.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/InputArchive.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/LoadConstructor.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValue.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedValueWithDesc.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/OutputArchive.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Serializeable.h>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/TestIOArchive.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/ArchiveHelper.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/ArchiveVisitor.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/BaseArchiveType.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/InputArchive.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/LoadConstructor.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValue.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValueWithDesc.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/OutputArchive.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/Serializeable.h>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/TestIOArchive.h>
 PUBLIC_HEADER
-    include/ArchiveHelper.h
-    include/ArchiveVisitor.h
-    include/BaseArchiveType.h
-    include/InputArchive.h
-    include/LoadConstructor.h
-    include/NamedValue.h
-    include/NamedValueWithDesc.h
-    include/OutputArchive.h
-    include/Serializeable.h
-    include/TestIOArchive.h
+    include/SerAr/Core/ArchiveHelper.h
+    include/SerAr/Core/ArchiveVisitor.h
+    include/SerAr/Core/BaseArchiveType.h
+    include/SerAr/Core/InputArchive.h
+    include/SerAr/Core/LoadConstructor.h
+    include/SerAr/Core/NamedValue.h
+    include/SerAr/Core/NamedValueWithDesc.h
+    include/SerAr/Core/OutputArchive.h
+    include/SerAr/Core/Serializeable.h
+    include/SerAr/Core/TestIOArchive.h
 INTERFACE_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core>

@@ -12,9 +12,9 @@ PUBLIC_COMPILE_FEATURES
     cxx_std_17
 SOURCES
     src/ConfigFile_Archive.cpp
-    include/ConfigFile_Archive.h
+    include/SerAr/ConfigFile/ConfigFile_Archive.h
 PUBLIC_HEADER
-    include/ConfigFile_Archive.h
+    include/SerAr/ConfigFile/ConfigFile_Archive.h
 PRIVATE_INCLUDE_DIRECTORIES
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/ConfigFile>
 PRIVATE_COMPILE_OPTIONS
