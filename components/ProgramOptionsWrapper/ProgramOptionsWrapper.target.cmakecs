@@ -20,3 +20,5 @@ PUBLIC_HEADER
     include/SerAr/ProgramOptionsWrapper/PO_Description_Wrapper.h
 PRIVATE_INCLUDE_DIRECTORIES
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/ProgramOptionsWrapper/>
+PUBLIC_INCLUDE_DIRETORIES
+    include
