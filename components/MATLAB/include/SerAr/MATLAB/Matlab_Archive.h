@@ -55,12 +55,16 @@
 
 //Avoid a makro redefinition error in mat.h
 #ifdef __STDC__
-#define ARCHIVE__STDC__GUARD
+#define SERAR__STDC__GUARD
 #else
 #define __STDC__
 #endif
+#include <cstdint>
+#ifndef UINT64_T
+#define UINT64_T std::uint64_t
+#endif
 #include <mat.h>
-#ifndef ARCHIVE__STDC__GUARD
+#ifndef SERAR__STDC__GUARD
 #undef __STDC__
 #endif
 
