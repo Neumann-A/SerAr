@@ -8,7 +8,7 @@ if(NOT CMakeCS_FOUND)
     find_package(CMakeCS REQUIRED)
 endif()
 
-include(options.cmake)
+include(Options.cmake)
 
 project("Project.SerAr.cmakecs")
 
