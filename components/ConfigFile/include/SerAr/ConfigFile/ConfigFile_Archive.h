@@ -575,7 +575,7 @@ namespace Archives
                 afterConversionStringCheck(str);
 
                 return ret;
-            };
+            }
 #endif
 
         private:
@@ -843,7 +843,7 @@ namespace Archives
                 std::stringstream sstr;
                 sstr << std::scientific << value.format(CommaInitFmt);
                 return sstr.str();
-            };
+            }
 #endif
         private:
             /// <summary>	Helper to convert tuples into a string. </summary>
