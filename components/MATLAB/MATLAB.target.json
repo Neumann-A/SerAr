@@ -1,0 +1,36 @@
+{
+    "name" : "MATLAB" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/Matlab_Archive.cpp",
+        "include/SerAr/MATLAB/Matlab_Archive.h"
+    ],
+    "include_directories" : {
+        "public" : [ 
+            "${Matlab_INCLUDE_DIRS}",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        ],
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/MATLAB/>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core",
+            "${Matlab_MAT_LIBRARY}",
+            "${Matlab_MX_LIBRARY}"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_17"
+        ]
+    },
+    "public_headers": [
+        "include/SerAr/MATLAB/Matlab_Archive.h"
+    ]
+}

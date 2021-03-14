@@ -1,0 +1,37 @@
+{
+    "name" : "ProgramOptionsWrapper" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/ProgramOptions_Wrapper.cpp",
+        "src/PO_Description_Wrapper.cpp",
+        "include/SerAr/ProgramOptionsWrapper/ProgramOptions_Wrapper.h",
+        "include/SerAr/ProgramOptionsWrapper/PO_Description_Wrapper.h"
+    ],
+    "include_directories" : {
+        "public" : [ 
+            "${Matlab_INCLUDE_DIRS}"
+        ],
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/ProgramOptionsWrapper/>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core",
+            "Boost::program_options"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_17"
+        ]
+    },
+    "public_headers": [
+        "include/SerAr/ProgramOptionsWrapper/ProgramOptions_Wrapper.h",
+        "include/SerAr/ProgramOptionsWrapper/PO_Description_Wrapper.h"
+    ]
+}

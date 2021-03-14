@@ -1,0 +1,13 @@
+{
+    "condition" : "SERAR_WITH_HDF5",
+    "component_name" : "HDF5",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "HDF5 archive of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "HDF5.target.json"
+    ],
+    "dependencies" : [
+        "hdf5"
+    ]
+}

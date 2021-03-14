@@ -1,6 +1,6 @@
-cmake_minimum_required (VERSION 3.17)
+cmake_minimum_required (VERSION 3.19)
 
-project("ProgramOptionsWrapper.cmakecs")
+project("ProgramOptionsWrapper.json")
 
 
 # cmake_minimum_required (VERSION 3.8)

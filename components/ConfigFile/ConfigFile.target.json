@@ -1,0 +1,34 @@
+{
+    "name" : "ConfigFile" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/ConfigFile_Archive.cpp",
+        "include/SerAr/ConfigFile/ConfigFile_Archive.h"
+    ],
+    "include_directories" : {
+        "public" : [ 
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+            "$<INSTALL_INTERFACE:include>"
+        ],
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/ConfigFile/>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_17"
+        ]
+    },
+    "public_headers": [
+        "include/SerAr/ConfigFile/ConfigFile_Archive.h"
+    ]
+}

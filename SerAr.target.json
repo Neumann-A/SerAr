@@ -1,0 +1,19 @@
+{
+    "name" : "AllArchives" ,
+    "target_type" : "library",
+    "parameters" : [
+        "INTERFACE"
+    ],
+    "include_directories" : {
+        "interface" : [ 
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+            "$<INSTALL_INTERFACE:include>" ]
+    },
+    "link_libraries" : {
+        "interface": [
+            "Core"
+        ]
+    },
+    "public_headers" : ["include/SerAr/AllArchiveIncludes.h"]
+}
+

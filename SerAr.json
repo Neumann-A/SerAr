@@ -1,0 +1,54 @@
+{
+    "name" : "SerializationArchives" ,
+    "package_name" : "SerAr",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "SerializationArchive (SerAr) is a c++ interface wrapper library around different serialization possibilities to ensure a common interface for data.",
+    "version" : "0.1.0",
+    "languages" : ["CXX"],
+    "options" : [
+        {
+            "name" : "HDF5",
+            "description" : "Enable HDF5 archives",
+            "default_value" : "OFF"
+        },
+        {
+            "name" : "MATLAB",
+            "description" : "Enable MATLAB archives",
+            "default_value" : "OFF"
+        },
+        {
+            "name" : "ConfigFile",
+            "description" : "Enable ConfigFile archives",
+            "default_value" : "ON"
+        },
+        {
+            "name" : "Cereal",
+            "description" : "Include and enable CerealWrappers (requires Cereal)",
+            "default_value" : "OFF",
+            "dependencies" : [ "Cereal" ]
+        },
+        {
+            "name" : "ProgramOptions",
+            "description" : "Include and enable Wrappers for boost program_options (requires boost COMPONENTS program_options)",
+            "default_value" : "ON",
+            "dependencies" : [ {
+                "name":"Boost",
+                "components" : ["program_options"]
+            } ]
+        }
+    ],
+    "dependencies" : [
+        "MyCEL"
+    ],
+    "public_cmake_module_path" : "cmake",
+    "list" : [
+        "components/Core",
+        "SerAr.target.json",
+        "components/ConfigFile",
+        "components/HDF5",
+        "components/MATLAB",
+        "components/CerealWrappers",
+        "components/ProgramOptionsWrapper",
+        "SerAr.target.setup.cmake"
+    ]
+}

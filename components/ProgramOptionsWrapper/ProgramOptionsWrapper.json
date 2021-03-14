@@ -1,0 +1,17 @@
+{
+    "condition" : "SERAR_WITH_PROGRAMOPTIONS",
+    "component_name" : "ProgramOptionsWrapper",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "Boost program_options wrapper of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "ProgramOptionsWrapper.target.json"
+    ],
+    "dependencies" : [
+        "MyCEL",
+        { 
+          "name": "Boost",
+          "components": ["program_options"]
+        }
+    ]
+}

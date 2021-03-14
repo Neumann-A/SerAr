@@ -1,0 +1,13 @@
+{
+    "component_name" : "Core",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "Core library of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "dependencies" :
+    [
+        "MyCEL"
+    ],
+    "list" : [
+        "Core.target.json"
+    ]
+}

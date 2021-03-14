@@ -1,0 +1,15 @@
+{
+    "condition" : "SERAR_WITH_CEREAL",
+    "component_name" : "Cereal",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "Wrappers for Cereal archives of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "dependencies" :
+    [
+        "MyCEL",
+        "cereal"
+    ],
+    "list" : [
+        "CerealWrappers.target.json"
+    ]
+}
