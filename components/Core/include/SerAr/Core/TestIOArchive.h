@@ -5,14 +5,14 @@
 
 namespace Basic
 {
-	template<typename Archive>
-	class TestIOArchive : public InputArchive<Archive>, public OutputArchive<Archive> 
-	{
-	public:
+    template<typename Archive>
+    class TestIOArchive : public InputArchive<Archive>, public OutputArchive<Archive> 
+    {
+    public:
 
-	private:
-	protected:
-	public:
-	};
+    private:
+    protected:
+    public:
+    };
 
 }

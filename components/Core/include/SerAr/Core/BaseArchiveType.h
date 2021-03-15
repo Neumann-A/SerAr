@@ -18,16 +18,16 @@
 namespace Archives
 {
 
-	class ArchiveBase
-	{
-	protected:
-		ArchiveBase() = default;
-	public:
-		virtual ~ArchiveBase() = default;
+    class ArchiveBase
+    {
+    protected:
+        ArchiveBase() = default;
+    public:
+        virtual ~ArchiveBase() = default;
 
-		virtual ArchiveBase& store(ISerializeable&) = delete;
-		virtual ArchiveBase& unstore(ISerializeable&) = delete;
-	};
+        virtual ArchiveBase& store(ISerializeable&) = delete;
+        virtual ArchiveBase& unstore(ISerializeable&) = delete;
+    };
 
 }
 

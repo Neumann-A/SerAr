@@ -19,21 +19,21 @@
 class IArchiveVisitor
 {
 public:
-	template <typename Archive>
-	void dispatch(Archive&& ar)
-	{
-		ar(type);
-	}
+    template <typename Archive>
+    void dispatch(Archive&& ar)
+    {
+        ar(type);
+    }
 };
 
 template<typename Type>
 class ArchiveVisitor : public IArchiveVisitor
 {
-	template <typename Archive>
-	void dispatch(Archive&& ar)
-	{
-		ar(type);
-	}
+    template <typename Archive>
+    void dispatch(Archive&& ar)
+    {
+        ar(type);
+    }
 };
 #endif	// INC_ArchiveVisitor_H
 // end of ArchiveVisitor.h
