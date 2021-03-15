@@ -18,16 +18,9 @@
 
 namespace Archives
 {
+    using namespace SerAr;
     class ISerializeable; //Forward declaration
 
-    //template <class Archive, class T> 
-    //inline void prologue(const T&, Archive&)
-    //{ }
-
-    //template <class Archive, class T> 
-    //inline void epilogue(const T& , Archive&)
-    //{ }
-    
     //TODO:: Define general Options!
     template <typename OptionClass, typename Archive>
     class OutputArchive_Options
@@ -89,85 +82,98 @@ namespace Archives
             worksplitter(std::forward<Other>(tail)...);
         }
 
-        template <typename T>
-        inline std::enable_if_t<traits::use_prologue_member<T, ArchiveType>::value> beforework(T&& val)
-        { 
-            self().prologue(std::forward<T>(val));
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::use_prologue_func<T, ArchiveType>::value> beforework(T&& val)
-        {
-            prologue(std::forward<T>(val), self());
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::no_prologue<T, ArchiveType>::value> beforework(T&&)
-        {	}
+        template <typename T> requires (UseArchiveMemberPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { self().prologue(std::forward<T>(val)); }
+        template <typename T> requires (UseArchiveFunctionPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { prologue(self(),std::forward<T>(val)); }
+        template <typename T> requires (UseTypeMemberPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { val.prologue(self()); }
+        template <typename T> requires (UseTypeFunctionPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { prologue(std::forward<T>(val), self()); }
+        template <typename T> requires (!HasPrologue<T,ArchiveType>)
+        inline void beforework(T&&) { }
 
-        template <typename T>
-        inline std::enable_if_t<traits::use_epilogue_member<T, ArchiveType>::value> afterwork(T&& val)
-        {
-            self().epilogue(std::forward<T>(val));
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::use_epilogue_func<T, ArchiveType>::value> afterwork(T&& val)
-        {
-            epilogue(std::forward<T>(val), self());
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::no_epilogue<T, ArchiveType>::value> afterwork(T&&)
-        {	}
+        template <typename T> requires (UseArchiveMemberEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { self().epilogue(std::forward<T>(val)); }
+        template <typename T> requires (UseArchiveFunctionEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { epilogue(self(),std::forward<T>(val)); }
+        template <typename T> requires (UseTypeMemberEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { val.epilogue(self()); }
+        template <typename T> requires (UseTypeFunctionEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { epilogue(std::forward<T>(val), self()); }
+        template <typename T> requires (!HasEpilogue<T,ArchiveType>)
+        inline void afterwork(T&&) { }
 
-        //Archive can directly save the Type (should be the case for all POD types)
-        template <typename T> inline
-        std::enable_if_t<traits::use_archive_member_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
+        //Archive Member Save. Archive knows how to save the type
+        //If this is called with Type T, T must have been already constructed!
+        //So either the Archive knows how to save T or the class itself knows how to do it.
+        //The Archive never needs to know how to construct T itself!!!!
+        template <typename T> requires (UseArchiveMemberSave<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             self().save(std::forward<T>(value));
             return self();
         }
-
-        //Member save. Type knows how to save itself
-        template <typename T> inline
-        std::enable_if_t<traits::use_member_save_v<std::decay_t<T>,ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
+        template <typename T> requires (UseArchiveFunctionSave<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            save(self(), std::forward<T>(value));
+            return self();
+        }
+        //Member Save. Member saves itself
+        template <typename T> requires (UseTypeMemberSave<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             const_cast<T&>(value).save(self());
             return self();
         }
-
-        //There is an external save function which knows how to save T to the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_func_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
+        //There is an external save function which knows how to save T from the Archive
+        template <typename T> requires (UseTypeFunctionSave<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             save(std::forward<T>(value), self());
             return self();
         }
 
-        //There is an member serialization function which knows how to save T to the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_member_serialize_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
-        {
-
+        //There is an member serialization function which knows how to save T from the Archive
+        template <typename T> requires (UseTypeMemberSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             const_cast<std::remove_const_t<std::remove_reference_t<T>>&>(value).serialize(self());
             return self();
         }
 
-        //There is an external serilization function which knows how to save T to the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_func_serialize_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&& value) //Serialize can not be const!
-        {
+        //There is an external serilization function which knows how to save T from the Archive
+        template <typename T> requires (UseTypeFunctionSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             serialize(const_cast<std::remove_const_t<std::remove_reference_t<T>>&>(value), self());
             return self();
         }
 
+        template <typename T> requires (UseArchiveMemberSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            self().serialize(std::forward<T>(value));
+            return self();
+        }
+        //There is an external serilization function which knows how to save T from the Archive
+        template <typename T> requires (UseArchiveFunctionSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            serialize(self(), value);
+            return self();
+        }
+
         //We do not have a clue how to save/serialize T....
-        template <typename T = void> inline
-        std::enable_if_t<Archives::traits::not_any_save_v<std::decay_t<T>, ArchiveType>, ArchiveType&> dowork(T&&)
+        template <typename T = void> requires (! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
+        inline ArchiveType& dowork(T&&)
         {
             //Game Over
-            static_assert(!traits::not_any_save_v<T, ArchiveType>, "Type cannot be saved to Archive. No implementation has been defined for it!");
+            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), "Type cannot be saved to Archive. No implementation has been defined for it!");
 #ifdef _MSC_VER
-            static_assert(!traits::not_any_save_v<T, ArchiveType>, __FUNCSIG__);
+#ifdef __llvm__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#endif
+            //static_assert(!(IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
+#ifdef __llvm__
+#pragma clang diagnostic pop
+#endif
 #else
-            static_assert(!traits::not_any_save_v<T, ArchiveType>);
+            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
 #endif
             return self();
         }

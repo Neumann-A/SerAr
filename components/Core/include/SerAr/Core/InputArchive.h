@@ -1,7 +1,7 @@
 ///---------------------------------------------------------------------------------------------------
-// file:		InputArchive.h
+// file:        InputArchive.h
 //
-// summary: 	Declares the input archive class
+// summary:     Declares the input archive class
 //
 // Copyright (c) 2017 Alexander Neumann.
 //
@@ -23,7 +23,7 @@
 
 namespace Archives
 {
-
+    using namespace SerAr;
     template <typename OptionClass, typename Archive>
     class InputArchive_Options
     {
@@ -81,94 +81,98 @@ namespace Archives
             work(std::forward<Other>(tail)...);
         }
 
-        template <typename T>
-        inline std::enable_if_t<traits::use_prologue_member<T, ArchiveType>::value> beforework(T&& val)
-        {
-            self().prologue(val);
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::use_prologue_func<T, ArchiveType>::value> beforework(T&& val)
-        {
-            prologue(val, self());
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::no_prologue<T, ArchiveType>::value> beforework(T&&)
-        {	}
+        template <typename T> requires (UseArchiveMemberPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { self().prologue(std::forward<T>(val)); }
+        template <typename T> requires (UseArchiveFunctionPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { prologue(self(),std::forward<T>(val)); }
+        template <typename T> requires (UseTypeMemberPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { val.prologue(self()); }
+        template <typename T> requires (UseTypeFunctionPrologue<T,ArchiveType>)
+        inline void beforework(T&& val) { prologue(std::forward<T>(val), self()); }
+        template <typename T> requires (!HasPrologue<T,ArchiveType>)
+        inline void beforework(T&&) { }
 
-        template <typename T>
-        inline std::enable_if_t<traits::use_epilogue_member<T, ArchiveType>::value> afterwork(T&& val)
-        {
-            self().epilogue(val);
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::use_epilogue_func<T, ArchiveType>::value> afterwork(T&& val)
-        {
-            epilogue(val, self());
-        }
-        template <typename T>
-        inline std::enable_if_t<traits::no_epilogue<T, ArchiveType>::value> afterwork(T&&)
-        {	}
+        template <typename T> requires (UseArchiveMemberEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { self().epilogue(std::forward<T>(val)); }
+        template <typename T> requires (UseArchiveFunctionEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { epilogue(self(),std::forward<T>(val)); }
+        template <typename T> requires (UseTypeMemberEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { val.epilogue(self()); }
+        template <typename T> requires (UseTypeFunctionEpilogue<T,ArchiveType>)
+        inline void afterwork(T&& val) { epilogue(std::forward<T>(val), self()); }
+        template <typename T> requires (!HasEpilogue<T,ArchiveType>)
+        inline void afterwork(T&&) { }
         
         //Archive Member Load. Archive knows how to load the type
         //If this is called with Type T, T must have been already constructed!
         //So either the Archive knows how to load T or the class itself knows how to do it.
         //The Archive never needs to know how to construct T itself!!!!
-        template <typename T> inline
-        std::enable_if_t<traits::use_archive_member_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
-            self().load(std::forward<T&>(value));
+        template <typename T> requires (UseArchiveMemberLoad<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            self().load(std::forward<T>(value));
             return self();
         }
-
+        template <typename T> requires (UseArchiveFunctionLoad<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            load(self(), std::forward<T>(value));
+            return self();
+        }
         //Member Load. Member loads itself
-        template <typename T> inline
-        std::enable_if_t<traits::use_member_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
+        template <typename T> requires (UseTypeMemberLoad<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             value.load(self());
             return self();
         }
-
         //There is an external load function which knows how to load T from the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_func_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
-            load(value, self());
+        template <typename T> requires (UseTypeFunctionLoad<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            load(std::forward<T>(value), self());
             return self();
         }
 
+
         //There is an member serialization function which knows how to load T from the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_member_serialize_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
+        template <typename T> requires (UseTypeMemberSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
             value.serialize(self());
             return self();
         }
 
         //There is an external serilization function which knows how to load T from the Archive
-        template <typename T> inline
-        std::enable_if_t<traits::use_func_serialize_load_v<T, ArchiveType>, ArchiveType&> dowork(T&& value)
-        {
-            serialize(value, self());
+        template <typename T> requires (UseTypeFunctionSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            serialize(std::forward<T>(value), self());
             return self();
         }
 
-        template <typename T> inline
-        std::enable_if_t<traits::not_any_load_v<T, ArchiveType>, ArchiveType&> dowork(T&&)
+        template <typename T> requires (UseArchiveMemberSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            self().serialize(std::forward<T>(value));
+            return self();
+        }
+        //There is an external serilization function which knows how to load T from the Archive
+        template <typename T> requires (UseArchiveFunctionSerialize<T,ArchiveType>)
+        inline ArchiveType& dowork(T&& value) {
+            serialize(self(), value);
+            return self();
+        }
+
+        template <typename T> requires (! (IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
+        inline ArchiveType& dowork(T&&)
         {
             //Game Over
-            static_assert(!traits::not_any_load_v<T, ArchiveType>, "Type cannot be loaded from Archive. No implementation has been defined for it!");
+            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), "Type cannot be loaded from Archive. No implementation has been defined for it!");
 #ifdef _MSC_VER
 #ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
 #endif
-            static_assert(!traits::not_any_load_v<T, ArchiveType>, __FUNCSIG__);
+            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif
-
 #else
-            static_assert(!traits::not_any_load_v<T, ArchiveType>);
+            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
 #endif
         }
 
