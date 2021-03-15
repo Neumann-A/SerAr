@@ -16,164 +16,166 @@
 #include <type_traits>
 #include <MyCEL/stdext/std_extensions.h>
 
-namespace SerAr
-{
+namespace Archives {
     template<typename T>
     class InputArchive;
     template<typename T>
     class OutputArchive;
+}
 
+namespace SerAr
+{
     template<typename Archive>
-    concept IsInputArchive = std::is_base_of_v<InputArchive<Archive>, Archive>;
+    concept IsInputArchive = std::is_base_of_v<::Archives::InputArchive<Archive>, Archive>;
     template<typename Archive>
-    concept IsOutputArchive = std::is_base_of_v<OutputArchive<Archive>, Archive>;
+    concept IsOutputArchive = std::is_base_of_v<::Archives::OutputArchive<Archive>, Archive>;
     template<typename Archive>
     concept IsArchive = IsInputArchive<Archive> || IsOutputArchive<Archive>;
 
     namespace details {
         template<typename T, typename U>
-        concept MemberSaveable = requires(T& t, U& u) {
+        concept MemberSaveable = requires(T&& t, U&& u) {
             t.save(u);
         };
         template<typename T, typename U>
-        concept FunctionSaveable = requires(T& t, U& u) {
+        concept FunctionSaveable = requires(T&& t, U&& u) {
             save(t, u);
         };
         template<typename T, typename U>
-        concept MemberLoadable = requires(T& t, U& u) {
+        concept MemberLoadable = requires(T&& t, U&& u) {
             t.load(u);
         };
         template<typename T, typename U>
-        concept FunctionLoadable = requires(T& t, U& u) {
+        concept FunctionLoadable = requires(T&& t, U&& u) {
             load(t, u);
         };
         template<typename T, typename U>
-        concept MemberSerializeable = requires(T& t, U& u) {
+        concept MemberSerializeable = requires(T&& t, U&& u) {
             t.serialize(u);
         };
         template<typename T, typename U>
-        concept FunctionSerializeable = requires(T& t, U& u) {
+        concept FunctionSerializeable = requires(T&& t, U&& u) {
             serialize(t, u);
         };
         template<typename T, typename U>
-        concept MemberPrologue = requires(T& t, U& u) {
+        concept MemberPrologue = requires(T&& t, U&& u) {
             t.prologue(u);
         };
         template<typename T, typename U>
-        concept FunctionPrologue = requires(T& t, U& u) {
+        concept FunctionPrologue = requires(T&& t, U&& u) {
             prologue(t, u);
         };
         template<typename T, typename U>
-        concept MemberEpilogue = requires(T& t, U& u) {
+        concept MemberEpilogue = requires(T&& t, U&& u) {
             t.epilogue(u);
         };
         template<typename T, typename U>
-        concept FunctionEpilogue = requires(T& t, U& u) {
+        concept FunctionEpilogue = requires(T&& t, U&& u) {
             epilogue(t, u);
         };
     }
     // Saveable concepts
-    template<typename Type, IsOutputArchive Ar>
-    concept TypeMemberSaveable =  details::MemberSaveable<Type, Ar>;
-    template<typename Type, IsOutputArchive Ar>
-    concept TypeFunctionSaveable =  details::FunctionSaveable<Type, Ar>;
-    template<typename Type, IsOutputArchive Ar>
-    concept ArchiveMemberSaveable =  details::MemberSaveable<Ar, Type>;
-    template<typename Type, IsOutputArchive Ar>
-    concept ArchiveFunctionSaveable =  details::FunctionSaveable<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept IsSaveable = TypeMemberSaveable<Type,Ar> || TypeFunctionSaveable<Type,Ar> || ArchiveMemberSaveable<Type,Ar> || ArchiveFunctionSaveable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept TypeMemberSaveable = details::MemberSaveable<Type, Ar> && IsOutputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept TypeFunctionSaveable = details::FunctionSaveable<Type, Ar> && IsOutputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveMemberSaveable = details::MemberSaveable<Ar, Type> && IsOutputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveFunctionSaveable = details::FunctionSaveable<Ar, Type> && IsOutputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept IsSaveable = (TypeMemberSaveable<Type,Ar> || TypeFunctionSaveable<Type,Ar> || ArchiveMemberSaveable<Type,Ar> || ArchiveFunctionSaveable<Type,Ar>);
     // Use Save concepts
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveMemberSave = ArchiveMemberSaveable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveFunctionSave = !UseArchiveMemberSave<Type,Ar> && ArchiveFunctionSaveable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeMemberSave = !UseArchiveFunctionSave<Type,Ar> && TypeMemberSaveable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeFunctionSave = !UseArchiveFunctionSave<Type,Ar> && TypeFunctionSaveable<Type,Ar>;
 
     // Loadable concepts
-    template<typename Type, IsInputArchive Ar>
-    concept TypeMemberLoadable =  details::MemberLoadable<Type, Ar>;
-    template<typename Type, IsInputArchive Ar>
-    concept TypeFunctionLoadable =  details::FunctionLoadable<Type, Ar>;
-    template<typename Type, IsInputArchive Ar>
-    concept ArchiveMemberLoadable =  details::MemberLoadable<Ar, Type>;
-    template<typename Type, IsInputArchive Ar>
-    concept ArchiveFunctionLoadable =  details::FunctionLoadable<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept IsLoadable = TypeMemberLoadable<Type,Ar> || TypeFunctionLoadable<Type,Ar> || ArchiveMemberLoadable<Type,Ar> || ArchiveFunctionLoadable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept TypeMemberLoadable = details::MemberLoadable<Type, Ar> && IsInputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept TypeFunctionLoadable = details::FunctionLoadable<Type, Ar> && IsInputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveMemberLoadable = details::MemberLoadable<Ar, Type> && IsInputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveFunctionLoadable = details::FunctionLoadable<Ar, Type> && IsInputArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept IsLoadable = (TypeMemberLoadable<Type,Ar> || TypeFunctionLoadable<Type,Ar> || ArchiveMemberLoadable<Type,Ar> || ArchiveFunctionLoadable<Type,Ar>);
     // Use Load concepts
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveMemberLoad = ArchiveMemberLoadable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveFunctionLoad = !UseArchiveMemberLoad<Type,Ar> && ArchiveFunctionLoadable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeMemberLoad = !UseArchiveFunctionLoad<Type,Ar> && TypeMemberLoadable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeFunctionLoad = !UseArchiveFunctionLoad<Type,Ar> && TypeFunctionLoadable<Type,Ar>;
 
     // Serializeable concept
-    template<typename Type, IsArchive Ar>
-    concept TypeMemberSerializeable =  details::MemberSerializeable<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept TypeFunctionSerializeable =  details::FunctionSerializeable<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveMemberSerializeable =  details::MemberSerializeable<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveFunctionSerializeable =  details::FunctionSerializeable<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept IsSerializeable = TypeMemberSerializeable<Type,Ar> || TypeFunctionSerializeable<Type,Ar> || ArchiveMemberSerializeable<Type,Ar> || ArchiveFunctionSerializeable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept TypeMemberSerializeable = details::MemberSerializeable<Type, Ar> && IsArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept TypeFunctionSerializeable = details::FunctionSerializeable<Type, Ar> && IsArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveMemberSerializeable = details::MemberSerializeable<Ar, Type> && IsArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveFunctionSerializeable = details::FunctionSerializeable<Ar, Type> && IsArchive<Ar>;
+    template<typename Type, typename Ar>
+    concept IsSerializeable = (TypeMemberSerializeable<Type,Ar> || TypeFunctionSerializeable<Type,Ar> || ArchiveMemberSerializeable<Type,Ar> || ArchiveFunctionSerializeable<Type,Ar>);
     // Use Serialize concepts
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveMemberSerialize = ArchiveMemberSerializeable<Type,Ar> && (IsLoadable<Type,Ar> || IsSaveable<Type,Ar>);
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveFunctionSerialize = !UseArchiveMemberSerialize<Type,Ar> && ArchiveFunctionSerializeable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeMemberSerialize = !UseArchiveFunctionSerialize<Type,Ar> && TypeMemberSerializeable<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeFunctionSerialize = !UseArchiveFunctionSerialize<Type,Ar> && TypeFunctionSerializeable<Type,Ar>;
 
     // Prologue concept
-    template<typename Type, IsArchive Ar>
-    concept TypeMemberPrologue =  details::MemberPrologue<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept TypeFunctionPrologue =  details::FunctionPrologue<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveMemberPrologue =  details::MemberPrologue<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveFunctionPrologue =  details::FunctionPrologue<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept HasEpilogue = TypeMemberPrologue<Type,Ar> || TypeFunctionPrologue<Type,Ar> || ArchiveMemberPrologue<Type,Ar> || ArchiveFunctionPrologue<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept TypeMemberPrologue = IsArchive<Ar> && details::MemberPrologue<Type, Ar>;
+    template<typename Type, typename Ar>
+    concept TypeFunctionPrologue = IsArchive<Ar> && details::FunctionPrologue<Type, Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveMemberPrologue = IsArchive<Ar> && details::MemberPrologue<Ar, Type>;
+    template<typename Type, typename Ar>
+    concept ArchiveFunctionPrologue = IsArchive<Ar> && details::FunctionPrologue<Ar, Type>;
+    template<typename Type, typename Ar>
+    concept HasPrologue = TypeMemberPrologue<Type,Ar> || TypeFunctionPrologue<Type,Ar> || ArchiveMemberPrologue<Type,Ar> || ArchiveFunctionPrologue<Type,Ar>;
     // Use Prologue concepts
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveMemberPrologue = ArchiveMemberPrologue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveFunctionPrologue = !UseArchiveMemberPrologue<Type,Ar> && ArchiveFunctionPrologue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeMemberPrologue = !UseArchiveFunctionPrologue<Type,Ar> && TypeMemberPrologue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeFunctionPrologue = !UseArchiveFunctionPrologue<Type,Ar> && TypeFunctionPrologue<Type,Ar>;
     // Epilogue concept
-    template<typename Type, IsArchive Ar>
-    concept TypeMemberEpilogue =  details::MemberEpilogue<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept TypeFunctionEpilogue =  details::FunctionEpilogue<Type, Ar>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveMemberEpilogue =  details::MemberEpilogue<Ar, Type>;
-    template<typename Type, IsArchive Ar>
-    concept ArchiveFunctionEpilogue =  details::FunctionEpilogue<Ar, Type>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
+    concept TypeMemberEpilogue = IsArchive<Ar> && details::MemberEpilogue<Type, Ar>;
+    template<typename Type, typename Ar>
+    concept TypeFunctionEpilogue = IsArchive<Ar> && details::FunctionEpilogue<Type, Ar>;
+    template<typename Type, typename Ar>
+    concept ArchiveMemberEpilogue = IsArchive<Ar> && details::MemberEpilogue<Ar, Type>;
+    template<typename Type, typename Ar>
+    concept ArchiveFunctionEpilogue = IsArchive<Ar> && details::FunctionEpilogue<Ar, Type>;
+    template<typename Type, typename Ar>
     concept HasEpilogue = TypeMemberEpilogue<Type,Ar> || TypeFunctionEpilogue<Type,Ar> || ArchiveMemberEpilogue<Type,Ar> || ArchiveFunctionEpilogue<Type,Ar>;
     // Use Epilogue concepts
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveMemberEpilogue = ArchiveMemberEpilogue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseArchiveFunctionEpilogue = !UseArchiveMemberEpilogue<Type,Ar> && ArchiveFunctionEpilogue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeMemberEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeMemberEpilogue<Type,Ar>;
-    template<typename Type, IsArchive Ar>
+    template<typename Type, typename Ar>
     concept UseTypeFunctionEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeFunctionEpilogue<Type,Ar>;
 }
 
