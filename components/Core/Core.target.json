@@ -31,8 +31,8 @@
     },
     "compile_features" : {
         "interface" : [ 
-            "cxx_std_17"
-]
+            "cxx_std_20"
+        ]
     },
     "public_headers": [
         "include/SerAr/Core/ArchiveHelper.h",
