@@ -7,7 +7,12 @@
 
 namespace SerAr {
     using namespace ::Archives;
-    // #ifdef EIGEN_CORE_H
+
+    static void throw_runtime_error(std::string_view msg)
+    {
+        const auto s = fmt::format("Error(JSON_Archive): {}",msg);
+        throw std::runtime_error{ s.c_str() };
+    }
 
     JSON_OutputArchive::JSON_OutputArchive(const Options &opt, const std::filesystem::path& path /*, const std::source_location& loc = std::source_location::current()*/)
         : OutputArchive(this), options(opt)
@@ -46,9 +51,5 @@ namespace SerAr {
     //     throw std::runtime_error{ s.c_str() };
     // }
     
-    void throw_runtime_error(std::string_view msg)
-    {
-        const auto s = fmt::format("Error(JSON_Archive): {}",msg);
-        throw std::runtime_error{ s.c_str() };
-    }
+
 }

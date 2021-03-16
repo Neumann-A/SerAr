@@ -26,7 +26,6 @@ namespace SerAr
         };
     }
 
-
     struct JSON_OutputArchive_Options {
         std::streamsize indent_spaces{ 4 };
     };
@@ -41,7 +40,7 @@ namespace SerAr
 
         JSON_OutputArchive(const Options& opt, const std::filesystem::path& path);
         ~JSON_OutputArchive() noexcept;
-        template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T>)
+        template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
             inline ThisClass& save(const T& value)
         {
             auto& current_json = json_stack.top();
@@ -49,7 +48,7 @@ namespace SerAr
             return *this;
         }
         template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T>)
-            inline ThisClass& save(const NamedValue<T>& nval)
+        inline ThisClass& save(const NamedValue<T>& nval)
         {
             auto& current_json = json_stack.top();
             current_json[nval.name] = nval.val;
@@ -110,47 +109,30 @@ namespace SerAr
             return *this;
         }
 #ifdef EIGEN_CORE_H
-        template<typename T> requires(stdext::is_eigen_type_v<T>)
-            inline ThisClass& save(const Eigen::EigenBase<T>& value)
+        template<typename T> requires(stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
+            inline ThisClass& save(const Eigen::MatrixBase<T>& value)
         {
             using DataType = typename T::Scalar;
             const auto size = value.size();
-            JSONType matrix{};
-            if constexpr (EigenMatrix::IsVectorAtCompileTime) {
+            auto& parrent_json = json_stack.top();
+
+            if constexpr (T::IsVectorAtCompileTime) {
                 std::vector<DataType> tmp(size);
-                if constexpr (T::IsRowMajor)
-                {
-                    Eigen::Map< T, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(tmp.data(), value.rows(), value.cols()) = value;
-                }
-                else
-                {
-                    Eigen::Map< T, Eigen::Unaligned>(dataposition, value.rows(), value.cols()) = value;
-                }
-                matrix.push_back(tmp);
+                Eigen::Map< T, Eigen::Unaligned>(tmp.data(), value.rows(), value.cols()) = value;
+                parrent_json.push_back(tmp);
             }
             else {
-                
-                const auto rows = value.rows();
-                std::vector<DataType> tmp(rows);
-                for (int i = 0; i < rows; ++i)
-                {
-                    JSONType row{};
-                    if constexpr (T::IsRowMajor)
-                    {
-                        Eigen::Map< T, Eigen::Unaligned, Eigen::Stride<1, T::ColsAtCompileTime> >(tmp.data(), value.rows(), value.cols()) = value;
-                    }
-                    else
-                    {
-                        Eigen::Map< T, Eigen::Unaligned>(tmp.data(), value.rows(), value.cols()) = value;
-                    }
-                    row.push_back(tmp);
-                }
                 JSONType matrix{};
-
+                const auto cols = value.cols();
+                std::vector<DataType> tmp(cols);
+                for (int i = 0; i < value.rows(); ++i)
+                {
+                    Eigen::Matrix<DataType,1, T::ColsAtCompileTime> rowmat = value.row(i);
+                    Eigen::Map< decltype(rowmat), Eigen::Unaligned>(tmp.data(), 1, value.cols()) = rowmat;
+                    matrix.push_back(tmp);
+                }
+                parrent_json.push_back(std::move(matrix));
             }
-            const auto child_json = json_stack.top(); // Get filled JSON
-            json_stack.pop();
-            parrent_json.push_back(std::move(child_json));
             return *this;
         }
 #endif
@@ -160,6 +142,4 @@ namespace SerAr
         std::stack<JSONType> json_stack;
     };
 
-    //void throw_runtime_error(std::string_view,const std::source_location& loc = std::source_location::current())
-    void throw_runtime_error(std::string_view);
 }

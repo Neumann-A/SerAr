@@ -1,10 +1,14 @@
 #include <filesystem>
 
-#include <SerAr/Core/NamedValue.h>
-#include <SerAr/JSON/JSON_OutputArchive.hpp>
-
 #include <array>
 #include <vector>
+
+#include <Eigen/Core>
+
+#include <SerAr/Core/NamedValue.h>
+#include <SerAr/JSON/JSON_OutputArchive.hpp>
+#include <SerAr/JSON/JSON_InputArchive.hpp>
+
 
 struct othertest {
     double mydouble {5.35116151};
@@ -36,10 +40,16 @@ void serialize(test& val, Archive& ar) {
 int main()
 {
     using Archive = Archives::JSON_OutputArchive;
+    using ArchiveRead = Archives::JSON_InputArchive;
     std::filesystem::path   path{"test.json"};
     {
         Archive ar {{},path};
         test mytest;
+        ar(Archives::createNamedValue("mytest",mytest));
+    }
+    {
+        ArchiveRead ar {{},path};
+        test mytest {.myint=0};
         ar(Archives::createNamedValue("mytest",mytest));
     }
     path = { "test2.json" };
@@ -60,6 +70,14 @@ int main()
         test mytest;
         std::vector{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
         ar(std::vector{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } });
+    }
+    path = { "test5.json" };
+    {
+        Archive ar{ {},path };
+        test mytest;
+        Eigen::Matrix<double,3,2> m;
+        m << 1,2,3,4,5,6;
+        ar(m);
     }
     static_assert(Archives::traits::has_type_save_v<othertest, Archives::JSON_OutputArchive>);
     static_assert(SerAr::IsTypeSaveable<othertest, Archives::JSON_OutputArchive>);

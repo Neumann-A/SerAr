@@ -157,25 +157,6 @@ namespace Archives
             return self();
         }
 
-        template <typename T> requires (! (IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
-        inline ArchiveType& dowork(T&&)
-        {
-            //Game Over
-            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), "Type cannot be loaded from Archive. No implementation has been defined for it!");
-#ifdef _MSC_VER
-#ifdef __llvm__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wlanguage-extension-token"
-#endif
-            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
-#else
-            static_assert(!(IsLoadable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
-#endif
-        }
-
     protected:
         constexpr InputArchive(ArchiveType* const) noexcept {}
         DISALLOW_COPY_AND_ASSIGN(InputArchive)
