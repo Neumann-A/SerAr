@@ -15,6 +15,7 @@
 
 #include <MyCEL/basics/BasicMacros.h>
 #include <SerAr/Core/ArchiveHelper.h>
+#include <cassert>
 
 namespace Archives
 {
@@ -132,16 +133,16 @@ namespace Archives
         }
 
         //There is an member serialization function which knows how to save T from the Archive
-        template <typename T> requires (UseTypeMemberSerialize<T,ArchiveType>)
+        template <typename T> requires (UseTypeMemberSerialize<std::remove_cvref_t<T>,ArchiveType>)
         inline ArchiveType& dowork(T&& value) {
-            const_cast<std::remove_const_t<std::remove_reference_t<T>>&>(value).serialize(self());
+            const_cast<std::remove_cvref_t<T>&>(value).serialize(self());
             return self();
         }
 
         //There is an external serilization function which knows how to save T from the Archive
-        template <typename T> requires (UseTypeFunctionSerialize<T,ArchiveType>)
+        template <typename T> requires (UseTypeFunctionSerialize<std::remove_cvref_t<T>,ArchiveType>)
         inline ArchiveType& dowork(T&& value) {
-            serialize(const_cast<std::remove_const_t<std::remove_reference_t<T>>&>(value), self());
+            serialize(const_cast<std::remove_cvref_t<T>&>(value), self());
             return self();
         }
 
@@ -157,26 +158,27 @@ namespace Archives
             return self();
         }
 
-        //We do not have a clue how to save/serialize T....
-        template <typename T = void> requires (! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
-        inline ArchiveType& dowork(T&&)
-        {
-            //Game Over
-            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), "Type cannot be saved to Archive. No implementation has been defined for it!");
-#ifdef _MSC_VER
-#ifdef __llvm__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wlanguage-extension-token"
-#endif
-            //static_assert(!(IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
-#ifdef __llvm__
-#pragma clang diagnostic pop
-#endif
-#else
-            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
-#endif
-            return self();
-        }
+//        //We do not have a clue how to save/serialize T....
+//        template <typename T = void> requires (! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
+//        inline ArchiveType& dowork(T&&)
+//        {
+//            assert(false);
+//            //Game Over
+//            static_assert(std::is_same_v<std::remove_const_t<T>,const T>, "Type cannot be saved to Archive. No implementation has been defined for it!");
+//#ifdef _MSC_VER
+//#ifdef __llvm__
+//#pragma clang diagnostic push
+//#pragma clang diagnostic ignored "-Wlanguage-extension-token"
+//#endif
+//            //static_assert(!(IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
+//#ifdef __llvm__
+//#pragma clang diagnostic pop
+//#endif
+//#else
+//            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
+//#endif
+//            return self();
+//        }
 
     protected:
         constexpr OutputArchive(ArchiveType * const) noexcept {}

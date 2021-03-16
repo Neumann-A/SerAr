@@ -20,6 +20,11 @@ if(SERAR_WITH_HDF5)
 endif()
 
 if(SERAR_WITH_CEREAL)
-    target_link_libraries(AllArchives INTERFACE $<TARGET_NAME:CerealWrappers)
+    target_link_libraries(AllArchives INTERFACE $<TARGET_NAME:CerealWrappers>)
     target_compile_definitions(AllArchives INTERFACE SERAR_HAS_CEREAL)
+endif()
+
+if(SERAR_WITH_JSON)
+    target_link_libraries(AllArchives INTERFACE $<TARGET_NAME:JSON>)
+    target_compile_definitions(AllArchives INTERFACE SERAR_HAS_JSON)
 endif()

@@ -1,0 +1,36 @@
+{
+    "name" : "JSON" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/json_archive.cpp",
+        "src/JSON_OutputArchive.cpp",
+        "include/json_archive.hpp",
+        "include/JSON_OutputArchive.hpp"
+    ],
+    "include_directories" : {
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core",
+            "nlohmann_json::nlohmann_json",
+            "fmt::fmt"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "public_headers": [
+        "include/json_archive.hpp",
+        "include/JSON_OutputArchive.hpp"
+    ]
+}
+

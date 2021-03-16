@@ -35,10 +35,18 @@
                 "name":"Boost",
                 "components" : ["program_options"]
             } ]
+        },
+        {
+            "name" : "JSON",
+            "description" : "Include and enable JSON Archive (requires nlohmann_json)",
+            "default_value" : "ON",
+            "dependencies" : [ "nlohmann_json" ]
         }
     ],
     "dependencies" : [
-        "MyCEL"
+        "MyCEL",
+        "fmt",
+        "Eigen3"
     ],
     "public_cmake_module_path" : "cmake",
     "list" : [
@@ -49,6 +57,7 @@
         "components/MATLAB",
         "components/CerealWrappers",
         "components/ProgramOptionsWrapper",
+        "components/JSON",
         "SerAr.target.setup.cmake"
     ]
 }

@@ -85,15 +85,18 @@ namespace SerAr
     concept ArchiveFunctionSaveable = details::FunctionSaveable<Ar, Type> && IsOutputArchive<Ar>;
     template<typename Type, typename Ar>
     concept IsSaveable = (TypeMemberSaveable<Type,Ar> || TypeFunctionSaveable<Type,Ar> || ArchiveMemberSaveable<Type,Ar> || ArchiveFunctionSaveable<Type,Ar>);
+
     // Use Save concepts
     template<typename Type, typename Ar>
     concept UseArchiveMemberSave = ArchiveMemberSaveable<Type,Ar>;
     template<typename Type, typename Ar>
     concept UseArchiveFunctionSave = !UseArchiveMemberSave<Type,Ar> && ArchiveFunctionSaveable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeMemberSave = !UseArchiveFunctionSave<Type,Ar> && TypeMemberSaveable<Type,Ar>;
+    concept UseArchiveSave = (UseArchiveMemberSave<Type, Ar> || UseArchiveFunctionSave<Type, Ar>);
     template<typename Type, typename Ar>
-    concept UseTypeFunctionSave = !UseArchiveFunctionSave<Type,Ar> && TypeFunctionSaveable<Type,Ar>;
+    concept UseTypeMemberSave = !UseArchiveSave<Type,Ar> && TypeMemberSaveable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept UseTypeFunctionSave = !UseArchiveSave<Type,Ar> && TypeFunctionSaveable<Type,Ar>;
 
     // Loadable concepts
     template<typename Type, typename Ar>
@@ -112,9 +115,12 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseArchiveFunctionLoad = !UseArchiveMemberLoad<Type,Ar> && ArchiveFunctionLoadable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeMemberLoad = !UseArchiveFunctionLoad<Type,Ar> && TypeMemberLoadable<Type,Ar>;
+    concept UseArchiveLoad = (UseArchiveMemberLoad<Type, Ar> || UseArchiveFunctionLoad<Type, Ar>);
     template<typename Type, typename Ar>
-    concept UseTypeFunctionLoad = !UseArchiveFunctionLoad<Type,Ar> && TypeFunctionLoadable<Type,Ar>;
+    concept UseTypeMemberLoad = !UseArchiveLoad<Type,Ar> && TypeMemberLoadable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept UseTypeFunctionLoad = !UseArchiveLoad<Type,Ar> && TypeFunctionLoadable<Type,Ar>;
+
 
     // Serializeable concept
     template<typename Type, typename Ar>
@@ -129,13 +135,18 @@ namespace SerAr
     concept IsSerializeable = (TypeMemberSerializeable<Type,Ar> || TypeFunctionSerializeable<Type,Ar> || ArchiveMemberSerializeable<Type,Ar> || ArchiveFunctionSerializeable<Type,Ar>);
     // Use Serialize concepts
     template<typename Type, typename Ar>
-    concept UseArchiveMemberSerialize = ArchiveMemberSerializeable<Type,Ar> && (IsLoadable<Type,Ar> || IsSaveable<Type,Ar>);
+    concept UseArchiveMemberSerialize = ArchiveMemberSerializeable<Type,Ar> && !(UseArchiveLoad<Type, Ar>|| UseArchiveSave<Type, Ar>);
     template<typename Type, typename Ar>
     concept UseArchiveFunctionSerialize = !UseArchiveMemberSerialize<Type,Ar> && ArchiveFunctionSerializeable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeMemberSerialize = !UseArchiveFunctionSerialize<Type,Ar> && TypeMemberSerializeable<Type,Ar>;
+    concept UseArchiveSerialize = (UseArchiveMemberSerialize<Type, Ar> || UseArchiveFunctionSerialize<Type, Ar>);
     template<typename Type, typename Ar>
-    concept UseTypeFunctionSerialize = !UseArchiveFunctionSerialize<Type,Ar> && TypeFunctionSerializeable<Type,Ar>;
+    concept UseArchive = (UseArchiveSerialize<Type, Ar> || UseArchiveLoad<Type, Ar> || UseArchiveSave<Type, Ar>);
+
+    template<typename Type, typename Ar>
+    concept UseTypeMemberSerialize = !UseArchive<Type,Ar> && TypeMemberSerializeable<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept UseTypeFunctionSerialize = !UseArchive<Type,Ar> && TypeFunctionSerializeable<Type,Ar>;
 
     // Prologue concept
     template<typename Type, typename Ar>
@@ -177,6 +188,10 @@ namespace SerAr
     concept UseTypeMemberEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeMemberEpilogue<Type,Ar>;
     template<typename Type, typename Ar>
     concept UseTypeFunctionEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeFunctionEpilogue<Type,Ar>;
+
+    //
+    template<typename Type, typename Ar>
+    concept IsTypeSaveable = (TypeMemberSerializeable<Type, Ar> || TypeFunctionSerializeable<Type, Ar> || TypeMemberSaveable<Type, Ar> || TypeFunctionSaveable<Type, Ar>);
 }
 
 namespace Archives

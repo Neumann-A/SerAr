@@ -1,0 +1,15 @@
+{
+    "condition" : "SerAr_BUILD_TESTING",
+    "name" : "JSONTest" ,
+    "target_type" : "executable",
+    "sources" : [
+        "test/main.cpp"
+    ],
+    "link_libraries" : {
+        "private" : [ 
+            "JSON",
+            "Eigen3::Eigen3"
+        ]
+    }
+}
+
