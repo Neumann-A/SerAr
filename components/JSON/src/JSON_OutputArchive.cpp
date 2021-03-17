@@ -26,7 +26,7 @@ namespace SerAr {
         }
         pstr = std::make_unique<std::ofstream>();
         assert(pstr != nullptr);
-        pstr->open(path.string().c_str(), std::fstream::trunc);
+        pstr->open(path.string().c_str(), options.mode);
         if (!pstr->is_open())
         {
             const auto msg= fmt::format("Unable to open: '{}'",path.string());
