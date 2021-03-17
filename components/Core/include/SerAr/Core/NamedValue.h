@@ -105,6 +105,9 @@ namespace Archives
 
     template<typename T>
     static constexpr bool is_nested_NamedValue_v = is_nested_NamedValue<T>::value;
+
+    template<typename T>
+    concept IsNamedValue = std::same_as<std::remove_cvref_t<T>, NamedValue<typename std::remove_cvref_t<T>::type>>;
 }
 
 #define ARCHIVE_CREATE_NV(val) Archives::createNamedValue(#val,val)
