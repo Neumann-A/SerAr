@@ -21,7 +21,7 @@ namespace SerAr
     namespace JSON::detail {
 
         template<typename Json, typename T>
-        concept IsJSONStoreable = requires (Json& j, std::remove_cvref_t<T> value) {
+        concept IsJSONStoreable = !stdext::is_eigen_type_v<std::remove_cvref_t<T>> && requires (Json& j, std::remove_cvref_t<T> value) {
             j["dummy"] = value;
         };
     }
@@ -44,7 +44,7 @@ namespace SerAr
             inline ThisClass& save(const T& value)
         {
             auto& current_json = json_stack.top();
-            current_json.push_back(value);
+            current_json = value;
             return *this;
         }
         template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T>)
@@ -55,7 +55,7 @@ namespace SerAr
             return *this;
         }
 
-        template<typename T> requires (!SerAr::IsTypeSaveable<T, ThisClass> && !JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_container_v<std::remove_cvref_t<T>>)
+        template<typename T> requires (!SerAr::IsTypeSaveable<T, ThisClass> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> && !JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_container_v<std::remove_cvref_t<T>>)
             inline ThisClass& save(const T& value)
         {
             json_stack.push(JSONType{});
@@ -63,7 +63,7 @@ namespace SerAr
             const auto current_json = json_stack.top(); // Get filled JSON
             json_stack.pop();
             auto& parrent_json = json_stack.top();
-            parrent_json.push_back = std::move(current_json); // Insert filled JSON into parrent. 
+            parrent_json.push_back(std::move(current_json)); // Insert filled JSON into parrent. 
             return *this;
         }
 
@@ -122,16 +122,17 @@ namespace SerAr
                 parrent_json.push_back(tmp);
             }
             else {
-                JSONType matrix{};
+                //JSONType matrix{};
                 const auto cols = value.cols();
                 std::vector<DataType> tmp(cols);
                 for (int i = 0; i < value.rows(); ++i)
                 {
                     Eigen::Matrix<DataType,1, T::ColsAtCompileTime> rowmat = value.row(i);
                     Eigen::Map< decltype(rowmat), Eigen::Unaligned>(tmp.data(), 1, value.cols()) = rowmat;
-                    matrix.push_back(tmp);
+                    //matrix.push_back(tmp);
+                    parrent_json.push_back(std::move(tmp));
                 }
-                parrent_json.push_back(std::move(matrix));
+                //parrent_json.push_back(std::move(matrix));
             }
             return *this;
         }

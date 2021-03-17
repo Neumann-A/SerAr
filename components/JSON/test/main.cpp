@@ -50,39 +50,56 @@ int main()
     {
         ArchiveRead ar {{},path};
         test mytest {.myint=0};
-        ar(Archives::createNamedValue("mytest",mytest));
-    }
-    path = { "test2.json" };
-    {
-        Archive ar{ {},path };
-        test mytest;
-        ar(Archives::createNamedValue("mytest", std::vector{3,2,1}));
+        ar(Archives::createNamedValue("mytest",mytest));       
     }
     path = { "test3.json" };
     {
         Archive ar{ {},path };
-        test mytest;
-        ar(std::vector{3,2,1});
+        std::vector tmp{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
+        ar(Archives::createNamedValue("vecvec", tmp));
+    }
+    {
+        ArchiveRead ar{ {},path };
+        std::vector tmp{ std::vector{ 0,0,0 }, std::vector{ 0,0,0 }, std::vector{ 0,0,0 } };
+        ar(Archives::createNamedValue("vecvec", tmp));
     }
     path = { "test4.json" };
     {
         Archive ar{ {},path };
-        test mytest;
-        std::vector{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
-        ar(std::vector{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } });
+        std::vector tmp{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
+        ar(tmp);
+    }
+    {
+        ArchiveRead ar{ {},path };
+        std::vector tmp { std::vector{ 0,0,0 }, std::vector{ 0,0,0 }, std::vector{ 0,0,0 } };
+        ar(tmp);
     }
     path = { "test5.json" };
     {
         Archive ar{ {},path };
-        test mytest;
-        Eigen::Matrix<double,3,2> m;
-        m << 1,2,3,4,5,6;
+        Eigen::Matrix<double, 3, 2> m{ {1,2},{3,4},{5,6} };
+        ar(Archives::createNamedValue("matrix", m));
+    }
+    {
+        ArchiveRead ar{ {},path };
+        Eigen::Matrix<double, 3, 2> m;
+        ar(Archives::createNamedValue("matrix", m));
+    }
+    path = { "test6.json" };
+    {
+        Archive ar{ {},path };
+        Eigen::Matrix<double, 3, 2> m{ {1,2},{3,4},{5,6} };
         ar(m);
     }
-    static_assert(Archives::traits::has_type_save_v<othertest, Archives::JSON_OutputArchive>);
-    static_assert(SerAr::IsTypeSaveable<othertest, Archives::JSON_OutputArchive>);
-    static_assert(!SerAr::UseArchiveMemberSave<othertest, Archive>);
-    static_assert(SerAr::UseTypeFunctionSerialize<othertest, Archive>);
+    {
+        ArchiveRead ar{ {},path };
+        Eigen::Matrix<double, 3, 2> m;
+        ar(m);
+    }
+    //static_assert(Archives::traits::has_type_save_v<othertest, Archives::JSON_OutputArchive>);
+    //static_assert(SerAr::IsTypeSaveable<othertest, Archives::JSON_OutputArchive>);
+    //static_assert(!SerAr::UseArchiveMemberSave<othertest, Archive>);
+    //static_assert(SerAr::UseTypeFunctionSerialize<othertest, Archive>);
     // static_assert(Archives::JSON::detail::IsPlainTypeJSONStoreable<Archives::JSONType,int>);
     // static_assert(stdext::is_container_v<std::remove_cvref_t<std::vector<othertest>&>>);
     // //static_assert(!stdext::is_container_v<std::vector<othertest>>);
