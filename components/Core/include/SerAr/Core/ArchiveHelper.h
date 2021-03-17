@@ -34,43 +34,43 @@ namespace SerAr
 
     namespace details {
         template<typename T, typename U>
-        concept MemberSaveable = requires(T&& t, U&& u) {
+        concept MemberSaveable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             t.save(u);
         };
         template<typename T, typename U>
-        concept FunctionSaveable = requires(T&& t, U&& u) {
+        concept FunctionSaveable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             save(t, u);
         };
         template<typename T, typename U>
-        concept MemberLoadable = requires(T&& t, U&& u) {
+        concept MemberLoadable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             t.load(u);
         };
         template<typename T, typename U>
-        concept FunctionLoadable = requires(T&& t, U&& u) {
+        concept FunctionLoadable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             load(t, u);
         };
         template<typename T, typename U>
-        concept MemberSerializeable = requires(T&& t, U&& u) {
+        concept MemberSerializeable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             t.serialize(u);
         };
         template<typename T, typename U>
-        concept FunctionSerializeable = requires(T&& t, U&& u) {
+        concept FunctionSerializeable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             serialize(t, u);
         };
         template<typename T, typename U>
-        concept MemberPrologue = requires(T&& t, U&& u) {
+        concept MemberPrologue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             t.prologue(u);
         };
         template<typename T, typename U>
-        concept FunctionPrologue = requires(T&& t, U&& u) {
+        concept FunctionPrologue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             prologue(t, u);
         };
         template<typename T, typename U>
-        concept MemberEpilogue = requires(T&& t, U&& u) {
+        concept MemberEpilogue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             t.epilogue(u);
         };
         template<typename T, typename U>
-        concept FunctionEpilogue = requires(T&& t, U&& u) {
+        concept FunctionEpilogue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
             epilogue(t, u);
         };
     }
@@ -192,6 +192,8 @@ namespace SerAr
     //
     template<typename Type, typename Ar>
     concept IsTypeSaveable = (TypeMemberSerializeable<Type, Ar> || TypeFunctionSerializeable<Type, Ar> || TypeMemberSaveable<Type, Ar> || TypeFunctionSaveable<Type, Ar>);
+    template<typename Type, typename Ar>
+    concept IsTypeLoadable = (TypeMemberSerializeable<Type, Ar> || TypeFunctionSerializeable<Type, Ar> || TypeMemberLoadable<Type, Ar> || TypeFunctionLoadable<Type, Ar>);
 }
 
 namespace Archives
