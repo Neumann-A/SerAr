@@ -34,43 +34,43 @@ namespace SerAr
 
     namespace details {
         template<typename T, typename U>
-        concept MemberSaveable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept MemberSaveable = requires(T&& t, U&& u) {
             t.save(u);
         };
         template<typename T, typename U>
-        concept FunctionSaveable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept FunctionSaveable = requires(T&& t, U&& u) {
             save(t, u);
         };
         template<typename T, typename U>
-        concept MemberLoadable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept MemberLoadable = requires(T&& t, U&& u) {
             t.load(u);
         };
         template<typename T, typename U>
-        concept FunctionLoadable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept FunctionLoadable = requires(T&& t, U&& u) {
             load(t, u);
         };
         template<typename T, typename U>
-        concept MemberSerializeable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept MemberSerializeable = requires(T&& t, U&& u) {
             t.serialize(u);
         };
         template<typename T, typename U>
-        concept FunctionSerializeable = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept FunctionSerializeable = requires(T&& t, U&& u) {
             serialize(t, u);
         };
         template<typename T, typename U>
-        concept MemberPrologue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept MemberPrologue = requires(T&& t, U&& u) {
             t.prologue(u);
         };
         template<typename T, typename U>
-        concept FunctionPrologue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept FunctionPrologue = requires(T&& t, U&& u) {
             prologue(t, u);
         };
         template<typename T, typename U>
-        concept MemberEpilogue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept MemberEpilogue = requires(T&& t, U&& u) {
             t.epilogue(u);
         };
         template<typename T, typename U>
-        concept FunctionEpilogue = requires(std::remove_reference_t<T> t, std::remove_reference_t<U> u) {
+        concept FunctionEpilogue = requires(T&& t, U&& u) {
             epilogue(t, u);
         };
     }
