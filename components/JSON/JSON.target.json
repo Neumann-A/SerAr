@@ -5,10 +5,10 @@
         "STATIC"
     ],
     "sources" : [
-        "src/json_archive.cpp",
+        "src/JSON_Archives.cpp",
         "src/JSON_OutputArchive.cpp",
         "src/JSON_InputArchive.cpp",
-        "include/json_archive.hpp",
+        "include/JSON_Archives.hpp",
         "include/JSON_OutputArchive.hpp",
         "include/JSON_InputArchive.hpp"
     ],
@@ -36,7 +36,7 @@
         ]
     },
     "public_headers": [
-        "include/json_archive.hpp",
+        "include/JSON_Archives.hpp",
         "include/JSON_OutputArchive.hpp",
         "include/JSON_InputArchive.hpp"
     ]
