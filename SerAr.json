@@ -41,6 +41,17 @@
             "description" : "Include and enable JSON Archive (requires nlohmann_json)",
             "default_value" : "ON",
             "dependencies" : [ "nlohmann_json" ]
+        },
+        {
+            "name" : "QtUI",
+            "description" : "Include and enable Qt user interface for serializable data (requires qt)",
+            "default_value" : "ON",
+            "dependencies" : [ 
+                {
+                    "name": "Qt5",
+                    "components" : [ "Core" , "Widgets", "Gui"]
+                }
+            ]
         }
     ],
     "dependencies" : [
@@ -58,6 +69,8 @@
         "components/CerealWrappers",
         "components/ProgramOptionsWrapper",
         "components/JSON",
-        "SerAr.target.setup.cmake"
+        "components/QtUI",
+        "SerAr.target.setup.cmake",
+        "SerAr_Test.target.json"
     ]
 }
