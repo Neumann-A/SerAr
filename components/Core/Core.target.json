@@ -42,6 +42,7 @@
         "include/SerAr/Core/LoadConstructor.h",
         "include/SerAr/Core/NamedValue.h",
         "include/SerAr/Core/NamedValueWithDesc.h",
+        "include/SerAr/Core/NamedEnumVariant.hpp",
         "include/SerAr/Core/OutputArchive.h",
         "include/SerAr/Core/Serializeable.h",
         "include/SerAr/Core/TestIOArchive.h"
