@@ -1,0 +1,43 @@
+{
+    "name" : "QtUI" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "include/QtUI_Archive.hpp",
+        "include/ScientificSpinBox.hpp",
+        "src/ScientificSpinBox.cpp",
+        "src/QtUI_Archive.cpp"
+    ],
+    "include_directories" : {
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core",
+            "Qt5::Gui",
+            "Qt5::Widgets",
+            "fmt::fmt"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "public_headers": [
+        "include/ScientificSpinBox.hpp",
+        "include/QtUI_Archive.hpp"
+    ],
+    "properties" : [
+        {
+            "name" : "AUTOMOC",
+            "value" : "TRUE"
+        }
+    ]
+}
+

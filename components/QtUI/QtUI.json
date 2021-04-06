@@ -1,0 +1,19 @@
+{
+    "condition" : "SERAR_WITH_QTUI",
+    "component_name" : "QtUI",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "Qt based user interfache for serializable data in SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "QtUI.target.json",
+        "QtUITest.target.json"
+    ],
+    "dependencies" : [
+        "MyCEL",
+        {
+            "name": "Qt5",
+            "components" : [ "Core" , "Widgets", "Gui"]
+        },
+        "fmt"
+    ]
+}
