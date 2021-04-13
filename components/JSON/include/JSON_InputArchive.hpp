@@ -111,7 +111,7 @@ namespace SerAr
             using DataType = typename T::Scalar;
             std::vector<DataType> res;
 
-            if constexpr (T::IsVectorAtCompileTime) {               
+            if constexpr (T::IsVectorAtCompileTime) {
                 res = json[json_pointer].get<decltype(res)>();
                 value = Eigen::Map< T, Eigen::Unaligned>(res.data(),res.size());
             }

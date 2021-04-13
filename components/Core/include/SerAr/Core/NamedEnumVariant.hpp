@@ -60,8 +60,8 @@ namespace SerAr {
         using mapped_type = VariantMapper<Value>::type;
 
         template<EnumType Value>
-        static constexpr std::string_view as_string_view() {
-            return as_string_view(Value);
+        static constexpr std::string_view to_string_view() {
+            return to_string_view(Value);
         }
 
         template<EnumType Value, typename Archive>

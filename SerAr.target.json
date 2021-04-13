@@ -11,9 +11,15 @@
     },
     "link_libraries" : {
         "interface": [
-            "Core"
+            "Core",
+            "MyCEL::MyCEL"
         ]
     },
-    "public_headers" : ["include/SerAr/AllArchiveIncludes.h"]
+    "compile_features" : {
+        "interface" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "public_headers" : ["include/SerAr.hpp", "include/AllArchiveIncludes.hpp", "include/AllArchiveEnums.hpp"]
 }
 

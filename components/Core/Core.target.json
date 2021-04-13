@@ -13,6 +13,7 @@
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/LoadConstructor.h>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValue.h>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValueWithDesc.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedEnumVariant.hpp>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/OutputArchive.h>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/Serializeable.h>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/TestIOArchive.h>"
