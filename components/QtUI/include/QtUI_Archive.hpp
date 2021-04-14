@@ -46,7 +46,9 @@ a
         };
     } */
 
-    template<typname T>
+    enum class QtUI_ItemType { NamedItem = 1, StructItem = 2, ValueItem = 3};
+
+    template<typename T>
     class QtUI_StructItem : public QStandardItem
     {
     public:
@@ -58,16 +60,11 @@ a
 
         int type() const 
         {
-            return (QStandardItem::UserType + std::type_index(typeid(T)));
-        }
-
-        QStandardItem *QStandardItem::clone() const
-        {
-            return new QtUI_StructItem<T>(named_value,this->parent());
+            return (QStandardItem::UserType + QtUI_ItemType::StructItem);
         }
     };
 
-    template<typname T>
+    template<typename T>
     class QtUI_ValueItem : public QStandardItem
     {
     public:
@@ -80,11 +77,11 @@ a
 
         int type() const 
         {
-            return (QStandardItem::UserType + std::type_index(typeid(T)));
+            return (QStandardItem::UserType + QtUI_ItemType::ValueItem );
         }
     };
 
-    template<typname T>
+    template<typename T>
     class QtUI_NamedItem : public QStandardItem
     {
     public:
@@ -102,22 +99,23 @@ a
 
         int type() const 
         {
-            return (QStandardItem::UserType + std::type_index(typeid(T)));
+            return (QStandardItem::UserType + QtUI_ItemType::NamedItem );
         }
     };
 
-    class QtUI_Archive : InputArchive<QtUI_Archive> 
+    class QtUI_Archive : public InputArchive<QtUI_Archive> 
     {
     private:
-        QWidget* TreeWidget;
-        QStandardItemModel model;
-        std::stack<QStandarItem *> itemstack;
+        QTreeView* TreeWidget;
+        QStandardItemModel* model;
+        std::stack<QStandardItem *> itemstack;
     public:
         QtUI_Archive(QWidget *parent) : InputArchive<QtUI_Archive>(this) {
             //Setup header
             auto *headermodel = new QStandardItemModel();
             auto *nameheader = new QStandardItem("Name"); 
             auto *valueheader = new QStandardItem("Value"); 
+            model = new QStandardItemModel();
             model->setColumnCount(2);
             model->setHorizontalHeaderItem(0,nameheader);
             model->setHorizontalHeaderItem(1,valueheader);
@@ -134,7 +132,7 @@ a
             factory->registerEditor(QVariant::Double, creator);
             delegate->setItemEditorFactory(factory);
 
-            QObject::connect(model, &QStandardItemModel::itemChanged, this, [=](QStandardItem* item){ std::puts(item->text().toStdString().c_str()); });
+            //QObject::connect(model, &QStandardItemModel::itemChanged, this, [=](QStandardItem* item){ std::puts(item->text().toStdString().c_str()); });
         }
 
         template<typename T> 

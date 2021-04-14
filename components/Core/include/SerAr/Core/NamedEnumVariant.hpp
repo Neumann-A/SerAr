@@ -1,7 +1,7 @@
 #pragma once
 
 #include <MyCEL/basics/enumhelpers.h>
-#include <SerAr/Core/NameValue.h>
+#include <SerAr/Core/NamedValue.h>
 #include <cassert>
 //         using anisotropy_variant = typename MyCEL::apply_nttp_t<IAnisotropyValues,anisotropy_variant_helper_t>;
         // template<IAnisotropy value>
@@ -40,76 +40,76 @@
 
 namespace SerAr {
 
-    template <typename EnumType, typename Variant, template <EnumType> class EnumTypeMapper = default_type_mapper>
-    struct NamedEnumVariant :  {
-        template<typename T>
-        using NV = Archives::NamedValue<T>;
+    // template <typename EnumType, typename Variant, template <EnumType> class EnumTypeMapper = default_type_mapper>
+    // struct NamedEnumVariant :  {
+    //     template<typename T>
+    //     using NV = Archives::NamedValue<T>;
 
-        NV<EnumType> nv_enum; 
-        NV<Variant>  nv_variant; 
+    //     NV<EnumType> nv_enum; 
+    //     NV<Variant>  nv_variant; 
 
-        NamedEnumVariant(NV<EnumType>&& enum, NV<Variant>&& variant) 
-        : NamedEnum(enum), NamedVariant(variant) {} = default;
+    //     NamedEnumVariant(NV<EnumType>&& enum, NV<Variant>&& variant) 
+    //     : NamedEnum(enum), NamedVariant(variant) {} = default;
 
-    };
+    // };
 
-    template<typename EnumType, template<EnumType> class VariantMapper, typename Variant>
-    struct default_variant_switch_functors
-    {
-        template<EnumType Value>
-        using mapped_type = VariantMapper<Value>::type;
+    // template<typename EnumType, template<EnumType> class VariantMapper, typename Variant>
+    // struct default_variant_switch_functors
+    // {
+    //     template<EnumType Value>
+    //     using mapped_type = VariantMapper<Value>::type;
 
-        template<EnumType Value>
-        static constexpr std::string_view to_string_view() {
-            return to_string_view(Value);
-        }
+    //     template<EnumType Value>
+    //     static constexpr std::string_view to_string_view() {
+    //         return to_string_view(Value);
+    //     }
 
-        template<EnumType Value, typename Archive>
-        struct case_functor {
-            void operator()(Archives::NamedValue<Variant>& in, Archive& ar)
-            {
-                using type = typename VariantMapper<value>::type;
-                if(!std::holds_alternative<type>(val) )
-                {
-                    val = type{};
-                }
-                ar(Archives::createNamedValue(in.name, std::get<type>(in.val)));
-            }
-        };
+    //     template<EnumType Value, typename Archive>
+    //     struct case_functor {
+    //         void operator()(Archives::NamedValue<Variant>& in, Archive& ar)
+    //         {
+    //             using type = typename VariantMapper<value>::type;
+    //             if(!std::holds_alternative<type>(val) )
+    //             {
+    //                 val = type{};
+    //             }
+    //             ar(Archives::createNamedValue(in.name, std::get<type>(in.val)));
+    //         }
+    //     };
 
-        struct default_functor {
-            template<typename Archive>
-            void operator()(Archives::NamedValue<Variant>& in, Archive& ar)
-            {
-                throw std::out_of_range{"Invalid enum value. No variant type for enum value known!"};
-            }
-        };
-    };
+    //     struct default_functor {
+    //         template<typename Archive>
+    //         void operator()(Archives::NamedValue<Variant>& in, Archive& ar)
+    //         {
+    //             throw std::out_of_range{"Invalid enum value. No variant type for enum value known!"};
+    //         }
+    //     };
+    // };
 
-    template<typename EnumType, template<EnumType> class VariantMapper, typename Variant, template<EnumType,typename> class case_functor = default_variant_switch_functors<EnumType, VariantMapper ,Variant>::case_functor, typename default_functor = default_variant_switch_functors<EnumType, VariantMapper ,Variant>::default_functor>
-    struct default_archive_type_mapper
-    {
-        template<EnumType value>
-        struct archive_variant_switch_functor
-        {
-            template<typename Archive>
-            decltype(auto) operator()(Variant& val, Archive& ar)
-            {
-                return case_functor<value,Archive>(val,ar);
-            }
-        }
-    }
+    // template<typename EnumType, template<EnumType> class VariantMapper, typename Variant, template<EnumType,typename> class case_functor = default_variant_switch_functors<EnumType, VariantMapper ,Variant>::case_functor, typename default_functor = default_variant_switch_functors<EnumType, VariantMapper ,Variant>::default_functor>
+    // struct default_archive_type_mapper
+    // {
+    //     template<EnumType value>
+    //     struct archive_variant_switch_functor
+    //     {
+    //         template<typename Archive>
+    //         decltype(auto) operator()(Variant& val, Archive& ar)
+    //         {
+    //             return case_functor<value,Archive>(val,ar);
+    //         }
+    //     }
+    // }
 
-    template <typename EnumType, typename Variant, typename EnumTypeMapper = default_archive_type_mapper, typename Archive>
-    void save(NamedEnumVariant<EnumType,Variant,EnumTypeMapper>& in, Archive& ar)
-    {
-        ar(in.nv_enum);
-        std::visit([in.nv_variant.name](auto&& arg) { ar(Archives::NamedValue(in.nv_variant.name,arg))}, in.nv_variant.val)
-    }
-    template <typename EnumType, typename Variant, typename EnumTypeMapper = default_archive_type_mapper, typename Archive>
-    void load(NamedEnumVariant<EnumType,Variant,EnumTypeMapper>& in, Archive& ar)
-    {
-        ar(in.nv_enum);
-        MyCEL::enum_switch::run<EnumType,default_functor,EnumTypeMapper<EnumType>::switch_enum_type>(in.nv_enum.val,in.nv_variant,ar);
-    }
+    // template <typename EnumType, typename Variant, typename EnumTypeMapper = default_archive_type_mapper, typename Archive>
+    // void save(NamedEnumVariant<EnumType,Variant,EnumTypeMapper>& in, Archive& ar)
+    // {
+    //     ar(in.nv_enum);
+    //     std::visit([in.nv_variant.name](auto&& arg) { ar(Archives::NamedValue(in.nv_variant.name,arg))}, in.nv_variant.val)
+    // }
+    // template <typename EnumType, typename Variant, typename EnumTypeMapper = default_archive_type_mapper, typename Archive>
+    // void load(NamedEnumVariant<EnumType,Variant,EnumTypeMapper>& in, Archive& ar)
+    // {
+    //     ar(in.nv_enum);
+    //     MyCEL::enum_switch::run<EnumType,default_functor,EnumTypeMapper<EnumType>::switch_enum_type>(in.nv_enum.val,in.nv_variant,ar);
+    // }
 }
