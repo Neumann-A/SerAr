@@ -46,7 +46,7 @@ a
         };
     } */
 
-    enum class QtUI_ItemType { NamedItem = 1, StructItem = 2, ValueItem = 3};
+    enum class QtUI_ItemType : int { NamedItem = 1, StructItem = 2, ValueItem = 3};
 
     template<typename T>
     class QtUI_StructItem : public QStandardItem
@@ -54,13 +54,13 @@ a
     public:
         NamedValue<T> named_value;
 
-        QtUI_StructItem(NamedValue<T> nv, QWidget *parent = nullptr) : QStandardItem(this), named_value(nv)
+        QtUI_StructItem(NamedValue<T> nv) : QStandardItem(QString::fromStdString(nv.name)), named_value(nv)
         {
         }
 
-        int type() const 
+        int type() const override
         {
-            return (QStandardItem::UserType + QtUI_ItemType::StructItem);
+            return (QStandardItem::UserType +  static_cast<int>(QtUI_ItemType::StructItem));
         }
     };
 
@@ -68,98 +68,69 @@ a
     class QtUI_ValueItem : public QStandardItem
     {
     public:
-        NamedValue<T>* named_value;
-
-        QtUI_ValueItem(NamedValue<T>* nv, QWidget *parent = nullptr) : QStandardItem(this), named_value(nv)
-        {
-            this->setData(nv->val,Qt::EditRole);
-        }
-
-        int type() const 
-        {
-            return (QStandardItem::UserType + QtUI_ItemType::ValueItem );
-        }
-    };
-
-    template<typename T>
-    class QtUI_NamedItem : public QStandardItem
-    {
-    public:
         NamedValue<T> named_value;
 
-        QtUI_NamedItem(NamedValue<T> nv, QWidget *parent = nullptr) : QStandardItem(this), named_value(nv)
+        QtUI_ValueItem(NamedValue<T>& nv) : QStandardItem(), named_value(nv)
         {
-            auto name = new QStandardItem(nv.name);
-            name->setEditable(false);
-            this->setChild(0,0,name);
-
-            auto value = new QtUI_ValueItem(&nv,this);
-            this->setChild(0,1,value);
+            QStandardItem::setData(named_value.val,Qt::EditRole);
         }
 
-        int type() const 
+        int type() const override
         {
-            return (QStandardItem::UserType + QtUI_ItemType::NamedItem );
+            return (QStandardItem::UserType +  static_cast<int>(QtUI_ItemType::ValueItem) );
+        }
+
+        void setData(const QVariant &value, int role = Qt::UserRole + 1) override {
+            named_value.val = value.value<std::remove_cvref_t<T>>();
+            QStandardItem::setData(value, role);
         }
     };
 
     class QtUI_Archive : public InputArchive<QtUI_Archive> 
     {
     private:
-        QTreeView* TreeWidget;
+        QTreeView* treeview;
         QStandardItemModel* model;
         std::stack<QStandardItem *> itemstack;
     public:
-        QtUI_Archive(QWidget *parent) : InputArchive<QtUI_Archive>(this) {
-            //Setup header
-            auto *headermodel = new QStandardItemModel();
-            auto *nameheader = new QStandardItem("Name"); 
-            auto *valueheader = new QStandardItem("Value"); 
-            model = new QStandardItemModel();
-            model->setColumnCount(2);
-            model->setHorizontalHeaderItem(0,nameheader);
-            model->setHorizontalHeaderItem(1,valueheader);
-            QHeaderView *headerview = new QHeaderView(Qt::Orientation::Horizontal);
-            headerview->setModel(headermodel);
+        QtUI_Archive(QWidget *parent, QLayout * layout); 
 
-            TreeWidget = new QTreeView(headerview); 
-            TreeWidget->setModel(model);
-
-            //Setup display delegates
-            auto delegate = static_cast<QStyledItemDelegate*>(TreeWidget->itemDelegate());
-            auto factory = new QItemEditorFactory();
-            QItemEditorCreatorBase *creator = new QStandardItemEditorCreator<QtExt::ScientificSpinBox>();
-            factory->registerEditor(QVariant::Double, creator);
-            delegate->setItemEditorFactory(factory);
-
-            //QObject::connect(model, &QStandardItemModel::itemChanged, this, [=](QStandardItem* item){ std::puts(item->text().toStdString().c_str()); });
-        }
-
-        template<typename T> 
-        requires (std::is_arithmetic_v<std::remove_cvref_t<T>>)
-        QStandardItem * create_QtUI_Item(NamedValue<T>& val) {
-            return new QtUI_NamedItem(nv);
-        }
         template<typename T> 
         requires (std::is_class_v<std::remove_cvref_t<T>>)
-        QStandardItem * create_QtUI_Item(NamedValue<T>& nv) {
-            return new QtUI_StructItem(nv);
-        }
+        void load(NamedValue<T>& nv) {
+            auto newval = new QtUI_StructItem<T>(nv);
 
-        template<typename T> 
-        requires (std::is_class_v<std::remove_cvref_t<T>> || std::is_arithmetic_v<std::remove_cvref_t<T>>)
-        void load(NamedValue<T> nv) {
-            auto newval = create_QtUI_Item(nv);
             if(itemstack.empty()) {
-                model.appendRow(newval);
+                model->appendRow(newval);
             } else {
                 auto val = itemstack.top();
-                val.appendRow(newval);
+                val->appendRow(newval);
             }
             itemstack.push(newval);
             this->operator()(nv.val);
             itemstack.pop();
+            if(itemstack.empty()) {
+                treeview->resizeColumnToContents(0);
+            }
         }
 
+        template<typename T> 
+        requires (std::is_arithmetic_v<std::remove_cvref_t<T>>)
+        void load(NamedValue<T>& nv) {
+            auto name = std::make_unique<QStandardItem>(QString::fromStdString(nv.name));
+            name->setEditable(false);
+            auto value = std::make_unique<QtUI_ValueItem<T>>(nv);
+            QList<QStandardItem *> items;
+            items.push_back(name.release());
+            items.push_back(value.release());
+            if(itemstack.empty()) {
+                model->appendRow(items);
+            } else {
+                auto val = itemstack.top();
+                val->appendRow(items);
+            }
+        }
+
+        void resizeColumns();
     };
 }

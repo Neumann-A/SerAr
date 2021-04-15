@@ -10,7 +10,8 @@
     "link_libraries" : {
         "private" : [ 
             "Core",
-            "QtUI"
+            "QtUI",
+            "JSON"
         ]
     }
 }
