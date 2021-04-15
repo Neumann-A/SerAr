@@ -5,6 +5,9 @@
 
 #include <cstdio>
 
+#include <string>
+#include <string_view>
+
 struct serar_struct_1_numbers {
     bool mybool { false};
     double mydouble {5.35116151};
@@ -14,6 +17,18 @@ struct serar_struct_1_numbers {
     unsigned long long myull {3252562652562};
     long long myll {-325498748};
 };
+
+struct serar_struct_1_strings {
+    const char *        mychars {"Hello"};
+    std::string         mystring {"World"};
+};
+
+struct serar_test_struct {
+    serar_struct_1_numbers numbers;
+    serar_struct_1_strings strings;
+    
+}
+
 
 class Qt_TestApplication : public QApplication {
 private:

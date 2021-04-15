@@ -7,6 +7,7 @@
 
 #include <QtWidgets>
 
+#include <MyCEL/stdext/std_extensions.h>
 #include <SerAr/Core/NamedValue.h>
 #include <SerAr/Core/NamedEnumVariant.hpp>
 #include <SerAr/Core/InputArchive.h>
@@ -72,7 +73,11 @@ a
 
         QtUI_ValueItem(NamedValue<T>& nv) : QStandardItem(), named_value(nv)
         {
+            if constexpr (stdext::is_string_v<std::remove_cvref_t<T>>)
+                QStandardItem::setData(QString::fromStdString(name.val),Qt::EditRole);
+            else {
             QStandardItem::setData(named_value.val,Qt::EditRole);
+            }
         }
 
         int type() const override
@@ -81,7 +86,11 @@ a
         }
 
         void setData(const QVariant &value, int role = Qt::UserRole + 1) override {
-            named_value.val = value.value<std::remove_cvref_t<T>>();
+            if constexpr (stdext::is_string_v<std::remove_cvref_t<T>>)
+                named_value.val = value.value<QString>().toStdString();
+            else {
+                named_value.val = value.value<std::remove_cvref_t<T>>();
+            }
             QStandardItem::setData(value, role);
         }
     };
