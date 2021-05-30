@@ -11,7 +11,8 @@
         "private" : [ 
             "Core",
             "QtUI",
-            "JSON"
+            "JSON",
+            "Eigen3::Eigen"
         ]
     }
 }

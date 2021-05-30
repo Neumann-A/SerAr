@@ -6,9 +6,13 @@
     ],
     "sources" : [
         "include/QtUI_Archive.hpp",
-        "include/ScientificSpinBox.hpp",
+        "src/QtUI_Archive.cpp",
+        "src/QtUI_Archive_p.hpp",
+        "src/QtUI_Archive_p.cpp",
+        "src/ScientificSpinBox.hpp",
         "src/ScientificSpinBox.cpp",
-        "src/QtUI_Archive.cpp"
+        "src/IntegerSpinBox.hpp",
+        "src/IntegerSpinBox.cpp"
     ],
     "include_directories" : {
         "private" : [
@@ -30,7 +34,6 @@
         ]
     },
     "public_headers": [
-        "include/ScientificSpinBox.hpp",
         "include/QtUI_Archive.hpp"
     ],
     "properties" : [
