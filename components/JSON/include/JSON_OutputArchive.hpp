@@ -144,4 +144,29 @@ namespace SerAr
         std::stack<JSONType> json_stack;
     };
 
+    #define JSON_ARCHIVE_SAVE(type) extern template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &);
+    JSON_ARCHIVE_SAVE(bool)
+    JSON_ARCHIVE_SAVE(short)
+    JSON_ARCHIVE_SAVE(unsigned short)
+    JSON_ARCHIVE_SAVE(int)
+    JSON_ARCHIVE_SAVE(unsigned int)
+    JSON_ARCHIVE_SAVE(long)
+    JSON_ARCHIVE_SAVE(unsigned long)
+    JSON_ARCHIVE_SAVE(long long)
+    JSON_ARCHIVE_SAVE(unsigned long long)
+    JSON_ARCHIVE_SAVE(double)
+    JSON_ARCHIVE_SAVE(float)
+    JSON_ARCHIVE_SAVE(std::string)
+    JSON_ARCHIVE_SAVE(std::vector<short>)
+    JSON_ARCHIVE_SAVE(std::vector<unsigned short>)
+    JSON_ARCHIVE_SAVE(std::vector<int>)
+    JSON_ARCHIVE_SAVE(std::vector<unsigned int>)
+    JSON_ARCHIVE_SAVE(std::vector<long>)
+    JSON_ARCHIVE_SAVE(std::vector<unsigned long>)
+    JSON_ARCHIVE_SAVE(std::vector<long long>)
+    JSON_ARCHIVE_SAVE(std::vector<unsigned long long>)
+    JSON_ARCHIVE_SAVE(std::vector<double>)
+    JSON_ARCHIVE_SAVE(std::vector<float>)
+    JSON_ARCHIVE_SAVE(std::vector<std::string>)
+    #undef JSON_ARCHIVE_SAVE
 }

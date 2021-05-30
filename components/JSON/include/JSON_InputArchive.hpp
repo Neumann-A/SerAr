@@ -142,4 +142,31 @@ namespace SerAr
         const Options options{};
         JSONPointerType json_pointer {};
     };
+
+    #define JSON_ARCHIVE_LOAD(type) extern template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type&>& >(NamedValue< type& >&);
+    JSON_ARCHIVE_LOAD(bool)
+    JSON_ARCHIVE_LOAD(short)
+    JSON_ARCHIVE_LOAD(unsigned short)
+    JSON_ARCHIVE_LOAD(int)
+    JSON_ARCHIVE_LOAD(unsigned int)
+    JSON_ARCHIVE_LOAD(long)
+    JSON_ARCHIVE_LOAD(unsigned long)
+    JSON_ARCHIVE_LOAD(long long)
+    JSON_ARCHIVE_LOAD(unsigned long long)
+    JSON_ARCHIVE_LOAD(double)
+    JSON_ARCHIVE_LOAD(float)
+    JSON_ARCHIVE_LOAD(std::string)
+    JSON_ARCHIVE_LOAD(std::vector<short>)
+    JSON_ARCHIVE_LOAD(std::vector<unsigned short>)
+    JSON_ARCHIVE_LOAD(std::vector<int>)
+    JSON_ARCHIVE_LOAD(std::vector<unsigned int>)
+    JSON_ARCHIVE_LOAD(std::vector<long>)
+    JSON_ARCHIVE_LOAD(std::vector<unsigned long>)
+    JSON_ARCHIVE_LOAD(std::vector<long long>)
+    JSON_ARCHIVE_LOAD(std::vector<unsigned long long>)
+    JSON_ARCHIVE_LOAD(std::vector<double>)
+    JSON_ARCHIVE_LOAD(std::vector<float>)
+    JSON_ARCHIVE_LOAD(std::vector<std::string>)
+    #undef JSON_ARCHIVE_LOAD
+
 }
