@@ -50,7 +50,6 @@ void serialize(serar_test_eigen3& val, Archive& ar) {
     ar(Archives::createNamedValue("double_matrix",val.my_double_matrix));
 };
 
-
 Qt_TestApplication::~Qt_TestApplication() = default;
 Qt_TestApplication::Qt_TestApplication(int argc, char *argv[]) : QApplication(argc,argv), window() {
     window.resize(480,360);

@@ -100,7 +100,8 @@ namespace SerAr
                 bool new_smaller = new_size < container_size;
                 auto difference = new_smaller ? container_size - new_size : new_size - container_size;
                 if(new_smaller) {
-                    container_item->removeRows(container_item->rowCount() - difference,difference);
+                    //WARNING HACK: Even though the container supports size_t here Qt does not support that!
+                    container_item->removeRows((int)(container_item->rowCount() - difference),(int)(difference));
                     container_item->named_value.val.resize(new_size);
                 } else {
                     
@@ -250,7 +251,10 @@ namespace SerAr
         QtUI_Archive(QWidget *parent, QLayout * layout); 
 
         template<typename T> 
-        requires (std::is_class_v<std::remove_cvref_t<T>> && !stdext::is_string_v<std::remove_cvref_t<T>> && !stdext::is_container_v<std::remove_cvref_t<T>>)
+        requires (std::is_class_v<std::remove_cvref_t<T>> 
+        && !stdext::is_string_v<std::remove_cvref_t<T>> 
+        && !stdext::is_container_v<std::remove_cvref_t<T>>
+        && !stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
         ThisClass& load(NamedValue<T>& nv) {
             auto newval = new QtUI_StructItem<T>(nv);
             newval->setEditable(false);
@@ -333,14 +337,14 @@ namespace SerAr
 #ifdef EIGEN_CORE_H
         // class QtUI_Archive_EigenDataType {
         // };
-
         template<typename T> requires(stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
-        inline ThisClass& load(NamedValue<Eigen::MatrixBase<T>>& value) {
-            auto name = std::make_unique<QtUI_ContainerItem<T>>(nv);
+        inline ThisClass& load(NamedValue<T>& nv) {
+            auto name = std::make_unique<QtUI_StructItem<T>>(nv);
             name->setEditable(false);
             QList<QStandardItem *> items;
             items.push_back(name.release());
             auto value = std::make_unique<QStandardItem>(QString::fromStdString(fmt::format("[size: {} x {}]",nv.val.rows(),nv.val.cols())));
+            value->setEditable(false);
             items.push_back(value.release());
             appendItemToStack(items);
             itemstack.push(items[0]);
@@ -381,8 +385,6 @@ namespace SerAr
     QTUI_ARCHIVE_LOAD(std::vector<std::string>)
     #undef QTUI_ARCHIVE_LOAD
 }
-
-
 
 // #ifdef EIGEN_CORE_H
 // Q_DECLARE_METATYPE(SerAr::Qt_EigenMatrix);
