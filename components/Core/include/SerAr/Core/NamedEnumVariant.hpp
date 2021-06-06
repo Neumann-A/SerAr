@@ -51,6 +51,14 @@ namespace SerAr {
             void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
                 if constexpr(!IsOutputArchive<Archive>) {
+                    std::string error {std::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
+                    throw std::out_of_range{error.c_str()};
+                }
+            }
+            template<typename Archive>
+            void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
+            {
+                if constexpr(!IsOutputArchive<Archive>) {
                     std::string error {std::format("Missing mapping for enum value:{}",to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
@@ -68,6 +76,16 @@ namespace SerAr {
                 }
                 ar(Archives::createNamedValue(name, std::get<variant_type>(variant)));
             }
+            template<typename Archive>
+            void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
+            {
+                using variant_type = typename underlying_enum_variant_mapping_type<EValue>::type;
+                if(!std::holds_alternative<variant_type>(variant) )
+                {
+                    variant = variant_type{};
+                }
+                ar(std::get<variant_type>(variant));
+            }
         };
 
         template <std::remove_cvref_t<underlying_enum_type> EValue>
@@ -76,6 +94,11 @@ namespace SerAr {
             void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
                 return enum_variant_switch_case_functor<EValue>{}(name,variant,ar);
+            }
+            template<typename Archive>
+            void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
+            {
+                return enum_variant_switch_case_functor<EValue>{}(variant,ar);
             }
         };
 
@@ -98,17 +121,27 @@ namespace SerAr {
             if constexpr (!std::is_reference_v<underlying_enum_type>) {
                 ar(Archives::createNamedValue(enum_name,to_string(enum_value)));
             }
-            std::visit([&](auto&& arg) { ar(Archives::NamedValue(type_name,arg)); }, enum_variant);
+            if(type_name.empty()) {
+                std::visit([&](auto&& arg) { ar(arg); }, enum_variant);
+            }
+            else {
+                std::visit([&](auto&& arg) { ar(Archives::NamedValue(type_name,arg)); }, enum_variant);
+            }
         }
         template<typename Archive>
         void load(Archive& ar)
         {
+            using MyCEL::enum_switch;
             auto& enum_value = value.value;
             auto& enum_variant = value.variant;
             std::string enum_str;
             ar(Archives::createNamedValue(enum_name,enum_str));
             enum_value = from_string<std::remove_cvref_t<underlying_enum_type>>(enum_str,enum_value);
-            ::MyCEL::enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,type_name,enum_variant,ar);
+            if(type_name.empty()) {
+                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,enum_variant,ar);
+            } else {
+                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,type_name,enum_variant,ar);
+            }
         }
     };
     template<concepts::EnumVariant T>
