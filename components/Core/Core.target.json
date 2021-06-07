@@ -1,0 +1,51 @@
+{
+    "name" : "Core" ,
+    "target_type" : "library",
+    "parameters" : [
+        "INTERFACE"
+    ],
+    "target_sources" : {
+        "interface" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/ArchiveHelper.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/ArchiveVisitor.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/BaseArchiveType.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/InputArchive.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/LoadConstructor.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValue.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedValueWithDesc.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/NamedEnumVariant.hpp>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/OutputArchive.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/Serializeable.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/Core/TestIOArchive.h>"
+        ]
+    },
+    "include_directories" : {
+        "interface" : [ 
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+            "$<INSTALL_INTERFACE:include>"
+        ]
+    },
+    "link_libraries" : {
+        "interface" : [ 
+            "MyCEL::MyCEL"
+        ]
+    },
+    "compile_features" : {
+        "interface" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "public_headers": [
+        "include/SerAr/Core/ArchiveHelper.h",
+        "include/SerAr/Core/ArchiveVisitor.h",
+        "include/SerAr/Core/BaseArchiveType.h",
+        "include/SerAr/Core/InputArchive.h",
+        "include/SerAr/Core/LoadConstructor.h",
+        "include/SerAr/Core/NamedValue.h",
+        "include/SerAr/Core/NamedValueWithDesc.h",
+        "include/SerAr/Core/NamedEnumVariant.hpp",
+        "include/SerAr/Core/OutputArchive.h",
+        "include/SerAr/Core/Serializeable.h",
+        "include/SerAr/Core/TestIOArchive.h"
+    ]
+}

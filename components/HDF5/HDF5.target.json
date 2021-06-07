@@ -1,0 +1,46 @@
+{
+    "name" : "HDF5" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/HDF5_Archive.cpp",
+        "src/HDF5_Type_Selector.cpp",
+        "src/HDF5_Wrappers.cpp",
+        "include/SerAr/HDF5/HDF5_Archive.h",
+        "include/SerAr/HDF5/HDF5_FwdDecl.h",
+        "include/SerAr/HDF5/HDF5_Type_Selector.h",
+        "include/SerAr/HDF5/HDF5_Wrappers.h"
+    ],
+    "include_directories" : {
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/HDF5/>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "Core",
+            "$<IF:$<BOOL:$<TARGET_NAME_IF_EXISTS:hdf5::hdf5-static>>,hdf5::hdf5-static,hdf5::hdf5-shared>"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_17"
+        ]
+    },
+    "compile_definitions" : {
+        "public" : [ 
+            "H5_USE_110_API"
+        ]
+    },
+    "public_headers": [
+        "include/SerAr/HDF5/HDF5_Archive.h",
+        "include/SerAr/HDF5/HDF5_FwdDecl.h",
+        "include/SerAr/HDF5/HDF5_Type_Selector.h",
+        "include/SerAr/HDF5/HDF5_Wrappers.h"
+    ]
+}
+
+

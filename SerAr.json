@@ -1,0 +1,76 @@
+{
+    "name" : "SerializationArchives" ,
+    "package_name" : "SerAr",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "SerializationArchive (SerAr) is a c++ interface wrapper library around different serialization possibilities to ensure a common interface for data.",
+    "version" : "0.1.0",
+    "languages" : ["CXX"],
+    "options" : [
+        {
+            "name" : "HDF5",
+            "description" : "Enable HDF5 archives",
+            "default_value" : "OFF"
+        },
+        {
+            "name" : "MATLAB",
+            "description" : "Enable MATLAB archives",
+            "default_value" : "OFF"
+        },
+        {
+            "name" : "ConfigFile",
+            "description" : "Enable ConfigFile archives",
+            "default_value" : "ON"
+        },
+        {
+            "name" : "Cereal",
+            "description" : "Include and enable CerealWrappers (requires Cereal)",
+            "default_value" : "OFF",
+            "dependencies" : [ "Cereal" ]
+        },
+        {
+            "name" : "ProgramOptions",
+            "description" : "Include and enable Wrappers for boost program_options (requires boost COMPONENTS program_options)",
+            "default_value" : "ON",
+            "dependencies" : [ {
+                "name":"Boost",
+                "components" : ["program_options"]
+            } ]
+        },
+        {
+            "name" : "JSON",
+            "description" : "Include and enable JSON Archive (requires nlohmann_json)",
+            "default_value" : "ON",
+            "dependencies" : [ "nlohmann_json" ]
+        },
+        {
+            "name" : "QtUI",
+            "description" : "Include and enable Qt user interface for serializable data (requires qt)",
+            "default_value" : "ON",
+            "dependencies" : [ 
+                {
+                    "name": "Qt5",
+                    "components" : [ "Core" , "Widgets", "Gui"]
+                }
+            ]
+        }
+    ],
+    "dependencies" : [
+        "MyCEL",
+        "fmt",
+        "Eigen3"
+    ],
+    "public_cmake_module_path" : "cmake",
+    "list" : [
+        "components/Core",
+        "SerAr.target.json",
+        "components/ConfigFile",
+        "components/HDF5",
+        "components/MATLAB",
+        "components/CerealWrappers",
+        "components/ProgramOptionsWrapper",
+        "components/JSON",
+        "components/QtUI",
+        "SerAr.target.setup.cmake",
+        "SerAr_Test.target.json"
+    ]
+}

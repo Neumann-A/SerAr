@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.17)
 
-project("Matlab.cmakecs")
+project("MATLAB.json")
 
 # cmake_minimum_required (VERSION 3.4)
 # project (MATLAB_Archive CXX)

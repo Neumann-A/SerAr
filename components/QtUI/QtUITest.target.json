@@ -1,0 +1,19 @@
+{
+    "condition" : "SerAr_BUILD_TESTING",
+    "name" : "QtUI_Test" ,
+    "target_type" : "executable",
+    "sources" : [
+        "test/Qt_main.cpp",
+        "test/Qt_TestApplication.hpp",
+        "test/Qt_TestApplication.cpp"
+    ],
+    "link_libraries" : {
+        "private" : [ 
+            "Core",
+            "QtUI",
+            "JSON",
+            "Eigen3::Eigen"
+        ]
+    }
+}
+

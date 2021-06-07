@@ -1,0 +1,14 @@
+{
+    "condition" : "SERAR_WITH_CONFIGFILE",
+    "component_name" : "HDF5",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "ConfigFile archive of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "dependencies" :
+    [
+        "MyCEL"
+    ],
+    "list" : [
+        "ConfigFile.target.json"
+    ]
+}

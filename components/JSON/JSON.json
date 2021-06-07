@@ -1,0 +1,16 @@
+{
+    "condition" : "SERAR_WITH_JSON",
+    "component_name" : "JSON",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "JSON archive of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "JSON.target.json",
+        "JSONTest.target.json"
+    ],
+    "dependencies" : [
+        "MyCEL",
+        "nlohmann_json",
+        "fmt"
+    ]
+}

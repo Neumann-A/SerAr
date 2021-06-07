@@ -16,46 +16,46 @@ ConfigFile::Parse_error::Parse_error(const error_enum& err, std::string &&str) :
 
 const char * ConfigFile::Parse_error::what() const noexcept
 {
-	return std::runtime_error::what();
+    return std::runtime_error::what();
 }
 
 void ConfigFile::Parse_error::append(std::string&& str)
 {
-	std::string msg { std::runtime_error::what() } ;
-	msg.append(str);
-	*this = Parse_error(std::move(_err),std::move(msg));
+    std::string msg { std::runtime_error::what() } ;
+    msg.append(str);
+    *this = Parse_error(std::move(_err),std::move(msg));
 }
 std::string ConfigFile::Parse_error::getErrorInfoString(const error_enum &err) noexcept
 {
-	switch (err)
-	{
-	case error_enum::Unmatched_Brackets:
-		return "Unmatched or invalid brackets {}! ";
-	case error_enum::Missing_open_bracket:
-		return "Missing opening bracket ({)! ";
-	case error_enum::Missing_close_bracket:
-		return "Missing closing bracket (})! ";
-	case error_enum::Not_a_complex_number:
-		return "String does no represent a complex number! ";
-	case error_enum::Empty_string:
-		return "Empty string to parse! ";
-	case error_enum::Invalid_expression:
-		return "Invalid expression in string! ";
-	case error_enum::Invalid_characters:
-		return "Invalid characters in string! ";
-	case error_enum::Missing_comma_seperator:
-		return "Missing comma seperator in string! ";
-	case error_enum::Missing_string_identifier:
-		return "Missing string identifier (')! ";
-	case error_enum::Key_not_found:
-		return "Requested key was not found! ";
-	case error_enum::Section_not_found:
-		return "Requested section was not found! ";
-	case error_enum::First_line_is_not_section:
-		return "First line in stream is not a valid section! ";
-	default:
-		return "Unknown parse error! ";
-	}
+    switch (err)
+    {
+    case error_enum::Unmatched_Brackets:
+        return "Unmatched or invalid brackets {}! ";
+    case error_enum::Missing_open_bracket:
+        return "Missing opening bracket ({)! ";
+    case error_enum::Missing_close_bracket:
+        return "Missing closing bracket (})! ";
+    case error_enum::Not_a_complex_number:
+        return "String does no represent a complex number! ";
+    case error_enum::Empty_string:
+        return "Empty string to parse! ";
+    case error_enum::Invalid_expression:
+        return "Invalid expression in string! ";
+    case error_enum::Invalid_characters:
+        return "Invalid characters in string! ";
+    case error_enum::Missing_comma_seperator:
+        return "Missing comma seperator in string! ";
+    case error_enum::Missing_string_identifier:
+        return "Missing string identifier (')! ";
+    case error_enum::Key_not_found:
+        return "Requested key was not found! ";
+    case error_enum::Section_not_found:
+        return "Requested section was not found! ";
+    case error_enum::First_line_is_not_section:
+        return "First line in stream is not a valid section! ";
+    default:
+        return "Unknown parse error! ";
+    }
 
 }
 ///-------------------------------------------------------------------------------------------------
@@ -101,95 +101,95 @@ const std::regex ConfigFile::SpecialCharacters::seperator_regex{ seperator };
 ///-------------------------------------------------------------------------------------------------
 void ConfigFile::FileParser::removeComment(std::string &line)
 {
-	std::smatch match;
-	if (std::regex_search(line, match, SpecialCharacters::comments_regex))
-	{
+    std::smatch match;
+    if (std::regex_search(line, match, SpecialCharacters::comments_regex))
+    {
         // The If Means match.position() > 0
-		if (match.position() > 0) // Thats a double check since the if above already makes sure there is a match
-			line.erase(static_cast<std::size_t>(match.position()));
-		//line.erase(static_cast<std::size_t>(match.position()));
-	}
+        if (match.position() > 0) // Thats a double check since the if above already makes sure there is a match
+            line.erase(static_cast<std::size_t>(match.position()));
+        //line.erase(static_cast<std::size_t>(match.position()));
+    }
 }
 
 std::string ConfigFile::FileParser::trimWhitespaces(const std::string &str, const std::string& whitespace)
 {
-	const auto strBegin = str.find_first_not_of(whitespace);
-	if (strBegin == std::string::npos)
-		return ""; // no content
+    const auto strBegin = str.find_first_not_of(whitespace);
+    if (strBegin == std::string::npos)
+        return ""; // no content
 
-	const auto strEnd = str.find_last_not_of(whitespace);
-	const auto strRange = strEnd - strBegin + 1;
+    const auto strEnd = str.find_last_not_of(whitespace);
+    const auto strRange = strEnd - strBegin + 1;
 
-	return str.substr(strBegin, strRange);
+    return str.substr(strBegin, strRange);
 }
 
 bool ConfigFile::FileParser::onlyWhitespace(const std::string &line)
 {
-	return (std::regex_search(line, SpecialCharacters::whites_regex) || line.empty());
+    return (std::regex_search(line, SpecialCharacters::whites_regex) || line.empty());
 }
 
 bool ConfigFile::FileParser::validKeyValueLine(const std::string &line, std::smatch &match)
 {
-	return (std::regex_match(line, match, SpecialCharacters::keyvalue_regex));
+    return (std::regex_match(line, match, SpecialCharacters::keyvalue_regex));
 }
 
 bool ConfigFile::FileParser::validKeyValueLine(const std::string &line)
 {
-	return (std::regex_match(line, SpecialCharacters::keyvalue_regex));
+    return (std::regex_match(line, SpecialCharacters::keyvalue_regex));
 }
 
 bool ConfigFile::FileParser::validSectionLine(const std::string &line, std::smatch &match)
 {
-	return (std::regex_match(line, match, SpecialCharacters::section_regex));
+    return (std::regex_match(line, match, SpecialCharacters::section_regex));
 }
 
 bool ConfigFile::FileParser::validSectionLine(const std::string &line)
 {
-	return (std::regex_match(line, SpecialCharacters::section_regex));
+    return (std::regex_match(line, SpecialCharacters::section_regex));
 }
 
 void ConfigFile::FileParser::extractKeyValue(const std::smatch &match, std::string &key, std::string &value)
 {
-	key = match.str(1);
-	value = match.str(2);
+    key = match.str(1);
+    value = match.str(2);
 }
 
 std::string ConfigFile::FileParser::extractSection(const std::smatch &match)
 {
-	return std::string{ match.str(1) };
+    return std::string{ match.str(1) };
 }
 
 void ConfigFile::FileParser::parseLine(const std::string &line, const size_t &lineNo,std::string &currentSection, ConfigFile::Storage &storage)
 {
-	// Comments and Whitespace lines are alread ignored / removed
-	// So we should only have either a valid section line or a valid keyvalue line or an empty line
-	if (line.empty())
-		return;
+    // Comments and Whitespace lines are alread ignored / removed
+    // So we should only have either a valid section line or a valid keyvalue line or an empty line
+    if (line.empty())
+        return;
 
-	std::smatch match;
+    std::smatch match;
 
-	if (validSectionLine(line, match))
-	{
-		currentSection = extractSection(match);
-	}
-	else if (validKeyValueLine(line, match))
-	{
-		const std::string sec{ currentSection };
-		std::string key, value;
-		extractKeyValue(match, key, value);
-		(storage.accessContents()[sec])[key]= value;
-	}
-	else
-	{
-		const std::string& sec{ currentSection };
-		std::stringstream str;
-		str << "Configuration Archive: Line Number: ";
-		str << std::to_string(lineNo);
-		str << " is not valid. Section:" << sec << "; Line is: " << line << std::endl;
-		std::cout << str.str();
-		throw std::runtime_error{ str.str() };
-		//return;
-	}
+    if (validSectionLine(line, match))
+    {
+        currentSection = extractSection(match);
+    }
+    else if (validKeyValueLine(line, match))
+    {
+        const std::string sec{ currentSection };
+        std::string key, value;
+        extractKeyValue(match, key, value);
+        (storage.accessContents()[sec])[key]= value;
+    }
+    else
+    {
+        const std::string& sec{ currentSection };
+        std::stringstream str;
+        str << "Configuration Archive: Line Number: ";
+        str << std::to_string(lineNo);
+        str << " is not valid. Section:" << sec << "; Line is: " << line << std::endl;
+        std::cout << str.str();
+        throw std::runtime_error{ str.str() };
+        //return;
+    }
 }
 
 //void ConfigFile::FileParser::loadIntoStorage(std::istream& stream, ConfigFile::Storage &storage)
@@ -249,19 +249,19 @@ void ConfigFile::FileParser::parseLine(const std::string &line, const size_t &li
 
 void  ConfigFile::Storage::writeContentsToStream(std::ostream &stream) const
 {
-	if (_contents.empty())
-		stream << "Nothing to write to stream" << '\n';
+    if (_contents.empty())
+        stream << "Nothing to write to stream" << '\n';
 
-	for (const auto& sections : _contents)
-	{
-		stream << '[' << sections.first << ']' << '\n';
-		for (const auto& keys : sections.second)
-		{
-			stream << keys.first << " = " << keys.second << '\n';
-		}
-		stream << /*"[EOS]" << '\n' <<*/ '\n';
-	}
-	stream << /*"[END]" << */'\n' << '\n';
+    for (const auto& sec : _contents)
+    {
+        stream << '[' << sec.first << ']' << '\n';
+        for (const auto& keys : sec.second)
+        {
+            stream << keys.first << " = " << keys.second << '\n';
+        }
+        stream << /*"[EOS]" << '\n' <<*/ '\n';
+    }
+    stream << /*"[END]" << */'\n' << '\n';
 }
 
 
@@ -271,16 +271,16 @@ void  ConfigFile::Storage::writeContentsToStream(std::ostream &stream) const
 
 void ConfigFile::toString::checkSyntax(const std::string& section, const std::string& key, const std::string& value)
 {
-	const std::string s{ ' ' + key + " = " + value };
-	if (!FileParser::validKeyValueLine(s))
-	{
-		throw std::runtime_error{ std::string{ "Key and\\or Value does not fullfill requirements for Configuration Archive. Key: " + key + " Value:" + value } };
-	}
-	if (!FileParser::validSectionLine('[' + section + ']'))
-	{
-		throw std::runtime_error{ std::string{ "Section does not fullfill requirements for Configuration Archive. Section: " + section } };
-	}
-	return;
+    const std::string s{ ' ' + key + " = " + value };
+    if (!FileParser::validKeyValueLine(s))
+    {
+        throw std::runtime_error{ std::string{ "Key and\\or Value does not fullfill requirements for Configuration Archive. Key: " + key + " Value:" + value } };
+    }
+    if (!FileParser::validSectionLine('[' + section + ']'))
+    {
+        throw std::runtime_error{ std::string{ "Section does not fullfill requirements for Configuration Archive. Section: " + section } };
+    }
+    return;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -295,37 +295,37 @@ ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : Outpu
 ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {}
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
-	mStorage.writeContentsToStream(mOutputstream);
-	mOutputstream << std::flush;
+    mStorage.writeContentsToStream(mOutputstream);
+    mOutputstream << std::flush;
 
-	if (mStreamOwner) 
-	{
-		delete &mOutputstream; // We created the Stream object we also have to delete it!
-	}
+    if (mStreamOwner) 
+    {
+        delete &mOutputstream; // We created the Stream object we also have to delete it!
+    }
 }
 
 std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem::path &path)
 {
-	if (!path.has_filename())
-	{
-		throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
-	}
+    if (!path.has_filename())
+    {
+        throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
+    }
 
-	// TODO: rewrite to something which makes sense
-	//std::ofstream& stream = *(new std::ofstream());
-	std::unique_ptr<std::ofstream> pstr = std::make_unique<std::ofstream>();
-	
-	assert(pstr != nullptr);
+    // TODO: rewrite to something which makes sense
+    //std::ofstream& stream = *(new std::ofstream());
+    std::unique_ptr<std::ofstream> pstr = std::make_unique<std::ofstream>();
+    
+    assert(pstr != nullptr);
 
-	pstr->open(path.string().c_str(), std::fstream::trunc);
-	if (!pstr->is_open())
-	{
-		throw std::runtime_error{ "Could not open File! Already in use?" };
-	}
+    pstr->open(path.string().c_str(), std::fstream::trunc);
+    if (!pstr->is_open())
+    {
+        throw std::runtime_error{ "Could not open File! Already in use?" };
+    }
 
-	mStreamOwner = true;
+    mStreamOwner = true;
 
-	return *(pstr.release());
+    return *(pstr.release());
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -333,7 +333,7 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem:
 ///-------------------------------------------------------------------------------------------------
 ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream)
 {
-	parseStream();
+    parseStream();
 }
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : InputArchive(this), mInputstream(std::cin), mStorage(std::move(storage))
@@ -342,156 +342,156 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : 
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path))
 {
-	parseStream();
+    parseStream();
 }
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream) 
 {
-	std::swap(this->mStreamOwner, CFG.mStreamOwner);
-	std::swap(this->mStorage, CFG.mStorage);
-	CFG.mStreamOwner = false;
+    std::swap(this->mStreamOwner, CFG.mStreamOwner);
+    std::swap(this->mStorage, CFG.mStorage);
+    CFG.mStreamOwner = false;
 }
 
 ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
 {
-	//delegate to move constructor
-	return ConfigFile_InputArchive{ std::move(CFG) };
+    //delegate to move constructor
+    return ConfigFile_InputArchive{ std::move(CFG) };
 }
 
 ConfigFile_InputArchive::~ConfigFile_InputArchive()
 {
-	if (mStreamOwner)
-	{
-		delete (&mInputstream); // We created the Stream object we also have to delete it!
-	}
+    if (mStreamOwner)
+    {
+        delete (&mInputstream); // We created the Stream object we also have to delete it!
+    }
 }
 
 void ConfigFile_InputArchive::SkipBOM(std::ifstream &in)
 {
-	char test[3] = { 0 };
-	in.read(test, 3);
-	if ((unsigned char)test[0] == 0xEF &&
-		(unsigned char)test[1] == 0xBB &&
-		(unsigned char)test[2] == 0xBF)
-	//if (static_cast<unsigned char>(test[0]) == 0xEF &&
-	//	static_cast<unsigned char>(test[1]) == 0xBB &&
-	//	static_cast<unsigned char>(test[2]) == 0xBF)
-	{
-		return;
-	}
-	in.seekg(0);
+    char test[3] = { 0 };
+    in.read(test, 3);
+    if ((unsigned char)test[0] == 0xEF &&
+        (unsigned char)test[1] == 0xBB &&
+        (unsigned char)test[2] == 0xBF)
+    //if (static_cast<unsigned char>(test[0]) == 0xEF &&
+    //	static_cast<unsigned char>(test[1]) == 0xBB &&
+    //	static_cast<unsigned char>(test[2]) == 0xBF)
+    {
+        return;
+    }
+    in.seekg(0);
 }
 
 std::ifstream& ConfigFile_InputArchive::createFileStream(const std::filesystem::path &path)
 {
-	if (!path.has_filename())
-	{
-		throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
-	}
+    if (!path.has_filename())
+    {
+        throw std::runtime_error{ "Cannot open configuration file! Filename is missing!" };
+    }
 
-	std::unique_ptr<std::ifstream> pstr = std::make_unique<std::ifstream>();
+    std::unique_ptr<std::ifstream> pstr = std::make_unique<std::ifstream>();
 
-	assert(pstr != nullptr);
+    assert(pstr != nullptr);
 
-	pstr->open(path.string().c_str());
-	if (!pstr->is_open())
-	{
-		std::string err{ "Unable to open: " };
-		err += path.string();
-		err += "(File already opened?)";
-		throw std::runtime_error{ err.c_str() };
-	}
+    pstr->open(path.string().c_str());
+    if (!pstr->is_open())
+    {
+        std::string err{ "Unable to open: " };
+        err += path.string();
+        err += "(File already opened?)";
+        throw std::runtime_error{ err.c_str() };
+    }
 
-	SkipBOM(*pstr);
+    SkipBOM(*pstr);
 
-	mStreamOwner = true;
+    mStreamOwner = true;
 
-	return *(pstr.release());
+    return *(pstr.release());
 }
 
 void ConfigFile_InputArchive::parseStream()
 {
-	if (!mInputstream)
-	{
-		throw std::runtime_error{ "Cannot read from Stream. Stream not ready! " };
-	}
-	std::string line;
-	std::string currentSection;
+    if (!mInputstream)
+    {
+        throw std::runtime_error{ "Cannot read from Stream. Stream not ready! " };
+    }
+    std::string line;
+    std::string currentSection;
 
-	size_t lineNo = 0;
-	bool FirstRun{ true };
+    size_t lineNo = 0;
+    bool FirstRun{ true };
 
-	while (std::getline(mInputstream, line))
-	{
-		++lineNo;
+    while (std::getline(mInputstream, line))
+    {
+        ++lineNo;
 
-		auto& temp{ line };
-		if (temp.empty()) 
-			continue; //Empty Line
+        auto& temp{ line };
+        if (temp.empty()) 
+            continue; //Empty Line
 
-		ConfigFile::FileParser::removeComment(temp);
+        ConfigFile::FileParser::removeComment(temp);
         if (temp.empty())
             continue; //Empty Line
-		//temp.shrink_to_fit();
-		temp = ConfigFile::FileParser::trimWhitespaces(temp);
+        //temp.shrink_to_fit();
+        temp = ConfigFile::FileParser::trimWhitespaces(temp);
         if (temp.empty())
             continue; //Empty Line
-	
-		if (ConfigFile::FileParser::onlyWhitespace(temp) || temp.empty()) 
-			continue; //Only Whitespaces or Comments
+    
+        if (ConfigFile::FileParser::onlyWhitespace(temp) || temp.empty()) 
+            continue; //Only Whitespaces or Comments
 
         temp.shrink_to_fit();
 
-		if (FirstRun)
-		{
-			std::smatch match;
-			if (ConfigFile::FileParser::validSectionLine(temp, match))
-			{
-				currentSection = ConfigFile::FileParser::extractSection(match);
-			}
-			else
-			{
-				throw ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::First_line_is_not_section };
-			}
-			FirstRun = false;
-		}
-		else
-		{
-			ConfigFile::FileParser::parseLine(temp, lineNo, currentSection, mStorage);
-		}
-	}
-};
+        if (FirstRun)
+        {
+            std::smatch match;
+            if (ConfigFile::FileParser::validSectionLine(temp, match))
+            {
+                currentSection = ConfigFile::FileParser::extractSection(match);
+            }
+            else
+            {
+                throw ConfigFile::Parse_error{ ConfigFile::Parse_error::error_enum::First_line_is_not_section };
+            }
+            FirstRun = false;
+        }
+        else
+        {
+            ConfigFile::FileParser::parseLine(temp, lineNo, currentSection, mStorage);
+        }
+    }
+}
 
 auto ConfigFile_InputArchive::list(std::string value) -> typename ConfigFile::Storage::keyvalues
 {
-	using type = decltype(mStorage.accessContents().cbegin()->second);
-	type data;
-	ConfigLogic.setCurrKey(std::move(value));
-	ConfigLogic.setCurrKey("Dummy");
+    using type = decltype(mStorage.accessContents().cbegin()->second);
+    type data;
+    ConfigLogic.setCurrKey(std::move(value));
+    ConfigLogic.setCurrKey("Dummy");
 
-	if (mStorage.accessContents().find(ConfigLogic.getSection()) != mStorage.accessContents().end())
-	{
-		data = mStorage.accessContents().at(ConfigLogic.getSection());
-	}
-	else
-	{
-		data = type{};
-	}
+    if (mStorage.accessContents().find(ConfigLogic.getSection()) != mStorage.accessContents().end())
+    {
+        data = mStorage.accessContents().at(ConfigLogic.getSection());
+    }
+    else
+    {
+        data = type{};
+    }
 
-	ConfigLogic.resetCurrKey();
-	ConfigLogic.resetCurrKey();
-	return data;
+    ConfigLogic.resetCurrKey();
+    ConfigLogic.resetCurrKey();
+    return data;
 }
 
 auto ConfigFile_InputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues
 {
-	return list(value.getName());
+    return list(value.getName());
 }
 
 auto ConfigFile_InputArchive::list() -> typename ConfigFile::Storage::sections
 {
-	const auto& tmp = mStorage.accessContents();
-	return tmp;
+    const auto& tmp = mStorage.accessContents();
+    return tmp;
 }
 
 template void ConfigFile_InputArchive::load<bool>(Archives::NamedValue<bool>& value);

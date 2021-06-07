@@ -1,0 +1,16 @@
+{
+    "condition" : "SERAR_WITH_MATLAB",
+    "component_name" : "MATLAB",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "MATLAB archive of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "MATLAB.target.json"
+    ],
+    "dependencies" : [
+        "MyCEL",
+        { "name": "Matlab",
+          "components": [ "MAT_LIBRARY" ]
+        }
+    ]
+}

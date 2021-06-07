@@ -1,0 +1,25 @@
+{
+    "name" : "AllArchives" ,
+    "target_type" : "library",
+    "parameters" : [
+        "INTERFACE"
+    ],
+    "include_directories" : {
+        "interface" : [ 
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+            "$<INSTALL_INTERFACE:include>" ]
+    },
+    "link_libraries" : {
+        "interface": [
+            "Core",
+            "MyCEL::MyCEL"
+        ]
+    },
+    "compile_features" : {
+        "interface" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "public_headers" : ["include/SerAr.hpp", "include/AllArchiveIncludes.hpp", "include/AllArchiveEnums.hpp"]
+}
+
