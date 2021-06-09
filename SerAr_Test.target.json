@@ -1,4 +1,5 @@
 {
+    "condition" : "BUILD_TESTING",
     "name" : "SerAr_Test" ,
     "target_type" : "executable",
     "sources" : ["test/SerAr_test.cpp"],
@@ -11,7 +12,8 @@
         "private": [
             "Core",
             "MyCEL::MyCEL",
-            "AllArchives"
+            "AllArchives", 
+            "Eigen3::Eigen"
         ]
     }
 }
