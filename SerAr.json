@@ -45,13 +45,7 @@
         {
             "name" : "QtUI",
             "description" : "Include and enable Qt user interface for serializable data (requires qt)",
-            "default_value" : "ON",
-            "dependencies" : [ 
-                {
-                    "name": "Qt5",
-                    "components" : [ "Core" , "Widgets", "Gui"]
-                }
-            ]
+            "default_value" : "ON"
         }
     ],
     "dependencies" : [
