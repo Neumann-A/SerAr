@@ -8,10 +8,20 @@
         "QtUI.target.json",
         "QtUITest.target.json"
     ],
+    "options" : [
+        {
+            "name" : "Qt_VERSION",
+            "variable" : "SERAR_QT_VERSION_MAJOR",
+            "description" : "Selects the Qt version to use for Serar::QtUI",
+            "type" : "string",
+            "valid_values": "auto;5;6",
+            "default_value" : "auto"
+        }
+    ],
     "dependencies" : [
         "MyCEL",
         {
-            "name": "Qt5",
+            "name": "Qt${SERAR_QT_VERSION_MAJOR}",
             "components" : [ "Core" , "Widgets", "Gui"]
         },
         "fmt",

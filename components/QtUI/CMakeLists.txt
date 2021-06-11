@@ -1,11 +1,22 @@
 cmake_minimum_required (VERSION 3.19)
 
 set(CMAKE_AUTOMOC ON)
-set(SerAr_BUILD_TESTING ON)
-# Until CMake fixes their AUTOMOC implementation. 
-#set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-#             PROPERTY Qt5Core_VERSION_MAJOR "5")
-#set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-#             PROPERTY Qt5Core_VERSION_MINOR "15")
+
+## Automatic Qt version selection
+if(NOT DEFINED SERAR_QT_VERSION_MAJOR OR SERAR_QT_VERSION_MAJOR STREQUAL "auto")
+    find_package(Qt6Widgets QUIET)
+    if(NOT Qt6Widgets_FOUND)
+        find_package(Qt5Widgets REQUIRED COMPONENTS Widgets)
+        if(Qt5Widgets_FOUND)
+            set(SERAR_QT_VERSION_MAJOR 5)
+        else()
+            set(SERAR_QT_VERSION_MAJOR 6)
+        endif()
+    else()
+        set(SERAR_QT_VERSION_MAJOR 6)
+    endif()
+endif()
+
+
 project("QtUI.json")
-cmake_print_variables(QT_VERSION_MAJOR QT_VERSION_MINOR Qt5Core_VERSION_MAJOR Qt5Core_VERSION_MINOR)
+
