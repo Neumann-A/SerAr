@@ -50,7 +50,7 @@ namespace SerAr {
             template<typename Archive>
             void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
-                if constexpr(!IsOutputArchive<Archive>) {
+                if constexpr(!Archives::IsOutputArchive<Archive>) {
                     std::string error {fmt::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
@@ -58,7 +58,7 @@ namespace SerAr {
             template<typename Archive>
             void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
-                if constexpr(!IsOutputArchive<Archive>) {
+                if constexpr(!Archives::IsOutputArchive<Archive>) {
                     std::string error {fmt::format("Missing mapping for enum value:{}",to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
