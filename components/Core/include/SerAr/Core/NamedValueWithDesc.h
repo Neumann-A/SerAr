@@ -100,7 +100,7 @@ namespace Archives
     //    return NamedValue<T>{name, std::forward<T>(value)};
     //}
 
-};
+}
 
 //#define ARCHIVE_CREATE_NV(val) Archives::createNamedValue(#val,val)
 

@@ -27,7 +27,7 @@ template<SerAr::IsArchive Archive>
 void serialize(othertest& val, Archive& ar) {
     ar(Archives::createNamedValue("mydouble",val.mydouble));
     ar(Archives::createNamedValue("myvector",val.myvector));
-};
+}
 template<SerAr::IsArchive Archive>
 void serialize(test& val, Archive& ar) {
     ar(Archives::createNamedValue("myint",val.myint));
@@ -35,7 +35,7 @@ void serialize(test& val, Archive& ar) {
     ar(Archives::createNamedValue("mystring",val.mystring));
     ar(Archives::createNamedValue("mynested",val.mynested));
     ar(Archives::createNamedValue("myvecnested", val.myvecnested));
-};
+}
 
 int main()
 {
