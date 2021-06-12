@@ -2,7 +2,7 @@
 #include <type_traits>
 #include <utility>
 #include <string>
-#include <format>
+#include <fmt/core.h>
 
 #include <MyCEL/basics/enumhelpers.h>
 #include <SerAr/Core/NamedValue.h>
@@ -51,7 +51,7 @@ namespace SerAr {
             void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
                 if constexpr(!IsOutputArchive<Archive>) {
-                    std::string error {std::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
+                    std::string error {fmt::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
             }
@@ -59,7 +59,7 @@ namespace SerAr {
             void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
             {
                 if constexpr(!IsOutputArchive<Archive>) {
-                    std::string error {std::format("Missing mapping for enum value:{}",to_string(EValue))};
+                    std::string error {fmt::format("Missing mapping for enum value:{}",to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
             }
