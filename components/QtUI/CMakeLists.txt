@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.19)
 set(CMAKE_AUTOMOC ON)
 
 ## Automatic Qt version selection
-if(NOT DEFINED SERAR_QT_VERSION_MAJOR OR SERAR_QT_VERSION_MAJOR STREQUAL "auto")
+if( (NOT DEFINED SERAR_QT_VERSION_MAJOR OR SERAR_QT_VERSION_MAJOR STREQUAL "auto") AND SERAR_WITH_QTUI)
     find_package(Qt6Widgets QUIET)
     if(NOT Qt6Widgets_FOUND)
         find_package(Qt5Widgets REQUIRED COMPONENTS Widgets)
