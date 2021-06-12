@@ -27,7 +27,8 @@
     },
     "link_libraries" : {
         "interface" : [ 
-            "MyCEL::MyCEL"
+            "MyCEL::MyCEL",
+            "fmt::fmt"
         ]
     },
     "compile_features" : {
