@@ -52,7 +52,7 @@ int main()
         test mytest {.myint=0};
         ar(Archives::createNamedValue("mytest",mytest));       
     }
-    path = { "test3.json" };
+    path = "test3.json";
     {
         Archive ar{ {},path };
         std::vector tmp{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
@@ -63,7 +63,7 @@ int main()
         std::vector tmp{ std::vector{ 0,0,0 }, std::vector{ 0,0,0 }, std::vector{ 0,0,0 } };
         ar(Archives::createNamedValue("vecvec", tmp));
     }
-    path = { "test4.json" };
+    path = "test4.json";
     {
         Archive ar{ {},path };
         std::vector tmp{ std::vector{ 1,2,3 }, std::vector{ 4,5,6 }, std::vector{ 7,8,9 } };
@@ -74,7 +74,7 @@ int main()
         std::vector tmp { std::vector{ 0,0,0 }, std::vector{ 0,0,0 }, std::vector{ 0,0,0 } };
         ar(tmp);
     }
-    path = { "test5.json" };
+    path = "test5.json";
     {
         Archive ar{ {},path };
         Eigen::Matrix<double, 3, 2> m{ {1,2},{3,4},{5,6} };
@@ -85,7 +85,7 @@ int main()
         Eigen::Matrix<double, 3, 2> m;
         ar(Archives::createNamedValue("matrix", m));
     }
-    path = { "test6.json" };
+    path = "test6.json";
     {
         Archive ar{ {},path };
         Eigen::Matrix<double, 3, 2> m{ {1,2},{3,4},{5,6} };
