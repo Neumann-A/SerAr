@@ -870,7 +870,7 @@ namespace Archives
             typedef std::map<std::string, std::string> keyvalues;
             typedef std::map<std::string, keyvalues> sections;
 
-            sections _contents;	//Contents of the CFG
+            sections _contents{};	//Contents of the CFG
         public:
             void writeContentsToStream(std::ostream &stream) const;
             inline sections& accessContents() noexcept { return _contents; }
