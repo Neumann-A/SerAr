@@ -291,8 +291,8 @@ void ConfigFile::toString::checkSyntax(const std::string& section, const std::st
 ///ConfigFile::Output Archive
 ///-------------------------------------------------------------------------------------------------
 
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream) {}
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)) {}
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream), mStorage() {}
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)), mStorage() {}
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
     mStorage.writeContentsToStream(mOutputstream);
@@ -331,7 +331,7 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem:
 ///-------------------------------------------------------------------------------------------------
 ///ConfigFile::Input Archive
 ///-------------------------------------------------------------------------------------------------
-ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream)
+ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream), mStorage()
 {
     parseStream();
 }
@@ -340,7 +340,7 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : 
 {
 }
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path))
+ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path)), mStorage()
 {
     parseStream();
 }

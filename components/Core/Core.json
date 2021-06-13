@@ -5,7 +5,8 @@
     "languages" : ["CXX"],
     "dependencies" :
     [
-        "MyCEL"
+        "MyCEL",
+        "fmt"
     ],
     "list" : [
         "Core.target.json"

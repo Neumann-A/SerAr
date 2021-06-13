@@ -2,10 +2,11 @@
 #include <type_traits>
 #include <utility>
 #include <string>
-#include <format>
+#include <fmt/core.h>
 
 #include <MyCEL/basics/enumhelpers.h>
 #include <SerAr/Core/NamedValue.h>
+#include <SerAr/Core/ArchiveHelper.h>
 
 namespace SerAr {
 
@@ -48,18 +49,18 @@ namespace SerAr {
         template<std::remove_cvref_t<underlying_enum_type> EValue, typename = void>
         struct enum_variant_switch_case_functor {
             template<typename Archive>
-            void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
+            void operator()(const std::string& name, std::remove_cvref_t<underlying_enum_variant_type>&, Archive &)
             {
-                if constexpr(!IsOutputArchive<Archive>) {
-                    std::string error {std::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
+                if constexpr(!SerAr::IsOutputArchive<Archive>) {
+                    std::string error {fmt::format("Missing mapping for enum named: '{}' with value:{}",name, to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
             }
             template<typename Archive>
-            void operator()(std::remove_cvref_t<underlying_enum_variant_type>& variant, Archive &ar)
+            void operator()(std::remove_cvref_t<underlying_enum_variant_type>&, Archive &)
             {
-                if constexpr(!IsOutputArchive<Archive>) {
-                    std::string error {std::format("Missing mapping for enum value:{}",to_string(EValue))};
+                if constexpr(!SerAr::IsOutputArchive<Archive>) {
+                    std::string error {fmt::format("Missing mapping for enum value:{}",to_string(EValue))};
                     throw std::out_of_range{error.c_str()};
                 }
             }
@@ -136,7 +137,7 @@ namespace SerAr {
             auto& enum_variant = value.variant;
             std::string enum_str;
             ar(Archives::createNamedValue(enum_name,enum_str));
-            enum_value = from_string<std::remove_cvref_t<underlying_enum_type>>(enum_str,enum_value);
+            enum_value = from_string(enum_str,enum_value);
             if(type_name.empty()) {
                 enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,enum_variant,ar);
             } else {
