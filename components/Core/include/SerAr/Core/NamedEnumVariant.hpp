@@ -137,7 +137,7 @@ namespace SerAr {
             auto& enum_variant = value.variant;
             std::string enum_str;
             ar(Archives::createNamedValue(enum_name,enum_str));
-            enum_value = from_string<std::remove_cvref_t<underlying_enum_type>>(enum_str,enum_value);
+            enum_value = from_string(enum_str,enum_value);
             if(type_name.empty()) {
                 enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,enum_variant,ar);
             } else {
