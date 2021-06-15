@@ -122,8 +122,8 @@ namespace SerAr {
     struct output_archive_traits<ArchiveTypeEnum::HDF5> {
         using archive_type = Archives::HDF5_OutputArchive;
         using option_type = Archives::HDF5_OutputOptions;
-        static constexpr auto append_option = option_type{.FileCreationMode=Archives::HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate};
-        static constexpr auto overwrite_option = option_type{.FileCreationMode=Archives::HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite};
+        static constexpr auto append_option = option_type{.FileCreationMode=HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate};
+        static constexpr auto overwrite_option = option_type{.FileCreationMode=HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite};
     };
 
     template<>
@@ -132,7 +132,7 @@ namespace SerAr {
         using output = output_archive_traits<enum_value>;
         using input= input_archive_traits<enum_value>;
         static constexpr std::string_view defaut_file_extension {"hdf5"};
-        static constexpr std::array<std::string_view,2> possible_file_extensions { {"hdf5"},{"h5"}};
+        static constexpr std::array<std::string_view,2> possible_file_extensions { "hdf5", "h5"};
     };
     template<>
     struct archive_enum_value_from_type<Archives::HDF5_InputArchive> {
