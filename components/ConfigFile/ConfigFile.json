@@ -1,6 +1,6 @@
 {
     "condition" : "SERAR_WITH_CONFIGFILE",
-    "component_name" : "Config",
+    "component_name" : "ConfigFile",
     "homepage" : "https://github.com/Neumann-A/SerAr",
     "description" : "ConfigFile archive of SerializationArchive (SerAr)",
     "languages" : ["CXX"],
