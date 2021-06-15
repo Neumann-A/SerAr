@@ -27,7 +27,7 @@ namespace SerAr
     }
 
     struct JSON_OutputArchive_Options {
-        std::streamsize indent_spaces{ 4 };
+        int indent_spaces{ 4 };
         std::ios_base::openmode     mode{std::ios::trunc};
     };
 
