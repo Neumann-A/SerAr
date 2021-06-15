@@ -27,7 +27,7 @@
 namespace SerAr
 {
     using namespace Archives;
-    using JSONType = typename nlohmann::json;
+    using JSONType = nlohmann::json;
     using JSONPointerType = typename nlohmann::json_pointer<JSONType>;
 
     namespace JSON::detail {
