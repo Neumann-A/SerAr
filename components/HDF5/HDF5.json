@@ -8,6 +8,9 @@
         "HDF5.target.json"
     ],
     "dependencies" : [
-        "hdf5"
+        {
+            "name":"hdf5",
+            "find_parameters": ["CONFIG"]
+        }
     ]
 }
