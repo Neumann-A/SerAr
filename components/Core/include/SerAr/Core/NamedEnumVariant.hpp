@@ -103,17 +103,6 @@ namespace SerAr {
             }
         };
 
-        // template<typename Archive>
-        // Archive& serialize(Archive& ar)
-        // {
-        //     auto& enum_value = value.value;
-        //     auto& enum_variant = value.variant;
-        //     std::string enum_value_str {to_string(enum_value)};
-        //     ar(Archives::createNamedValue(enum_name,enum_value_str));
-        //     enum_value = from_string<underlying_enum_type>(enum_value_str,enum_value);
-        //     ::MyCEL::enum_switch::run<underlying_enum_type, enum_switch_case_functor>(enum_value,type_name,enum_variant,ar);
-        //     return ar;
-        // }
         template<typename Archive>
         void save(Archive& ar)
         {
@@ -153,4 +142,14 @@ namespace SerAr {
     {
         return NamedEnumVariant<T>{std::move(ename),std::move(tname), std::forward<T>(value)};
     }
+
+    template<typename T>
+    concept IsNamedEnumVariant =  std::is_same_v<NamedEnumVariant<typename std::remove_cvref_t<T>::type>, std::remove_cvref_t<T>> && 
+        requires (std::remove_cvref_t<T> value) {
+            value.enum_name;
+            value.type_name;
+            value.value;
+            typename T::type;
+            typename T::internal_type;
+    };
 }
