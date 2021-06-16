@@ -8,14 +8,17 @@
         "src/HDF5_Archive.cpp",
         "src/HDF5_Type_Selector.cpp",
         "src/HDF5_Wrappers.cpp",
-        "include/SerAr/HDF5/HDF5_Archive.h",
-        "include/SerAr/HDF5/HDF5_FwdDecl.h",
-        "include/SerAr/HDF5/HDF5_Type_Selector.h",
-        "include/SerAr/HDF5/HDF5_Wrappers.h"
+        "include/HDF5_Archive.h",
+        "include/HDF5_ArchiveHelpers.hpp",
+        "include/HDF5_InputArchive.hpp",
+        "include/HDF5_OutputArchive.hpp",
+        "include/HDF5_FwdDecl.h",
+        "include/HDF5_Type_Selector.h",
+        "include/HDF5_Wrappers.h"
     ],
     "include_directories" : {
         "private" : [
-            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/HDF5/>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         ]
     },
     "link_libraries" : {
@@ -27,19 +30,22 @@
     },
     "compile_features" : {
         "public" : [ 
-            "cxx_std_17"
+            "cxx_std_20"
         ]
     },
     "compile_definitions" : {
         "public" : [ 
-            "H5_USE_110_API"
+            "H5_USE_120_API"
         ]
     },
     "public_headers": [
-        "include/SerAr/HDF5/HDF5_Archive.h",
-        "include/SerAr/HDF5/HDF5_FwdDecl.h",
-        "include/SerAr/HDF5/HDF5_Type_Selector.h",
-        "include/SerAr/HDF5/HDF5_Wrappers.h"
+        "include/HDF5_Archive.h",
+        "include/HDF5_ArchiveHelpers.hpp",
+        "include/HDF5_InputArchive.hpp",
+        "include/HDF5_OutputArchive.hpp",
+        "include/HDF5_FwdDecl.h",
+        "include/HDF5_Type_Selector.h",
+        "include/HDF5_Wrappers.h"
     ]
 }
 

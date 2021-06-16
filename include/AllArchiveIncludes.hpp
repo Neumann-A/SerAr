@@ -122,8 +122,8 @@ namespace SerAr {
     struct output_archive_traits<ArchiveTypeEnum::HDF5> {
         using archive_type = Archives::HDF5_OutputArchive;
         using option_type = Archives::HDF5_OutputOptions;
-        static constexpr auto append_option = option_type{.FileCreationMode=HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate};
-        static constexpr auto overwrite_option = option_type{.FileCreationMode=HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite};
+        static constexpr auto append_option = option_type{HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate};
+        static constexpr auto overwrite_option = option_type{HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite};
     };
 
     template<>

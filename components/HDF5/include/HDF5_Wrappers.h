@@ -31,39 +31,6 @@
 
 #include <MyCEL/stdext/std_extensions.h>
 
-// #ifdef _DEBUG
-// #ifdef H5_BUILT_AS_DYNAMIC_LIB
-// //#pragma comment(lib,"hdf5_hl_cpp_D.lib")
-// //#pragma comment(lib,"hdf5_cpp_D.lib")
-// //#pragma comment(lib,"hdf5_hl_D.lib")
-// #pragma comment(lib,"hdf5_D")
-// //#pragma comment(lib,"szip_D.lib")
-// #else
-// //#pragma comment(lib,"libhdf5_hl_cpp_D.lib")
-// //#pragma comment(lib,"libhdf5_cpp_D.lib")
-// //#pragma comment(lib,"libhdf5_hl_D.lib")
-// #pragma comment(lib,"libhdf5_D")
-// //#pragma comment(lib,"libszip_D.lib")
-// #endif
-// //#pragma comment(lib,"zlibd.lib")
-// #else
-// #ifdef H5_BUILT_AS_DYNAMIC_LIB
-// //#pragma comment(lib,"hdf5_hl_cpp.lib")
-// //#pragma comment(lib,"hdf5_cpp.lib")
-// //#pragma comment(lib,"hdf5_hl.lib")
-// #pragma comment(lib,"hdf5")
-// //#pragma comment(lib,"szip.lib")
-// //#pragma comment(lib,"zlib.lib")
-// #else
-// //#pragma comment(lib,"libhdf5_hl_cpp.lib")
-// //#pragma comment(lib,"libhdf5_cpp.lib")
-// //#pragma comment(lib,"libhdf5_hl.lib")
-// #pragma comment(lib,"libhdf5")
-// //#pragma comment(lib,"libszip.lib")
-// //#pragma comment(lib,"zlib.lib")
-// #endif
-// #endif
-
 #include <hdf5.h>
 //#include <hdf5_hl.h>
 
@@ -251,7 +218,7 @@ namespace HDF5_Wrapper
                 {
                     if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
                         H5O_info_t oinfo;
-                        MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+                        MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                         assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
@@ -298,7 +265,7 @@ namespace HDF5_Wrapper
                 {
                     if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
                         H5O_info_t oinfo;
-                        const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+                        const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                         assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
@@ -379,7 +346,6 @@ namespace HDF5_Wrapper
     class HDF5_GeneralType 
     {
         static_assert(std::is_same_v<T, std::decay_t<T>>); // T should be a Type without any qualifiers!
-    
         HDF5_LocationWrapper mLoc;
         bool wasMoved{ false };
     protected:
@@ -426,7 +392,7 @@ namespace HDF5_Wrapper
         }; //Move Assignment	
 
         ~HDF5_GeneralType() noexcept
-        {		
+        {
             if (!wasMoved && ((hid_t)mLoc)!=0)
                 HDF5_OpenCreateCloseWrapper<Base>::close(mLoc);
         }
@@ -554,10 +520,10 @@ namespace HDF5_Wrapper
             //return HDF5_DatatypeWrapper(tocopy);
         };
 
-        bool operator==(const HDF5_DatatypeWrapper& other) {
+        bool operator==(const HDF5_DatatypeWrapper& other) const {
             return H5Tequal(*this,other);
         }
-        bool operator!=(const HDF5_DatatypeWrapper& other) {
+        bool operator!=(const HDF5_DatatypeWrapper& other) const{
             return !(*this == other);
         }
 
@@ -570,22 +536,25 @@ namespace HDF5_Wrapper
 
     struct HDF5_DataspaceOptions
     {
-        std::vector<hsize_t> dims;
-        std::vector<hsize_t> maxdims;
+        // 32 dims are the HDF5 limit but each dim can have 64bit of length
+        std::array<hsize_t,32> dims;
+        std::array<hsize_t,32> maxdims;
 
+        constexpr HDF5_DataspaceOptions() {
+            dims.fill(0);
+            dims[0]=1;
+            maxdims.fill(H5S_UNLIMITED);
+        }
         std::int32_t getRank() const
         {
+            constexpr const std::array<hsize_t,1> zero {0};
             assert(dims.size() == maxdims.size());
-            const auto ndims = dims.size();
+            auto result = std::find_first_of(dims.begin(),dims.end(),zero.begin(),zero.end());
+            const auto ndims = std::distance(dims.begin(), result);
             constexpr const auto int32max = std::numeric_limits<std::int32_t>::max();
             if (int32max < ndims)
                 throw std::runtime_error{ "Too many dimension. Cannot determine rank due to overflow!" };
             return static_cast<std::int32_t>(ndims);
-        }
-
-        void makeUnlimited()
-        {
-            maxdims = std::vector<hsize_t>(static_cast<hsize_t>(dims.size()), H5S_UNLIMITED);
         }
 
         bool isUnlimited() const noexcept
@@ -594,6 +563,7 @@ namespace HDF5_Wrapper
             return (found != maxdims.end());
         }
     };
+
     class HDF5_DataspaceWrapper : public HDF5_GeneralType<HDF5_DataspaceWrapper>
     {
         using ThisClass = HDF5_DataspaceWrapper;
@@ -698,7 +668,7 @@ namespace HDF5_Wrapper
             {
                 if (loc.checkLinkExists<ThisClass>(path, options)) { //Link does exist
                     H5O_info_t oinfo;
-                    MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, options.access_propertylist);
+                    MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                     assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
