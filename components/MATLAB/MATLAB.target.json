@@ -6,15 +6,12 @@
     ],
     "sources" : [
         "src/Matlab_Archive.cpp",
-        "include/SerAr/MATLAB/Matlab_Archive.h"
+        "include/Matlab_Archive.h"
     ],
     "include_directories" : {
         "public" : [ 
             "${Matlab_INCLUDE_DIRS}",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        ],
-        "private" : [
-            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/SerAr/MATLAB/>"
         ]
     },
     "link_libraries" : {
@@ -31,6 +28,6 @@
         ]
     },
     "public_headers": [
-        "include/SerAr/MATLAB/Matlab_Archive.h"
+        "include/Matlab_Archive.h"
     ]
 }
