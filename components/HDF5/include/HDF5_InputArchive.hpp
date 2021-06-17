@@ -3,7 +3,6 @@
 #include <string>
 #include <type_traits>
 
-
 #include <MyCEL/basics/BasicMacros.h>
 
 #include <SerAr/Core/NamedValue.h>
@@ -407,8 +406,8 @@ namespace Archives
             }
         }
 
-        template<typename T>
-        inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<std::remove_cvref_t<T>> > load(T& value)
+        template<typename T> requires HDF5_ArchiveReadAble<std::remove_cvref_t<T>,ThisClass>
+        inline void load(T& value)
         {
             getData(value);
         }
