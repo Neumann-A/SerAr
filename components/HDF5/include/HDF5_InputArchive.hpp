@@ -366,8 +366,8 @@ namespace Archives
             }
 
             HDF5_DataspaceOptions memoryspaceopt;
-            memoryspaceopt.dims.resize(dims.size());
-            memoryspaceopt.maxdims.resize(dims.size());
+            memoryspaceopt.dims.fill(0);
+            memoryspaceopt.maxdims.fill(0);
             std::reverse_copy(dims.begin(), dims.end(), memoryspaceopt.dims.begin());
             std::reverse_copy(dims.begin(), dims.end(), memoryspaceopt.maxdims.begin());
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };

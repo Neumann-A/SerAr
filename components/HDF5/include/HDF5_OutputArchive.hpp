@@ -388,8 +388,8 @@ namespace Archives
             //Settings storage dimensions
             HDF5_DataspaceOptions dataspaceopts;
             const auto valdims = val.dimensions();
-            dataspaceopts.dims.resize(valdims.size());
-            dataspaceopts.maxdims.resize(valdims.size());
+            dataspaceopts.dims.fill(0);
+            dataspaceopts.maxdims.fill(0);
             std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.dims.begin());
             std::reverse_copy(valdims.begin(), valdims.end(), dataspaceopts.maxdims.begin());
 
@@ -403,8 +403,8 @@ namespace Archives
 
             //Settings memory dimensions
             HDF5_DataspaceOptions memoryspaceopt;
-            memoryspaceopt.dims.resize(valdims.size());
-            memoryspaceopt.maxdims.resize(valdims.size());
+            memoryspaceopt.dims.fill(0);
+            memoryspaceopt.maxdims.fill(0);
             std::reverse_copy(valdims.begin(), valdims.end(), memoryspaceopt.dims.begin());
             std::reverse_copy(valdims.begin(), valdims.end(), memoryspaceopt.maxdims.begin());
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), HDF5_DataspaceWrapper(memoryspacetype, memoryspaceopt) };
