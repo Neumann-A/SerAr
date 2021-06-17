@@ -36,40 +36,6 @@ namespace Archives
         friend class OutputArchive<ThisClass>;
         //needed so that the detector idom works with clang-cl (for some unknown reason!)
         template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
-        
-    public:
-        using Options = HDF5_InputOptions;
-
-        HDF5_InputArchive(const std::filesystem::path &path, const HDF5_InputOptions& options)
-            : InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
-            static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
-        }
-
-        DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
-
-        template<typename T>
-        inline void load(Archives::NamedValue<T>& value)
-        {
-            const bool empty_string = value.getName().empty();
-            if (!empty_string) {
-                appendPath(value.getName()); //Sets the name for the next Dataset or Group
-                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    openGroup(value, getPath());
-            }
-            this->operator()(value.getValue()); //Write Data to the Group or Dataset
-            if (!empty_string) {
-                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    closeLastGroup();
-                removePath(); //Remove the Last Fieldname
-            }
-        }
-
-        template<typename T>
-        inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<std::remove_cvref_t<T>> > load(T& value)
-        {
-            getData(value);
-        }
-
     private:
         using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
         //using LastDataset = HDF5_Wrapper::HDF5_DatasetWrapper;
@@ -163,7 +129,6 @@ namespace Archives
             dataset.readData(val, memoryopts);
         }
 
-
         template<typename T>
         std::enable_if_t<stdext::is_arithmetic_container_v<std::remove_cvref_t<T>> &&
          !stdext::is_associative_container_v<std::remove_cvref_t<T>> > getData(T& val)
@@ -224,7 +189,7 @@ namespace Archives
                 memoryspaceopt.dims[0] = val.size();
                 memoryspaceopt.maxdims[0] = val.size();
                 HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), stordataspace };
-                std::vector<std::int64_t> offset{ { 0 } };
+                std::vector<std::int64_t> offset{ 0 };
                 for (auto& elem : val)
                 {
                     dataset.readData(elem, memoryopts, stordataspace);
@@ -272,7 +237,7 @@ namespace Archives
             memoryspaceopt.dims[0] = val.size();
             memoryspaceopt.maxdims[0] = val.size();
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], datatypeopts), stordataspace };
-            std::vector<std::int64_t> offset{ { 0 } };
+            std::vector<std::int64_t> offset{ 0 };
             for (auto& str : val)
             {
                 dataset.readData(str, memoryopts, stordataspace);
@@ -419,7 +384,38 @@ namespace Archives
         }
 #endif
 #endif
+    public:
+        using Options = HDF5_InputOptions;
 
+        HDF5_InputArchive(const std::filesystem::path &path, const HDF5_InputOptions& options)
+            : InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
+            static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
+        }
+
+        DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
+
+        template<typename T>
+        inline void load(Archives::NamedValue<T>& value)
+        {
+            const bool empty_string = value.getName().empty();
+            if (!empty_string) {
+                appendPath(value.getName()); //Sets the name for the next Dataset or Group
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    openGroup(value, getPath());
+            }
+            this->operator()(value.getValue()); //Write Data to the Group or Dataset
+            if (!empty_string) {
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    closeLastGroup();
+                removePath(); //Remove the Last Fieldname
+            }
+        }
+
+        template<typename T>
+        inline std::enable_if_t< HDF5_traits::has_getData_from_HDF5_v<std::remove_cvref_t<T>> > load(T& value)
+        {
+            getData(value);
+        }
     };
 
     #define HDF5_ARCHIVE_LOAD(type) extern template void HDF5_InputArchive::load< type &>(NamedValue< type &> &);

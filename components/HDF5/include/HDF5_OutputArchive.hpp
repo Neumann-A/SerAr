@@ -52,39 +52,6 @@ namespace Archives
     {
         using ThisClass = HDF5_OutputArchive;
 
-    public:
-        using Options = HDF5_OutputOptions;
-       
-        HDF5_OutputArchive(const std::filesystem::path &path, const HDF5_OutputOptions& options = HDF5_OutputOptions{})
-            : OutputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {
-            static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
-        };
-
-        DISALLOW_COPY_AND_ASSIGN(HDF5_OutputArchive)
-
-        template<typename T>
-        inline void save(const Archives::NamedValue<T>& value)
-        {
-            const bool empty_string = value.getName().empty();
-            if (!empty_string) {
-                appendPath(value.getName()); //Sets the name for the next Dataset or Group
-                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    createOrOpenGroup(value, getPath());
-            }
-            this->operator()(value.getValue()); //Write Data to the Group or Dataset
-            if (!empty_string) {
-                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    closeLastGroup(value);
-                removePath(); //Remove the Last Fieldname
-            }
-        };
-
-        template <typename T> requires HDF5_ArchiveWriteAble<T, ThisClass>
-        inline void save(const T& value)
-        {
-            write(value);
-        };
-
     private:
         
         using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
@@ -250,7 +217,7 @@ namespace Archives
                 const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
                 HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), stordataspace };
 
-                std::vector<std::int64_t> offset{ { 0 } };
+                std::vector<std::int64_t> offset{ 0 };
                 for (const auto& str : val)
                 {
                     dataset.writeData(str, memoryopts, stordataspace);
@@ -297,7 +264,7 @@ namespace Archives
                 const auto memorytypeopts{ mOptions.DefaultDatatypeOptions };
                 HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val[0], memorytypeopts), stordataspace };
 
-                std::vector<std::int64_t> offset{ {0} };
+                std::vector<std::int64_t> offset{ 0 };
                 for (const auto& str : val)
                 {
                     dataset.writeData(str.c_str(), memoryopts, stordataspace);
@@ -445,6 +412,37 @@ namespace Archives
             dataset.writeData(*val.data(), memoryopts);
         }
 #endif
+    public:
+        using Options = HDF5_OutputOptions;
+        HDF5_OutputArchive(const std::filesystem::path &path, const HDF5_OutputOptions& options = HDF5_OutputOptions{})
+            : OutputArchive(this), mFile(openOrCreateFile(path, options)), mOptions(options) {
+            static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
+        };
+
+        DISALLOW_COPY_AND_ASSIGN(HDF5_OutputArchive)
+
+        template<typename T>
+        inline void save(const Archives::NamedValue<T>& value)
+        {
+            const bool empty_string = value.getName().empty();
+            if (!empty_string) {
+                appendPath(value.getName()); //Sets the name for the next Dataset or Group
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    createOrOpenGroup(value, getPath());
+            }
+            this->operator()(value.getValue()); //Write Data to the Group or Dataset
+            if (!empty_string) {
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    closeLastGroup(value);
+                removePath(); //Remove the Last Fieldname
+            }
+        };
+
+        template <typename T> requires HDF5_ArchiveWriteAble<T, ThisClass>
+        inline void save(const T& value)
+        {
+            write(value);
+        };
     };
     
     #define HDF5_ARCHIVE_SAVE(type) extern template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &);
