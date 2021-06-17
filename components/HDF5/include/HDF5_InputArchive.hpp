@@ -58,6 +58,11 @@ namespace Archives
         }
 
         //TODO: Move those function into another class which can also be used by the Output Archive
+        bool isValidNextLocation(const std::string&) const
+        {
+            //TODO: Check the Location name for invalid characters
+            return true;
+        }
         void appendPath(const std::string& str)
         {
             if (!isValidNextLocation(str))
@@ -76,13 +81,11 @@ namespace Archives
             assert(!mPathStack.empty());
             mPathStack.pop();
         }
-
-        bool isValidNextLocation(const std::string&) const
+        const auto& getCurrentLocation()
         {
-            //TODO: Check the Location name for invalid characters
-            return true;
+            using namespace HDF5_Wrapper;
+            return mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
         }
-
         template<typename T>
         void openGroup(const T&, const std::string& path)
         {
@@ -91,18 +94,11 @@ namespace Archives
             HDF5_GroupWrapper group{ getCurrentLocation(), path, opts };
             mGroupStack.push(std::move(group));
         }
-
         void closeLastGroup()
         {
             assert(!mGroupStack.empty());
             mGroupStack.pop(); // Just pop it from the stack. The Destructor will close it!
         };
-
-        const auto& getCurrentLocation()
-        {
-            using namespace HDF5_Wrapper;
-            return mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
-        }
 
         template<typename T>
         std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>> ||

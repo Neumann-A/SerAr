@@ -93,7 +93,6 @@ namespace Archives
             assert(!mPathStack.empty());
             mPathStack.pop();
         }
-
         const auto& getCurrentLocation()
         {
             using namespace HDF5_Wrapper;
