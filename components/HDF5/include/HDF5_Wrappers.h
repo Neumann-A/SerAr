@@ -40,8 +40,8 @@
 
 namespace HDF5_Wrapper
 {
-    using hdf5path = typename std::filesystem::path;
-    using filepath = typename std::filesystem::path;
+    using hdf5path = std::filesystem::path;
+    using filepath = std::filesystem::path;
 
 
     ///-------------------------------------------------------------------------------------------------

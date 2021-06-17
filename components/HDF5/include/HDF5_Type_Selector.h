@@ -109,6 +109,10 @@ namespace HDF5_Wrapper
                 return H5T_NATIVE_LLONG;
             } else if constexpr(std::is_same_v<unsigned long long,T>) {
                 return H5T_NATIVE_ULLONG;
+            } else if constexpr(std::is_same_v<long long int,T>) {
+                return H5T_NATIVE_LLONG;
+            } else if constexpr(std::is_same_v<unsigned long long int,T>) {
+                return H5T_NATIVE_ULLONG;
             } else if constexpr(std::is_same_v<std::int64_t,T>) {
                 return H5T_NATIVE_INT64;
             } else if constexpr(std::is_same_v<std::uint64_t,T>) {
