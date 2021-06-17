@@ -73,14 +73,14 @@ namespace HDF5_Wrapper
     {
         template<typename T>
         inline static std::enable_if_t<std::is_arithmetic_v<T>,hid_t> getType(const T& ) {
-            if constexpr(std::is_same_v<char,T>) {
+            if constexpr(std::is_same_v<bool,T>) {
+                return H5T_NATIVE_HBOOL;
+            } else if constexpr(std::is_same_v<char,T>) {
                 return H5T_NATIVE_CHAR;
             } else if constexpr(std::is_same_v<signed char,T>) {
                 return H5T_NATIVE_SCHAR; 
             } else if constexpr(std::is_same_v<unsigned char,T>) {
                 return H5T_NATIVE_UCHAR;
-            } else if constexpr(std::is_same_v<bool,T>) {
-                return H5T_NATIVE_HBOOL;
             } else if constexpr(std::is_same_v<std::int8_t,T>) {
                 return H5T_NATIVE_INT8;
             } else if constexpr(std::is_same_v<std::uint8_t,T>) {
@@ -105,6 +105,10 @@ namespace HDF5_Wrapper
                 return H5T_NATIVE_LONG;
             } else if constexpr(std::is_same_v<unsigned long,T>) {
                 return H5T_NATIVE_ULONG;
+            } else if constexpr(std::is_same_v<long long,T>) {
+                return H5T_NATIVE_LLONG;
+            } else if constexpr(std::is_same_v<unsigned long long,T>) {
+                return H5T_NATIVE_ULLONG;
             } else if constexpr(std::is_same_v<std::int64_t,T>) {
                 return H5T_NATIVE_INT64;
             } else if constexpr(std::is_same_v<std::uint64_t,T>) {
