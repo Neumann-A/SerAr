@@ -41,26 +41,6 @@ namespace Archives
     {
         ar.getData(value);
     };
-    namespace HDF5_traits
-    {
-
-
-        template<class Class, typename Args>
-        using write_to_HDF5_t = decltype(std::declval<Class>().write(std::declval<std::remove_cvref_t<Args&>>()));
-
-        template<typename Type>
-        class has_write_to_HDF5 : public stdext::is_detected_exact<void, write_to_HDF5_t, HDF5_OutputArchive, Type> {};
-        template<typename Type>
-        static constexpr bool has_write_to_HDF5_v = has_write_to_HDF5<Type>::value;
-
-        template<class Class, typename Args>
-        using getData_from_HDF5_t = decltype(std::declval<Class>().getData(std::declval<Args&>()));
-        template<typename Type>
-        class has_getData_from_HDF5 : public stdext::is_detected_exact<void, getData_from_HDF5_t, HDF5_InputArchive, Type> {};
-        template<typename Type>
-        static constexpr bool has_getData_from_HDF5_v = has_getData_from_HDF5<Type>::value;
-    }
-    
 
     /*****************************************************************************************/
     /****************** HDF5 Archive Helper								 *********************/
@@ -93,11 +73,11 @@ namespace Archives
             }
         }
 
-        template<typename T>
-        static HDF5_Wrapper::HDF5_DataspaceWrapper getDataspaceSelection(const T& val)
-        {
+        // template<typename T>
+        // static HDF5_Wrapper::HDF5_DataspaceWrapper getDataspaceSelection(const T& val)
+        // {
 
-        }
+        // }
     };
 }
 

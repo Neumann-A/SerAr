@@ -105,6 +105,10 @@ namespace HDF5_Wrapper
                 return H5T_NATIVE_LONG;
             } else if constexpr(std::is_same_v<unsigned long,T>) {
                 return H5T_NATIVE_ULONG;
+            } else if constexpr(std::is_same_v<long int,T>) {
+                return H5T_NATIVE_LONG;
+            } else if constexpr(std::is_same_v<unsigned long int,T>) {
+                return H5T_NATIVE_ULONG;
             } else if constexpr(std::is_same_v<long long,T>) {
                 return H5T_NATIVE_LLONG;
             } else if constexpr(std::is_same_v<unsigned long long,T>) {
@@ -125,6 +129,7 @@ namespace HDF5_Wrapper
                 return H5T_NATIVE_LDOUBLE;
             } else {
                 static_assert(!std::is_same_v<T,T>);
+                return H5T_NATIVE_HERR;
             } 
         };
 
@@ -198,9 +203,29 @@ namespace HDF5_Wrapper
                 } else {
                     return H5T_STD_U64LE;
                 }
+            } else if constexpr(std::is_same_v<long int,T>) {
+                if constexpr (sizeof(int)==sizeof(long int)) {
+                    return H5T_STD_I32LE;
+                } else {
+                    return H5T_STD_I64LE;
+                }
+            } else if constexpr(std::is_same_v<unsigned long int,T>) {
+                if constexpr (sizeof(unsigned int)==sizeof(unsigned long int)) {
+                    return H5T_STD_U32LE;
+                } else {
+                    return H5T_STD_U64LE;
+                }
             } else if constexpr(std::is_same_v<std::int64_t,T>) {
                 return H5T_STD_I64LE;
             } else if constexpr(std::is_same_v<std::uint64_t,T>) {
+                return H5T_STD_U64LE;
+            } else if constexpr(std::is_same_v<long long,T>) {
+                return H5T_STD_I64LE;
+            } else if constexpr(std::is_same_v<unsigned long long,T>) {
+                return H5T_STD_U64LE;
+            } else if constexpr(std::is_same_v<long long int,T>) {
+                return H5T_STD_I64LE;
+            } else if constexpr(std::is_same_v<unsigned long long int,T>) {
                 return H5T_STD_U64LE;
             } else if constexpr(std::is_same_v<float,T>) {
                 return H5T_IEEE_F32LE;
@@ -208,6 +233,7 @@ namespace HDF5_Wrapper
                 return H5T_IEEE_F64LE;
             } else {
                 static_assert(!std::is_same_v<T,T>);
+                return H5T_NATIVE_HERR;
             } 
         }
         
@@ -285,9 +311,29 @@ namespace HDF5_Wrapper
                     } else {
                         return H5T_STD_U64BE;
                     }
+                } else if constexpr(std::is_same_v<long int,T>) {
+                    if constexpr (sizeof(int)==sizeof(long int)) {
+                        return H5T_STD_I32BE;
+                    } else {
+                        return H5T_STD_I64BE;
+                    }
+                } else if constexpr(std::is_same_v<unsigned long int,T>) {
+                    if constexpr (sizeof(unsigned int)==sizeof(unsigned long int)) {
+                        return H5T_STD_U32BE;
+                    } else {
+                        return H5T_STD_U64BE;
+                    }
                 } else if constexpr(std::is_same_v<std::int64_t,T>) {
                     return H5T_STD_I64BE;
                 } else if constexpr(std::is_same_v<std::uint64_t,T>) {
+                    return H5T_STD_U64BE;
+                } else if constexpr(std::is_same_v<long long,T>) {
+                    return H5T_STD_I64BE;
+                } else if constexpr(std::is_same_v<unsigned long long,T>) {
+                    return H5T_STD_U64BE;
+                } else if constexpr(std::is_same_v<long long int,T>) {
+                    return H5T_STD_I64BE;
+                } else if constexpr(std::is_same_v<unsigned long long int,T>) {
                     return H5T_STD_U64BE;
                 } else if constexpr(std::is_same_v<float,T>) {
                     return H5T_IEEE_F32BE;
@@ -295,6 +341,7 @@ namespace HDF5_Wrapper
                     return H5T_IEEE_F64BE;
                 } else {
                     static_assert(!std::is_same_v<T,T>);
+                    return H5T_NATIVE_HERR;
                 } 
             }
             //template<typename T>
