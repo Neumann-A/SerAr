@@ -271,8 +271,10 @@ namespace Archives
             //Eigen::Matrix<typename T::Scalar, Eigen::Dynamic, Eigen::Dynamic> Storage(cols, rows);
 
             HDF5_DataspaceOptions memoryspaceopt;
-            memoryspaceopt.dims = std::vector<hsize_t>{ { static_cast<hsize_t>(rows), static_cast<hsize_t>(cols) } };
-            memoryspaceopt.maxdims = std::vector<hsize_t>{ { static_cast<hsize_t>(rows), static_cast<hsize_t>(cols) } };
+            memoryspaceopt.dims[0] = static_cast<hsize_t>(rows);
+            memoryspaceopt.dims[1] = static_cast<hsize_t>(cols);
+            memoryspaceopt.maxdims[0] = static_cast<hsize_t>(rows);
+            memoryspaceopt.maxdims[1] = static_cast<hsize_t>(cols);
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
 
             //TODO: add code for dynamic sized matrix!
