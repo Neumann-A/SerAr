@@ -96,7 +96,7 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseTypeMemberSave = !UseArchiveSave<Type,Ar> && TypeMemberSaveable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeFunctionSave = !UseArchiveSave<Type,Ar> && TypeFunctionSaveable<Type,Ar>;
+    concept UseTypeFunctionSave = !UseArchiveSave<Type,Ar> && !UseTypeMemberSave<Type,Ar> && TypeFunctionSaveable<Type,Ar>;
 
     // Loadable concepts
     template<typename Type, typename Ar>
@@ -119,7 +119,7 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseTypeMemberLoad = !UseArchiveLoad<Type,Ar> && TypeMemberLoadable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeFunctionLoad = !UseArchiveLoad<Type,Ar> && TypeFunctionLoadable<Type,Ar>;
+    concept UseTypeFunctionLoad =  !UseArchiveLoad<Type,Ar> && !UseTypeMemberLoad<Type,Ar> && TypeFunctionLoadable<Type,Ar>;
 
 
     // Serializeable concept
@@ -146,7 +146,7 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseTypeMemberSerialize = !UseArchive<Type,Ar> && TypeMemberSerializeable<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeFunctionSerialize = !UseArchive<Type,Ar> && TypeFunctionSerializeable<Type,Ar>;
+    concept UseTypeFunctionSerialize = !UseArchive<Type,Ar> && !UseTypeMemberSerialize<Type,Ar> && TypeFunctionSerializeable<Type,Ar>;
 
     // Prologue concept
     template<typename Type, typename Ar>
@@ -165,9 +165,11 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseArchiveFunctionPrologue = !UseArchiveMemberPrologue<Type,Ar> && ArchiveFunctionPrologue<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeMemberPrologue = !UseArchiveFunctionPrologue<Type,Ar> && TypeMemberPrologue<Type,Ar>;
+    concept UseArchivePrologue= (UseArchiveFunctionPrologue<Type, Ar> || UseArchiveMemberPrologue<Type, Ar>);
     template<typename Type, typename Ar>
-    concept UseTypeFunctionPrologue = !UseArchiveFunctionPrologue<Type,Ar> && TypeFunctionPrologue<Type,Ar>;
+    concept UseTypeMemberPrologue = !UseArchivePrologue<Type,Ar> && TypeMemberPrologue<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept UseTypeFunctionPrologue = !UseArchivePrologue<Type,Ar> && !UseTypeMemberPrologue<Type,Ar> && TypeFunctionPrologue<Type,Ar>;
     // Epilogue concept
     template<typename Type, typename Ar>
     concept TypeMemberEpilogue = IsArchive<Ar> && details::MemberEpilogue<Type, Ar>;
@@ -185,9 +187,11 @@ namespace SerAr
     template<typename Type, typename Ar>
     concept UseArchiveFunctionEpilogue = !UseArchiveMemberEpilogue<Type,Ar> && ArchiveFunctionEpilogue<Type,Ar>;
     template<typename Type, typename Ar>
-    concept UseTypeMemberEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeMemberEpilogue<Type,Ar>;
+    concept UseArchiveEpilogue = (UseArchiveFunctionEpilogue<Type, Ar> || UseArchiveMemberEpilogue<Type, Ar>);
     template<typename Type, typename Ar>
-    concept UseTypeFunctionEpilogue = !UseArchiveFunctionEpilogue<Type,Ar> && TypeFunctionEpilogue<Type,Ar>;
+    concept UseTypeMemberEpilogue = !UseArchiveEpilogue<Type,Ar> && TypeMemberEpilogue<Type,Ar>;
+    template<typename Type, typename Ar>
+    concept UseTypeFunctionEpilogue = !UseArchiveEpilogue<Type,Ar> && !UseTypeMemberEpilogue<Type,Ar> && TypeFunctionEpilogue<Type,Ar>;
 
     //
     template<typename Type, typename Ar>
