@@ -15,6 +15,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <concepts>
 
 #include <filesystem>
 #include <type_traits>
@@ -71,30 +72,18 @@
 
 //Needs the following PATH = C:\Program Files\Matlab\R2015b\bin\win64; %PATH%
 
+
+
 namespace Archives
 {
-    namespace MATLAB_traits
-    {
-        //Check if Type has the function create_MATLAB within the Archive
-        template<class Class, typename Type>
-        using create_MATLAB_t = decltype(std::declval<Class>().createMATLABArray(std::declval<const Type&>()));
-        template<typename MATClass, typename Type>
-        class has_create_MATLAB : public stdext::is_detected_exact<mxArray&, create_MATLAB_t, MATClass, Type> {};
-        template<typename MATClass, typename Type>
-        static constexpr bool has_create_MATLAB_v = has_create_MATLAB<MATClass, Type>::value;
-
-        //Check if the type has a function to load it from an mxArray
-        template<class Class, typename Type>
-        using getvalue_MATLAB_t = decltype(std::declval<Class>().getValue(std::declval<Type&>(), std::declval<mxArray const * const>()));
-        //using getvalue_MATLAB_t = decltype(std::declval<Class>().getValue(std::declval<std::add_lvalue_reference_t<std::decay_t<Args>>>()...));
-        template<typename MATClass, typename Type>
-        class has_getvalue_MATLAB : public stdext::is_detected<getvalue_MATLAB_t, MATClass, Type> {};
-
-        //template<typename MATClass, typename Type>
-        //class has_loadType_MATLAB : public stdext::is_detected<loadtype_MATLAB_t, MATClass, Type> {};
-        template<typename MATClass, typename Type>
-        static constexpr bool has_getvalue_MATLAB_v = has_getvalue_MATLAB<MATClass, Type>::value;
-    }
+    template<typename Ar, typename T>
+    concept HasCreateMATLAB = requires (const T& value, Ar& ar) {
+        ar.createMATLABArray(value);
+    };
+    template<typename Ar, typename T>
+    concept HasGetValueMATLAB = requires (T& value, Ar& ar) {
+        ar.getValue(value,std::declval<mxArray const * const>());
+    };
 
     namespace MATLAB
     {
@@ -189,12 +178,12 @@ namespace Archives
     //write: Opens file for writing only; deletes previous contents, if any.
     //write_v4: Creates a MAT-file compatible with MATLAB� Versions 4 software and earlier.
     //write_v6: Creates a MAT-file compatible with MATLAB Version 5 (R8) software or earlier. Equivalent to wL mode.
-    //write_local :Opens file for writing character data using the default character set for your system. Use MATLAB Version 6 or 6.5 software to read the resulting MAT-file.
-    //			     	  If you do not use the wL mode switch, MATLAB writes character data to the MAT-file using Unicode� character encoding by default.
-    //					  Equivalent to w6 mode.
+    //write_local : Opens file for writing character data using the default character set for your system. Use MATLAB Version 6 or 6.5 software to read the resulting MAT-file.
+    //              If you do not use the wL mode switch, MATLAB writes character data to the MAT-file using Unicode� character encoding by default.
+    //              Equivalent to w6 mode.
     //write_v7: Creates a MAT-file compatible with MATLAB Version 7.0 (R14) software or earlier. Equivalent to wz mode.
     //write_compressed: Opens file for writing compressed data. By default, the MATLAB save function compresses workspace variables as they are saved to a MAT-file. To use the same compression ratio when creating a MAT-file with the matOpen function, use the wz option.
-    //						  Equivalent to w7 mode.
+    //                  Equivalent to w7 mode.
     //write_v73: Creates a MAT-file in an HDF5-based format that can store objects that occupy more than 2 GB.
     enum class MatlabOptions {read, update, write, write_v4, write_v6, write_local, write_v7, write_compressed, write_v73};
     
@@ -257,32 +246,29 @@ namespace Archives
         template<typename T>
         inline void save(const Archives::NamedValue<T>& value)
         {
-            setNextFieldname(value.name);  //Set the Name of the next Field
-            this->operator()(value.val); //Write Data to the Field/struct
-            clearNextFieldname();				//Remove the last Fieldname
+            setNextFieldname(value.name);   //Set the Name of the next Field
+            this->operator()(value.val);    //Write Data to the Field/struct
+            clearNextFieldname();           //Remove the last Fieldname
         }
         template<typename T>
         inline void save(const Archives::NamedValueWithDesc<T>& value)
         {
-            setNextFieldname(value.name);  //Set the Name of the next Field
-            this->operator()(value.val); //Write Data to the Field/struct
-            clearNextFieldname();				//Remove the last Fieldname
+            setNextFieldname(value.name);   //Set the Name of the next Field
+            this->operator()(value.val);    //Write Data to the Field/struct
+            clearNextFieldname();           //Remove the last Fieldname
         }
         
-        template<typename T>
-        inline std::enable_if_t<MATLAB_traits::has_create_MATLAB_v<MatlabOutputArchive,  std::decay_t<T>>> save(const T& value)
-        {	//SFINE checks wether T can be saved by this MATLAB Archive!
+        template<typename T> requires (HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
+        inline void save(const T& value)
+        {
             using Type = std::remove_reference_t<T>;
             //TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
-            if (nextFieldname.empty()) //We need to create a fieldname 
+            if (nextFieldname.empty()) { //We need to create a fieldname 
                 nextFieldname = typeid(T).name(); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
-            
+            }
             static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
-
             auto& arrdata = createMATLABArray<Type>(value);
-            
             Fields.push(std::make_tuple(std::move(nextFieldname), &arrdata));
-
             finishMATLABArray();
         }
 
@@ -313,14 +299,16 @@ namespace Archives
             return *pMAT;
         }
         
-        template<typename T>
-        inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > prologue(const T& value)
+        template<typename T> requires (UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
+                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>)
+        inline void prologue(const T& value)
         {
             checkNextFieldname(value);	//Check the Fieldname for validity
             startMATLABArray(value);	//Start a new Matlab Array or Struct
         }
-        template<typename T>
-        inline std::enable_if_t<traits::uses_type_save_v<T, MatlabOutputArchive> > epilogue(const T&)
+        template<typename T> requires (UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
+                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>)
+        inline void epilogue(const T&)
         {
             finishMATLABArray();	//Finish the Array (write it to the Array above)
         }
@@ -338,7 +326,6 @@ namespace Archives
         {
             finishMATLABArray();
         }
-
 
         inline void setNextFieldname(const std::string &str) noexcept
         {
@@ -361,8 +348,8 @@ namespace Archives
         }
 
         //Starting a new field
-        template<typename T>
-        inline std::enable_if_t<!MATLAB_traits::has_create_MATLAB_v<MatlabOutputArchive, std::decay_t<T>>> startMATLABArray(const T& val)
+        template<typename T> requires (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
+        inline void startMATLABArray(const T& val)
         {
             checkNextFieldname(val);
 
@@ -396,9 +383,9 @@ namespace Archives
     
         //Save all other arithmetics types
         template<typename T>
-        std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>, mxArray&> createMATLABArray(const T& value) const
+        std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const T& value) const
         {
-            mxArray *valarray = mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::decay_t<T>>::value, mxREAL);
+            mxArray *valarray = mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::remove_cvref_t<T>>::value, mxREAL);
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
             *static_cast<T*>(mxGetData(valarray)) = value;
@@ -421,7 +408,7 @@ namespace Archives
         template<typename T>
         std::enable_if_t<stdext::is_arithmetic_container_v<T>, mxArray&> createMATLABArray(const T& value) const
         {
-            using DataType = std::decay_t<typename T::value_type>;
+            using DataType = std::remove_cvref_t<typename T::value_type>;
 
             mxArray *valarray = mxCreateNumericMatrix(value.size(),1, MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
             if (valarray == nullptr)
@@ -445,7 +432,7 @@ namespace Archives
         std::enable_if_t<stdext::is_container_with_eigen_type_v<T>, mxArray&>
             createMATLABArray(const T& value) const
         {
-            using EigenMatrix = typename std::decay_t<T>::value_type;
+            using EigenMatrix = typename std::remove_cvref_t<T>::value_type;
             using DataType = typename EigenMatrix::Scalar;
             const auto& first = value.begin();
             const mwSize rows = static_cast<mwSize>(first->rows());
@@ -508,8 +495,8 @@ namespace Archives
                 }
                 else {
                     dataposition += rows*cols;
-                }		
-            }																																									
+                }
+            }
             return *valarray;
         }
 
@@ -538,9 +525,9 @@ namespace Archives
 
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
         template<typename T>
-        inline std::enable_if_t< stdext::is_eigen_tensor_v<std::decay_t<T>>, mxArray&> createMATLABArray(const T& value) const
+        inline std::enable_if_t< stdext::is_eigen_tensor_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const T& value) const
         {
-            using Type = std::decay_t<T>; // T cannot be const
+            using Type = std::remove_cvref_t<T>; // T cannot be const
             using DataType = typename T::Scalar;
             using Index = typename T::Index;
             using Dimensions = typename T::Dimensions;
@@ -611,9 +598,9 @@ namespace Archives
             this->operator()(value.val);		//Load Data from the Field or struct.
             releaseField();						//Remove the last Fieldname (Move Up)
         }
-        template<typename T>
-        inline std::enable_if_t<MATLAB_traits::has_getvalue_MATLAB_v<MatlabInputArchive, std::decay_t<T>>> load(T& value)
-        {			
+        template<typename T> requires (HasGetValueMATLAB<MatlabInputArchive,std::remove_cvref_t<T>>)
+        inline void load(T& value)
+        {
             using Type = std::decay_t<T>; // T cannot be const 
             const auto fieldptr = std::get<1>(mFields.top());
             
@@ -622,10 +609,10 @@ namespace Archives
             getValue(value, fieldptr);
         }
         template<typename T>
-        inline std::enable_if_t<std::is_arithmetic_v<std::decay_t<T>>> getValue(T& loadtarget, mxArray const * const field)
+        inline std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>>> getValue(T& loadtarget, mxArray const * const field)
         {
             assert(field != nullptr);
-            using DataType = std::decay_t<T>;
+            using DataType = std::remove_cvref_t<T>;
             loadtarget = *reinterpret_cast<DataType*>(mxGetData(field));
         };
         template<typename T>
@@ -639,11 +626,11 @@ namespace Archives
         };
 
         template<typename T>
-        inline std::enable_if_t<stdext::is_arithmetic_container_v<std::decay_t<T>>> load(T& value)
+        inline std::enable_if_t<stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>> load(T& value)
         {
             //TODO: Check if this will work for all containers containing arithmetic types!
-            using Type = std::decay_t<T>; // T cannot be const
-            using DataType = typename std::decay_t<typename std::decay_t<T>::value_type>;
+            using Type = std::remove_cvref_t<T>; // T cannot be const
+            using DataType = typename std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type>;
             const auto fieldptr = std::get<1>(mFields.top());
             const auto cols = mxGetN(fieldptr);
             const auto rows = mxGetM(fieldptr);
@@ -669,9 +656,9 @@ namespace Archives
 #ifdef EIGEN_CORE_H
 
         template<typename T>
-        inline std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<T>>> load(T& value)
+        inline std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>> load(T& value)
         {
-            using Type = std::decay_t<T>; // T cannot be const
+            using Type = std::remove_cvref_t<T>; // T cannot be const
             using DataType = typename T::Scalar;
             const auto fieldptr = std::get<1>(mFields.top());
 
@@ -688,10 +675,10 @@ namespace Archives
         }
 
         template<typename T>
-        inline std::enable_if_t<stdext::is_container_with_eigen_type_v<std::decay_t<T>>> load(T& value)
+        inline std::enable_if_t<stdext::is_container_with_eigen_type_v<std::remove_cvref_t<T>>> load(T& value)
         {
-            using Type = std::decay_t<T>;
-            using EigenType = std::decay_t<typename std::decay_t<T>::value_type>; // T cannot be const
+            using Type = std::remove_cvref_t<T>;
+            using EigenType = std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type>; // T cannot be const
             using DataType = typename EigenType::Scalar;
             
             const auto fieldptr = std::get<1>(mFields.top());
@@ -735,9 +722,9 @@ namespace Archives
         }
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
         template<typename T>
-        inline std::enable_if_t<stdext::is_eigen_tensor_v<std::decay_t<T>>> load(T& value)
+        inline std::enable_if_t<stdext::is_eigen_tensor_v<std::remove_cvref_t<T>>> load(T& value)
         {
-            using Type = std::decay_t<T>; // T cannot be const
+            using Type = std::remove_cvref_t<T>; // T cannot be const
             using DataType = typename T::Scalar;
             using Index = typename T::Index;
             using Dimensions = typename T::Dimensions;
@@ -873,15 +860,15 @@ namespace Archives
         };
 
         template<typename Container>
-        std::enable_if_t<stdext::is_container_v<std::decay_t<Container>>> resizeContainer(Container& cont,const std::size_t& size)
+        std::enable_if_t<stdext::is_container_v<std::remove_cvref_t<Container>>> resizeContainer(Container& cont,const std::size_t& size)
         {
-            static_assert(!stdext::is_associative_container_v<std::decay_t<Container>>, "Need to implement assosiative containers in MATLAB. Please do it ;)");
-            if constexpr(std::is_same_v<std::decay_t<Container>, std::array<typename Container::value_type, stdext::array_size<Container>>>)
+            static_assert(!stdext::is_associative_container_v<std::remove_cvref_t<Container>>, "Need to implement assosiative containers in MATLAB. Please do it ;)");
+            if constexpr(std::is_same_v<std::remove_cvref_t<Container>, std::array<typename Container::value_type, stdext::array_size<Container>>>)
             {
                 //std::array is the only fixed size container. So we use an assert here!
                 assert(cont.size() == size);
             }
-            else if constexpr(stdext::is_resizeable_container_v<std::decay_t<Container>>)
+            else if constexpr(stdext::is_resizeable_container_v<std::remove_cvref_t<Container>>)
             {
                 cont.resize(size);
             }
@@ -892,7 +879,7 @@ namespace Archives
                 }
                 else if (cont.size() < size)
                 {	//too few elements
-                    using DataType = std::decay_t<typename std::decay_t<Container>::value_type>;
+                    using DataType = std::remove_cvref_t<typename std::remove_cvref_t<Container>::value_type>;
 
                     const auto toinsert = size - cont.size();
 
@@ -913,7 +900,7 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
         template<typename EigenType>
-        std::enable_if_t<stdext::is_eigen_type_v<std::decay_t<EigenType>>> assignEigenType(EigenType& value, typename EigenType::Scalar * dataposition, const std::size_t& rows, const std::size_t& cols)
+        std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<EigenType>>> assignEigenType(EigenType& value, typename EigenType::Scalar * dataposition, const std::size_t& rows, const std::size_t& cols)
         {
             //TODO: Resize EigenType if necessary
             /* Inserting Data into Array */
