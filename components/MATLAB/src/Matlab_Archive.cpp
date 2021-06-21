@@ -10,9 +10,7 @@ namespace Archives
 {
 
     MatlabInputArchive::MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options)
-        : InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {
-        auto hdf5_module = LoadLibraryA("C:\\Program Files\\MATLAB\\R2021a\\bin\\win64\\hdf5.dll");
-    }
+        : InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {}
     MatlabInputArchive::~MatlabInputArchive() 
     {
         //Cleanup
