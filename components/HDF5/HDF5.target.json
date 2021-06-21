@@ -35,7 +35,8 @@
     },
     "compile_definitions" : {
         "public" : [ 
-            "H5_USE_120_API"
+            "H5_USE_120_API",
+            "H5_NO_DEPRECATED_SYMBOLS"
         ]
     },
     "public_headers": [

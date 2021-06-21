@@ -217,13 +217,13 @@ namespace HDF5_Wrapper
                 case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
                 {
                     if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
-                        H5O_info_t oinfo;
-                        MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
+                        H5O_info2_t oinfo;
+                        MAYBE_UNUSED const auto herr = H5Oget_info_by_name3(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                         assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
                         if (oinfo.type == H5O_TYPE_GROUP) {
-                            return H5Gopen(loc, path.string().c_str(), options.access_propertylist);
+                            return H5Gopen2(loc, path.string().c_str(), options.access_propertylist);
                         }
                         else {
                             std::runtime_error{ "Given path is neither empty nor points to a HDF5 group!" };
@@ -231,14 +231,14 @@ namespace HDF5_Wrapper
 
                     }
                     else { // does not exist
-                        return H5Gcreate(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+                        return H5Gcreate2(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
                     }
                     return -1;
                 }
                 case HDF5_GeneralOptions::HDF5_Mode::Open:
-                    return H5Gopen(loc, path.string().c_str(), options.access_propertylist);
+                    return H5Gopen2(loc, path.string().c_str(), options.access_propertylist);
                 case HDF5_GeneralOptions::HDF5_Mode::Create:
-                    return H5Gcreate(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+                    return H5Gcreate2(loc, path.string().c_str(), options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
                 default:
                     assert(false);
                     return -1;
@@ -264,13 +264,13 @@ namespace HDF5_Wrapper
                 case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
                 {
                     if (loc.template checkLinkExists<T>(path, options)) { //Link does exist
-                        H5O_info_t oinfo;
-                        const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
+                        H5O_info2_t oinfo;
+                        const auto herr = H5Oget_info_by_name3(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                         assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
                         if (oinfo.type == H5O_TYPE_DATASET) {
-                            return H5Dopen(loc, path.string().c_str(), options.access_propertylist);
+                            return H5Dopen2(loc, path.string().c_str(), options.access_propertylist);
                         }
                         else {
                             std::runtime_error{ "Given path is neither empty nor points to a HDF5 Dataset!" };
@@ -278,14 +278,14 @@ namespace HDF5_Wrapper
 
                     }
                     else { // does not exist
-                        return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+                        return H5Dcreate2(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
                     }
                     return -1;
                 }
                 case HDF5_GeneralOptions::HDF5_Mode::Create:
                 {
                     if (!loc.template checkLinkExists<T>(path, options)) { //Link does exist
-                        return H5Dcreate(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
+                        return H5Dcreate2(loc, path.string().c_str(), options.datatype, options.dataspace, options.link_creation_propertylist, options.creation_propertylist, options.access_propertylist);
                     }
                     else {
                         std::runtime_error{ "Given path already exists! Cannot create Dataset!" };
@@ -667,8 +667,8 @@ namespace HDF5_Wrapper
             case HDF5_GeneralOptions::HDF5_Mode::OpenOrCreate:
             {
                 if (loc.checkLinkExists<ThisClass>(path, options)) { //Link does exist
-                    H5O_info_t oinfo;
-                    MAYBE_UNUSED const auto herr = H5Oget_info_by_name(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
+                    H5O_info2_t oinfo;
+                    MAYBE_UNUSED const auto herr = H5Oget_info_by_name3(loc, path.string().c_str(), &oinfo, H5O_INFO_BASIC, options.access_propertylist);
 
                     assert(herr >= 0); // we checked that the link exists so the above should never fail!
 
@@ -732,7 +732,7 @@ namespace HDF5_Wrapper
                 std::unique_ptr<char *> rdata(new char*);
                 const auto err = H5Dread(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, (void*)rdata.get());
                 val = *rdata; //Copy the const char* into string object. May throw if not enough memory is available!
-                H5Dvlen_reclaim(type, memopts.dataspace, H5P_DEFAULT, (void*)rdata.get());
+                H5Treclaim(type, memopts.dataspace, H5P_DEFAULT, (void*)rdata.get());
                 //free(rdata);
                 return err;
             }
