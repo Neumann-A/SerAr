@@ -1,5 +1,5 @@
 {
-    "condition" : "BUILD_TESTING",
+    "condition" : "SERAR_BUILD_TESTING",
     "name" : "SerAr_Test" ,
     "target_type" : "executable",
     "sources" : ["test/SerAr_test.cpp"],
