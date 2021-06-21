@@ -8,6 +8,23 @@
 
 namespace Archives 
 {
+
+    MatlabInputArchive::MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options)
+        : InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {
+        auto hdf5_module = LoadLibraryA("C:\\Program Files\\MATLAB\\R2021a\\bin\\win64\\hdf5.dll");
+    }
+    MatlabInputArchive::~MatlabInputArchive() 
+    {
+        //Cleanup
+        while (!mFields.empty())
+        {
+            if (mFields.size() == 1)
+                mxDestroyArray(std::get<1>(mFields.top()));
+
+            mFields.pop();
+        }
+        matClose(&m_MatlabFile);
+    }
     ///-------------------------------------------------------------------------------------------------
     /// <summary>	Constructor. </summary>
     ///

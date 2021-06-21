@@ -397,7 +397,6 @@ namespace Archives
         std::enable_if_t<stdext::is_string_v<T>,mxArray&> createMATLABArray(const T& value) const
         {
             mxArray *valarray = mxCreateString(value.c_str());
-            
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
@@ -472,8 +471,7 @@ namespace Archives
             std::array<mwSize,ndim> dims = f(rows,cols,value.size());
 
             //This command will double memory consumption since it has to allocate the memory!
-            mxArray *valarray = mxCreateNumericArray(ndim, dims.data(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
-                        
+            mxArray *valarray = mxCreateNumericArray(ndim, dims.data(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);           
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
@@ -566,20 +564,9 @@ namespace Archives
     public:
         using Options = MatlabOptions;
 
-        MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read)
-            : InputArchive(this), m_MatlabFile(getMatlabFile(fpath, options))  {};
-        ~MatlabInputArchive() 
-        {
-            //Cleanup
-            while (!mFields.empty())
-            {
-                if (mFields.size() == 1)
-                    mxDestroyArray(std::get<1>(mFields.top()));
+        MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read);
+        ~MatlabInputArchive();
 
-                mFields.pop();
-            }
-            matClose(&m_MatlabFile);
-        }
         DISALLOW_COPY_AND_ASSIGN(MatlabInputArchive)
         //TODO: Write load function!
         template<typename T>
