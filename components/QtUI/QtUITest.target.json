@@ -1,5 +1,5 @@
 {
-    "condition" : "SerAr_BUILD_TESTING",
+    "condition" : "SERAR_BUILD_MANUAL_TESTING",
     "name" : "QtUI_Test" ,
     "target_type" : "executable",
     "sources" : [
