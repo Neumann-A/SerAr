@@ -9,7 +9,9 @@
     ],
     "dependencies" : [
         "MyCEL",
-        { "name": "Matlab",
+        { 
+          "name": "Matlab",
+          "version": "9.11",
           "components": [ "MAT_LIBRARY" ]
         }
     ]
