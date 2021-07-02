@@ -39,6 +39,7 @@
 //#include "ArchiveHelper.h"
 #include <SerAr/Core/NamedValue.h>
 #include <SerAr/Core/NamedValueWithDesc.h>
+#include <SerAr/Core/NamedEnumVariant.hpp>
 #include <SerAr/Core/InputArchive.h>
 #include <SerAr/Core/OutputArchive.h>
 
@@ -299,15 +300,17 @@ namespace Archives
             return *pMAT;
         }
         
-        template<typename T> requires (UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>)
+        template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
+                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
+                                       !SerAr::IsNamedEnumVariant<T>)
         inline void prologue(const T& value)
         {
             checkNextFieldname(value);	//Check the Fieldname for validity
             startMATLABArray(value);	//Start a new Matlab Array or Struct
         }
-        template<typename T> requires (UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>)
+        template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
+                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
+                                      !SerAr::IsNamedEnumVariant<T>)
         inline void epilogue(const T&)
         {
             finishMATLABArray();	//Finish the Array (write it to the Array above)
