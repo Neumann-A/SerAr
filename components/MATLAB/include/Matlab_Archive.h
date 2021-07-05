@@ -301,7 +301,9 @@ namespace Archives
         }
         
         template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
+                  UseTypeMemberSave<std::remove_cvref_t<T>, MatlabOutputArchive> ||
+                  UseTypeMemberSerialize<std::remove_cvref_t<T>, MatlabOutputArchive> ||
+                  UseTypeFunctionSerialize<std::remove_cvref_t<T>, MatlabOutputArchive>) &&
                                        !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
         inline void prologue(const T& value)
         {
@@ -309,7 +311,9 @@ namespace Archives
             startMATLABArray(value);	//Start a new Matlab Array or Struct
         }
         template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                                       UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
+                  UseTypeMemberSave<std::remove_cvref_t<T>, MatlabOutputArchive> ||
+                  UseTypeMemberSerialize<std::remove_cvref_t<T>, MatlabOutputArchive> ||
+                  UseTypeFunctionSerialize<std::remove_cvref_t<T>, MatlabOutputArchive>) &&
                                       !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
         inline void epilogue(const T&)
         {
