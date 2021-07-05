@@ -302,7 +302,7 @@ namespace Archives
         
         template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
                                        UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
-                                       !SerAr::IsNamedEnumVariant<T>)
+                                       !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
         inline void prologue(const T& value)
         {
             checkNextFieldname(value);	//Check the Fieldname for validity
@@ -310,7 +310,7 @@ namespace Archives
         }
         template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
                                        UseTypeMemberSave<std::remove_cvref_t<T>,MatlabOutputArchive>) &&
-                                      !SerAr::IsNamedEnumVariant<T>)
+                                      !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
         inline void epilogue(const T&)
         {
             finishMATLABArray();	//Finish the Array (write it to the Array above)

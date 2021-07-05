@@ -1,0 +1,18 @@
+{
+    "condition" : "SERAR_BUILD_MANUAL_TESTING",
+    "name" : "Matlab_Test" ,
+    "target_type" : "executable",
+    "sources" : [
+        "test/MatlabArchive_main.cpp",
+        "test/MatlabArchive_test.hpp",
+        "test/MatlabArchive_test.cpp"
+    ],
+    "link_libraries" : {
+        "private" : [ 
+            "Core",
+            "MATLAB",
+            "Eigen3::Eigen"
+        ]
+    }
+}
+

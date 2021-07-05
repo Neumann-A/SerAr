@@ -5,7 +5,8 @@
     "description" : "MATLAB archive of SerializationArchive (SerAr)",
     "languages" : ["CXX"],
     "list" : [
-        "MATLAB.target.json"
+        "MATLAB.target.json",
+        "MATLABTest.target.json"
     ],
     "dependencies" : [
         "MyCEL",
