@@ -251,28 +251,20 @@ namespace Archives
             this->operator()(value.val);    //Write Data to the Field/struct
             clearNextFieldname();           //Remove the last Fieldname
         }
-        template<typename T>
-        inline void save(const Archives::NamedValueWithDesc<T>& value)
-        {
-            setNextFieldname(value.name);   //Set the Name of the next Field
-            this->operator()(value.val);    //Write Data to the Field/struct
-            clearNextFieldname();           //Remove the last Fieldname
-        }
         
         template<typename T> requires (HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
         inline void save(const T& value)
         {
             using Type = std::remove_reference_t<T>;
             //TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
-            if (nextFieldname.empty()) { //We need to create a fieldname 
-                nextFieldname = typeid(T).name(); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
+            if (getCurrentFieldname().empty()) { //We need to create a fieldname 
+                Fieldnames.push(typeid(T).name()); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
             }
             static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
             auto& arrdata = createMATLABArray<Type>(value);
-            Fields.push(std::make_tuple(std::move(nextFieldname), &arrdata));
+            Fields.push(std::make_tuple(getCurrentFieldname(), &arrdata));
             finishMATLABArray();
         }
-
 
     //private:
     private:
@@ -282,8 +274,8 @@ namespace Archives
         
         using Field = std::tuple<std::string, mxArray*>;	
         std::stack<Field> Fields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
-    
-        std::string nextFieldname;	//Storage for next fieldname which has not been pushed on the Fields stack yet since the mxArray* was not yet created 
+        std::stack<std::string> Fieldnames;
+        
 
         MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
         {	
@@ -336,19 +328,25 @@ namespace Archives
 
         inline void setNextFieldname(const std::string &str) noexcept
         {
-            nextFieldname = str;
+            Fieldnames.push(str);
         }
 
         inline void clearNextFieldname() noexcept
         {
-            nextFieldname.clear();
+            Fieldnames.pop();
         }
+
+        inline auto getCurrentFieldname() noexcept
+        {
+            return Fieldnames.top();
+        }
+
 
         template<typename T>
         inline void checkNextFieldname(T&& /*val*/)
         {
             //TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
-            if (nextFieldname.empty())
+            if (Fieldnames.top().empty())
             {
                 throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
             }
@@ -364,7 +362,7 @@ namespace Archives
             
             if (!Fields.empty())
             {
-                pStruct = mxGetField(std::get<1>(Fields.top()), 0, nextFieldname.c_str());
+                pStruct = mxGetField(std::get<1>(Fields.top()), 0, getCurrentFieldname().c_str());
             }
             
             if (pStruct == nullptr)
@@ -383,7 +381,7 @@ namespace Archives
                 throw std::runtime_error{ "Updating a mxArray which is not a struct! (Unwanted behavior!)" };
             }
 
-            Fields.push(std::make_tuple(std::move(nextFieldname), pStruct));
+            Fields.push(std::make_tuple(getCurrentFieldname(), pStruct));
         }
 
         void finishMATLABArray();
