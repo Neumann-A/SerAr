@@ -50,6 +50,21 @@ namespace Archives
         matClose(&m_MatlabFile);
     };
 
+    MATFile& MatlabOutputArchive::getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
+        {	
+            assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
+
+            if(!fpath.has_filename())
+                throw std::runtime_error{ std::string{"Could not open file due to missing filename: "} + fpath.string() };
+
+            MATFile *pMAT = matOpen( fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
+
+            if (pMAT == nullptr)
+                throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
+
+            return *pMAT;
+        }
+
     void MatlabOutputArchive::finishMATLABArray()
     {
         if (Fields.empty())

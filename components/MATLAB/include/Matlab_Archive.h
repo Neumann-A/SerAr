@@ -248,7 +248,15 @@ namespace Archives
         inline void save(const Archives::NamedValue<T>& value)
         {
             setNextFieldname(value.name);   //Set the Name of the next Field
+
+            if constexpr (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
+                startMATLABArray(value);	    //Start a new Matlab Array or Struct
+
             this->operator()(value.val);    //Write Data to the Field/struct
+
+            if constexpr (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
+                finishMATLABArray();	        //Finish the Array (write it to the Array above)
+
             clearNextFieldname();           //Remove the last Fieldname
         }
         
@@ -258,7 +266,7 @@ namespace Archives
             using Type = std::remove_reference_t<T>;
             //TODO: Build Fieldname if none has been set. Important! Otherwise matlab will throw an runtime exception!
             if (getCurrentFieldname().empty()) { //We need to create a fieldname 
-                Fieldnames.push(typeid(T).name()); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
+                setNextFieldname(typeid(T).name()); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
             }
             static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
             auto& arrdata = createMATLABArray<Type>(value);
@@ -274,79 +282,34 @@ namespace Archives
         
         using Field = std::tuple<std::string, mxArray*>;	
         std::stack<Field> Fields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
-        std::stack<std::string> Fieldnames;
+        // std::stack<std::string> Fieldnames;
+        std::string nextFieldname;
+        // std::stack<bool> skip_finish;
         
 
-        MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const
-        {	
-            assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
-
-            if(!fpath.has_filename())
-                throw std::runtime_error{ std::string{"Could not open file due to missing filename: "} + fpath.string() };
-
-            MATFile *pMAT = matOpen( fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
-
-            if (pMAT == nullptr)
-                throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
-
-            return *pMAT;
-        }
-        
-        template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                  UseTypeMemberSave<std::remove_cvref_t<T>, MatlabOutputArchive> ||
-                  UseTypeMemberSerialize<std::remove_cvref_t<T>, MatlabOutputArchive> ||
-                  UseTypeFunctionSerialize<std::remove_cvref_t<T>, MatlabOutputArchive>) &&
-                                       !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
-        inline void prologue(const T& value)
-        {
-            checkNextFieldname(value);	//Check the Fieldname for validity
-            startMATLABArray(value);	//Start a new Matlab Array or Struct
-        }
-        template<typename T> requires ((UseTypeFunctionSave<std::remove_cvref_t<T>,MatlabOutputArchive> ||
-                  UseTypeMemberSave<std::remove_cvref_t<T>, MatlabOutputArchive> ||
-                  UseTypeMemberSerialize<std::remove_cvref_t<T>, MatlabOutputArchive> ||
-                  UseTypeFunctionSerialize<std::remove_cvref_t<T>, MatlabOutputArchive>) &&
-                                      !SerAr::IsNamedEnumVariant<std::remove_cvref_t<T>>)
-        inline void epilogue(const T&)
-        {
-            finishMATLABArray();	//Finish the Array (write it to the Array above)
-        }
-        
-        //For nested NamedValue
-        template<typename T>
-        inline std::enable_if_t<is_nested_NamedValue_v<T>> prologue(const T& value)
-        {
-            setNextFieldname(value.getName());
-            startMATLABArray(value);
-            clearNextFieldname();
-        }
-        template<typename T>
-        inline std::enable_if_t<is_nested_NamedValue_v<T>> epilogue(const T&)
-        {
-            finishMATLABArray();
-        }
+        MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
 
         inline void setNextFieldname(const std::string &str) noexcept
         {
-            Fieldnames.push(str);
+            
+            nextFieldname = str;
         }
 
         inline void clearNextFieldname() noexcept
         {
-            Fieldnames.pop();
+            nextFieldname.clear();
+
         }
 
         inline auto getCurrentFieldname() noexcept
         {
-            return Fieldnames.top();
+            return nextFieldname;
         }
 
-
-        template<typename T>
-        inline void checkNextFieldname(T&& /*val*/)
+        inline void checkNextFieldname()
         {
             //TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
-            if (Fieldnames.top().empty())
+            if (getCurrentFieldname().empty())
             {
                 throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
             }
@@ -356,7 +319,6 @@ namespace Archives
         template<typename T> requires (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
         inline void startMATLABArray(const T& val)
         {
-            checkNextFieldname(val);
 
             mxArray *pStruct = nullptr;
             
@@ -382,6 +344,7 @@ namespace Archives
             }
 
             Fields.push(std::make_tuple(getCurrentFieldname(), pStruct));
+            clearNextFieldname();
         }
 
         void finishMATLABArray();
