@@ -20,7 +20,7 @@
     "link_libraries" : {
         "public" : [ 
             "MyCEL::MyCEL",
-            "Core"
+            "SerAr::Core"
         ]
     },
     "compile_features" : {

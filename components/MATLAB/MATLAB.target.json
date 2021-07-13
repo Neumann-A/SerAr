@@ -17,7 +17,7 @@
     "link_libraries" : {
         "public" : [ 
             "MyCEL::MyCEL",
-            "Core",
+            "SerAr::Core",
             "${Matlab_MAT_LIBRARY}",
             "${Matlab_MX_LIBRARY}"
         ]

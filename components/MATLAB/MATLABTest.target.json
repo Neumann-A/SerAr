@@ -9,8 +9,8 @@
     ],
     "link_libraries" : {
         "private" : [ 
-            "Core",
-            "MATLAB",
+            "SerAr::Core",
+            "SerAr::MATLAB",
             "Eigen3::Eigen"
         ]
     }

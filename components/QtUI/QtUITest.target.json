@@ -9,9 +9,9 @@
     ],
     "link_libraries" : {
         "private" : [ 
-            "Core",
-            "QtUI",
-            "JSON",
+            "SerAr::Core",
+            "SerAr::QtUI",
+            "SerAr::JSON",
             "Eigen3::Eigen"
         ]
     }

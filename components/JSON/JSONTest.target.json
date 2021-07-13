@@ -7,7 +7,7 @@
     ],
     "link_libraries" : {
         "private" : [ 
-            "JSON",
+            "SerAr::JSON",
             "Eigen3::Eigen"
         ]
     }

@@ -21,7 +21,7 @@
     "link_libraries" : {
         "public" : [ 
             "MyCEL::MyCEL",
-            "Core",
+            "SerAr::Core",
             "Boost::program_options"
         ]
     },

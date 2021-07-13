@@ -23,7 +23,7 @@
     "link_libraries" : {
         "interface" : [ 
             "MyCEL::MyCEL",
-            "Core"
+            "SerAr::Core"
         ]
     },
     "compile_features" : {
