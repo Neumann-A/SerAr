@@ -28,6 +28,11 @@
             "cxx_std_17"
         ]
     },
+    "compile_definitions" : {
+        "interface" : [
+            "SERAR_HAS_CONFIGFILE"
+        ]
+    },
     "public_headers": [
         "include/SerAr/ConfigFile/ConfigFile_Archive.h"
     ]

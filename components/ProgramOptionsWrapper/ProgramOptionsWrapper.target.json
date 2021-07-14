@@ -30,6 +30,11 @@
             "cxx_std_17"
         ]
     },
+    "compile_definition" : {
+        "interface" : [
+            "SERAR_HAS_PROGRAMOPTIONS"
+        ]
+    },
     "public_headers": [
         "include/SerAr/ProgramOptionsWrapper/ProgramOptions_Wrapper.h",
         "include/SerAr/ProgramOptionsWrapper/PO_Description_Wrapper.h"

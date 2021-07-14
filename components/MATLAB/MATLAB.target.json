@@ -29,5 +29,10 @@
     },
     "public_headers": [
         "include/Matlab_Archive.h"
-    ]
+    ],
+    "compile_definitions" : {
+        "interface" : [
+            "SERAR_HAS_MATLAB"
+        ]
+    }
 }

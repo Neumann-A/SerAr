@@ -37,6 +37,9 @@
         "public" : [ 
             "H5_USE_120_API",
             "H5_NO_DEPRECATED_SYMBOLS"
+        ],
+        "interface" : [
+            "SERAR_HAS_HDF5"
         ]
     },
     "public_headers": [

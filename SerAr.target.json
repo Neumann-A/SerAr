@@ -26,16 +26,6 @@
             "cxx_std_20"
         ]
     },
-    "compile_definitions" : {
-        "interface" : [
-            "$<$<BOOL:SERAR_WITH_CONFIGFILE>:SERAR_HAS_CONFIGFILE>",
-            "$<$<BOOL:SERAR_WITH_PROGRAMOPTIONS>:SERAR_HAS_PROGRAMOPTIONS>",
-            "$<$<BOOL:SERAR_WITH_MATLAB>:SERAR_HAS_MATLAB>",
-            "$<$<BOOL:SERAR_WITH_HDF5>:SERAR_HAS_HDF5>",
-            "$<$<BOOL:SERAR_WITH_CEREAL>:SERAR_HAS_CEREAL>",
-            "$<$<BOOL:SERAR_WITH_JSON>:SERAR_HAS_JSON>"
-        ]
-    },
     "public_headers" : ["include/SerAr.hpp", "include/AllArchiveIncludes.hpp", "include/AllArchiveEnums.hpp"]
 }
 

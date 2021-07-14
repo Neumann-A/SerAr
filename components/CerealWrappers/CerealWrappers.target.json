@@ -29,7 +29,12 @@
     "compile_features" : {
         "interface" : [ 
             "cxx_std_17"
-]
+        ]
+    },
+    "compile_definitions" : {
+        "interface" : [
+            "SERAR_HAS_CEREAL"
+        ]
     },
     "public_headers": [
         "include/SerAr/CerealWrappers/BinaryArchiveWrapper.h",

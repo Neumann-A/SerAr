@@ -33,6 +33,9 @@
     "compile_definition" : {
         "public" : [ 
             "JSON_USE_IMPLICIT_CONVERSIONS=0"
+        ],
+        "interface" : [
+            "SERAR_HAS_JSON"
         ]
     },
     "public_headers": [
