@@ -40,6 +40,18 @@
 
 namespace Archives
 {
+    template<typename T>
+    concept HasFuncToString = requires(const T& t) {
+        to_string(t);
+    };
+    template<typename T>
+    concept HasMemberToString = requires(const T& t) {
+        t.to_string();
+    };
+    template<typename T>
+    concept HasStdToString = requires(const T& t) {
+        std::to_string(t);
+    };
     namespace traits
     {
         /******************************to_string helpers***********************************************************************/

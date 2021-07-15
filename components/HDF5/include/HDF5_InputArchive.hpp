@@ -41,8 +41,8 @@ namespace Archives
         using File = HDF5_Wrapper::HDF5_FileWrapper;
 
         File                            mFile;
-        std::stack<CurrentGroup>        mGroupStack;
-        std::stack<std::string>         mPathStack;
+        std::stack<CurrentGroup>        mGroupStack{};
+        std::stack<std::string>         mPathStack{};
 
         HDF5_InputOptions mOptions;
 
@@ -133,7 +133,7 @@ namespace Archives
             if constexpr (stdext::is_memory_sequentiel_container_v<std::remove_cvref_t<T>>)
             {
                 const auto spacetype = DataspaceTypeSelector<std::remove_cvref_t<T>>::value();
-                HDF5_DataspaceOptions spaceopts;
+                //HDF5_DataspaceOptions spaceopts;
 
                 const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
@@ -159,7 +159,7 @@ namespace Archives
             else if constexpr(!stdext::is_associative_container_v<std::remove_cvref_t<T>>)
             {
                 const auto spacetype = DataspaceTypeSelector<std::remove_cvref_t<T>>::value();
-                HDF5_DataspaceOptions spaceopts;
+                //HDF5_DataspaceOptions spaceopts;
 
                 const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
@@ -207,7 +207,7 @@ namespace Archives
             using namespace HDF5_Wrapper;
 
             //const auto spacetype = DataspaceTypeSelector<std::decay_t<T>>::value();
-            HDF5_DataspaceOptions spaceopts;
+            //HDF5_DataspaceOptions spaceopts;
 
             const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 

@@ -141,7 +141,7 @@ namespace SerAr
     private:
         const Options options{};
         std::unique_ptr<std::ofstream> pstr {nullptr};
-        std::stack<JSONType> json_stack;
+        std::stack<JSONType> json_stack{};
     };
 
     #define JSON_ARCHIVE_SAVE(type) extern template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &);

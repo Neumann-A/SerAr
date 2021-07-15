@@ -130,8 +130,8 @@ namespace HDF5_Wrapper
             } else {
                 static_assert(!std::is_same_v<T,T>);
                 return H5T_NATIVE_HERR;
-            } 
-        };
+            }
+        }
 
         template<typename T>
         inline static hid_t getType(const std::complex<T>& val) {
@@ -143,20 +143,18 @@ namespace HDF5_Wrapper
             if (!isTypeImmutable(base_type_id))
                 H5Tclose(base_type_id);
             return type_id_compound;
-        };
+        }
         template<typename T>
         inline static std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
             return H5T_C_S1;
-        };
-
-
+        }
         template<typename T>
         inline static std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T&) {
             auto hdf5typeid = H5Tcopy(H5T_C_S1);
             //H5Tset_size(hdf5typeid, val.size());
             H5Tset_size(hdf5typeid, H5T_VARIABLE);
             return hdf5typeid;
-        };
+        }
     };
     template<>
     struct DatatypeSelector<HDF5_Datatype::LittleEndian>
@@ -252,18 +250,18 @@ namespace HDF5_Wrapper
             if (!isTypeImmutable(base_type_id))
                 H5Tclose(base_type_id);
             return type_id_compound;
-        };
+        }
         template<typename T>
         inline static constexpr std::enable_if_t<std::is_same_v<T, const char*> || std::is_same_v<T, char*> || std::is_same_v<T, char>, hid_t> getType(const T&) {
             return H5T_C_S1;
-        };
+        }
 
         template<typename T>
         inline static constexpr std::enable_if_t<stdext::is_string_v<T>, hid_t> getType(const T&) {
             auto hdf5typeid = H5Tcopy(H5T_C_S1);
             H5Tset_size(hdf5typeid, H5T_VARIABLE);
             return hdf5typeid;
-        };
+        }
 
     };
     template<>
@@ -538,8 +536,7 @@ namespace HDF5_Wrapper
             return true;
         else
             return false; //TODO add more types!
-
-    };
+    }
 }
 
 #endif	// INC_HDF5_Type_Selector_H

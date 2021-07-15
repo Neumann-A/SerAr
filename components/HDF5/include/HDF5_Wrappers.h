@@ -602,10 +602,9 @@ namespace HDF5_Wrapper
         {}
 
         template<typename T>
-        HDF5_DataspaceWrapper(const HDF5_DataspaceOptions& opts, const T& val) : HDF5_GeneralType<ThisClass>(createDataspace(opts, val)) {};
+        HDF5_DataspaceWrapper(const HDF5_DataspaceOptions& opts, const T& val) : HDF5_GeneralType<ThisClass>(createDataspace(opts, val)) {}
 
-        HDF5_DataspaceWrapper(const HDF5_DataspaceWrapper& tocopy) : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(H5Scopy(tocopy)), tocopy.mOptions)
-        {		};
+        HDF5_DataspaceWrapper(const HDF5_DataspaceWrapper& tocopy) : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(H5Scopy(tocopy)), tocopy.mOptions) {}
 
         std::vector<std::size_t> getDimensions() const 
         {
