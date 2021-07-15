@@ -1032,7 +1032,7 @@ namespace Archives
         bool mStreamOwner{ false };
         std::ostream &mOutputstream;
             
-        ConfigFile::Storage mStorage;
+        ConfigFile::Storage mStorage{};
 
         std::ofstream& createFileStream(const std::filesystem::path &path);
     };

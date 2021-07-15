@@ -359,16 +359,16 @@ namespace HDF5_Wrapper
     public:	
         template<typename U>
         explicit HDF5_GeneralType(const HDF5_GeneralType<U>& loc, const hdf5path& path, HDF5_Options_t<T> options)
-            : mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
+            : mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {}
         
         explicit HDF5_GeneralType(const HDF5_LocationWrapper& loc, const hdf5path& path, HDF5_Options_t<T> options)
-            : mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {};
+            : mLoc(HDF5_OpenCreateCloseWrapper<T>::openOrCreate(loc, path, options)), mOptions(std::move(options)) {}
 
         // Special Case for HDF5_FileWrapper
         explicit HDF5_GeneralType(const filepath& path, const HDF5_Options_t<T>& options)
             : mLoc(HDF5_OpenCreateCloseWrapper<Base>::openOrCreate(path, options)), mOptions(options) {
             static_assert(std::is_same_v<T, HDF5_FileWrapper>);
-        };
+        }
 
         HDF5_GeneralType(HDF5_GeneralType&& rhs) : mLoc(std::move(rhs.mLoc)), mOptions(std::move(rhs.mOptions))
         {
@@ -485,7 +485,7 @@ namespace HDF5_Wrapper
 
         template<typename T, typename _ = std::enable_if_t<std::is_same_v<HDF5_GroupWrapper, T> || std::is_same_v<HDF5_FileWrapper, T>>>
         HDF5_GroupWrapper(const HDF5_GeneralType<T> &loc, const hdf5path &path, const HDF5_GroupOptions& options = HDF5_GroupOptions{})
-            : HDF5_GeneralType<HDF5_GroupWrapper>(openOrCreateFile(loc, path, options)) {};
+            : HDF5_GeneralType<HDF5_GroupWrapper>(openOrCreateFile(loc, path, options)) {}
     };
 
     struct HDF5_DatatypeOptions
@@ -501,7 +501,7 @@ namespace HDF5_Wrapper
     public:
         template<typename T>
         HDF5_DatatypeWrapper(const T& val, const HDF5_DatatypeOptions &options) : 
-            HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val)),options) {};
+            HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(DatatypeRuntimeSelector::getType(options.default_storage_datatyp, val)),options) {}
 
 
         HDF5_DatatypeWrapper() : HDF5_GeneralType<ThisClass>(HDF5_LocationWrapper(0)) {};
@@ -537,8 +537,8 @@ namespace HDF5_Wrapper
     struct HDF5_DataspaceOptions
     {
         // 32 dims are the HDF5 limit but each dim can have 64bit of length
-        std::array<hsize_t,32> dims;
-        std::array<hsize_t,32> maxdims;
+        std::array<hsize_t,32> dims{};
+        std::array<hsize_t,32> maxdims{};
 
         constexpr HDF5_DataspaceOptions() {
             dims.fill(0);

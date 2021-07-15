@@ -58,8 +58,8 @@ namespace Archives
         using File = HDF5_Wrapper::HDF5_FileWrapper;
         
         File mFile;
-        std::stack<CurrentGroup> mGroupStack;
-        std::stack<std::string>  mPathStack;
+        std::stack<CurrentGroup> mGroupStack{};
+        std::stack<std::string>  mPathStack{};
         HDF5_OutputOptions mOptions;
         static File openOrCreateFile(const std::filesystem::path &path, const HDF5_OutputOptions& options)
         {
