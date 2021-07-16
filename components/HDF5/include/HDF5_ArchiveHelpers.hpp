@@ -13,7 +13,7 @@
 ///---------------------------------------------------------------------------------------------------
 #pragma once
 
-
+#include <type_traits>
 #include <vector>
 
 #include <SerAr/Core/ArchiveHelper.h>
@@ -52,15 +52,15 @@ namespace Archives
         template<typename T>
         static std::vector<std::size_t> calculateDimensions(const T& val)
         {
-            if constexpr(stdext::is_arithmetic_container_v<std::decay_t<T>>)
+            if constexpr(stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>)
             {
                 return std::vector<std::size_t>{ { val.size() } };
             }
-            else if constexpr (stdext::is_eigen_type_v<std::decay_t<T>>)
+            else if constexpr (stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
             {
                 return std::vector<std::size_t>{ { static_cast<std::size_t>(val.rows()), static_cast<std::size_t>(val.cols()) } };
             }
-            else if constexpr (stdext::is_container_with_eigen_type_v< std::decay_t<T>>)
+            else if constexpr (stdext::is_container_with_eigen_type_v< std::remove_cvref_t<T>>)
             {
                 //TODO: check for a dynamic matrix
                 const auto begin = val.begin();
@@ -68,7 +68,7 @@ namespace Archives
             }
             else
             {
-                static_assert("Can not calculate dimensions for given type! Implementation not defined!");
+                static_assert(std::is_same_v<T,std::remove_cvref_t<decltype(val)>>, "Can not calculate dimensions for given type! Implementation not defined!");
                 return { 0 };
             }
         }
