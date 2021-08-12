@@ -20,14 +20,7 @@ namespace SerAr {
                             ,{ ArchiveTypeEnum::ProgramOptionsWrapper,   "ProgramOptions"sv }
                             ,{ ArchiveTypeEnum::CerealWrapper,           "Cereal"sv }
                             } } };
-    static constexpr const MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumFileEndingMap { { {
-                        { ArchiveTypeEnum::ConfigFile,              ".ini"sv },
-                        { ArchiveTypeEnum::JSON,                    ".json"sv },
-                        { ArchiveTypeEnum::MATLAB,                  ".mat"sv },
-                        { ArchiveTypeEnum::HDF5,                    ".hdf5"sv },
-                        { ArchiveTypeEnum::ProgramOptionsWrapper,   ""sv },
-                        { ArchiveTypeEnum::CerealWrapper,           ""sv }
-                        } } };
+
     constexpr const auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
 
     template<ArchiveTypeEnum value>
@@ -65,5 +58,12 @@ namespace SerAr {
     template<typename Archive>
     struct archive_enum_value_from_type {
     };
+
+    namespace traits {
+        template<ArchiveTypeEnum value>
+        struct is_file_archive : std::false_type {};
+        template<ArchiveTypeEnum value>
+        constexpr bool is_file_archive_v = is_file_archive<value>::value;
+    }
 }
 

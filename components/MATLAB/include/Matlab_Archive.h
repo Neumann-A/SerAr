@@ -44,16 +44,6 @@
 #include <SerAr/Core/OutputArchive.h>
 
 //#include <engine.h> //To connect to matlab engine (we dont work directly with matlab so does not matter)
-//MATLAB includes
-
-// #ifdef _MSC_VER
-// #pragma comment (lib, "libmx")
-// #pragma comment (lib, "libmat")
-// #endif
-
-//Not used!
-//#pragma comment (lib, "libeng")
-//#pragma comment (lib, "libmex")
 
 //Avoid a makro redefinition error in mat.h
 #ifdef __STDC__
@@ -69,11 +59,6 @@
 #ifndef SERAR__STDC__GUARD
 #undef __STDC__
 #endif
-
-
-//Needs the following PATH = C:\Program Files\Matlab\R2015b\bin\win64; %PATH%
-
-
 
 namespace Archives
 {
@@ -467,7 +452,7 @@ namespace Archives
         }
 
         template<typename T>
-        std::enable_if_t<stdext::is_eigen_type_v<T>, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
+        std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
         {
             using DataType = typename T::Scalar;
 

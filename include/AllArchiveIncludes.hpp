@@ -44,8 +44,8 @@ namespace SerAr {
         static constexpr const ArchiveTypeEnum enum_value = ArchiveTypeEnum::ConfigFile;
         using output = output_archive_traits<enum_value>;
         using input= input_archive_traits<enum_value>;
-        static constexpr std::string_view defaut_file_extension {"ini"};
-        static constexpr std::array<std::string_view,2> possible_file_extensions { {{"ini"}, {"txt"}}};
+        static constexpr std::string_view defaut_file_extension {".ini"};
+        static constexpr std::array<std::string_view,2> native_file_extensions { {{".ini"}, {".txt"}}};
     };
     template<>
     struct archive_enum_value_from_type<Archives::ConfigFile_InputArchive> {
@@ -55,6 +55,11 @@ namespace SerAr {
     struct archive_enum_value_from_type<Archives::ConfigFile_OutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::ConfigFile;
     };
+
+    namespace traits {
+        template<>
+        struct is_file_archive<ArchiveTypeEnum::ConfigFile> : std::true_type {};
+    }
 }
 #endif
 
@@ -84,8 +89,8 @@ namespace SerAr {
         static constexpr const ArchiveTypeEnum enum_value = ArchiveTypeEnum::MATLAB;
         using output = output_archive_traits<enum_value>;
         using input= void;
-        static constexpr std::string_view defaut_file_extension {"mat"};
-        static constexpr std::array<std::string_view,1> possible_file_extensions { {"mat"} };
+        static constexpr std::string_view defaut_file_extension {".mat"};
+        static constexpr std::array<std::string_view,2> native_file_extensions { {".mat", ".m"} };
     };
     template<>
     struct archive_enum_value_from_type<Archives::MatlabInputArchive> {
@@ -95,6 +100,11 @@ namespace SerAr {
     struct archive_enum_value_from_type<Archives::MatlabOutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::MATLAB;
     };
+
+    namespace traits {
+        template<>
+        struct is_file_archive<ArchiveTypeEnum::MATLAB> : std::true_type {};
+    }
 }
 #else
 namespace Archives {
@@ -131,8 +141,9 @@ namespace SerAr {
         static constexpr const ArchiveTypeEnum enum_value = ArchiveTypeEnum::HDF5;
         using output = output_archive_traits<enum_value>;
         using input= input_archive_traits<enum_value>;
-        static constexpr std::string_view defaut_file_extension {"hdf5"};
-        static constexpr std::array<std::string_view,2> possible_file_extensions { "hdf5", "h5"};
+        static constexpr std::string_view defaut_file_extension {".hdf5"};
+        static constexpr std::array<std::string_view,2> native_file_extensions { ".hdf5", ".h5"};
+        static constexpr std::array<std::string_view,1> derived_file_extensions { ".mdf"};
     };
     template<>
     struct archive_enum_value_from_type<Archives::HDF5_InputArchive> {
@@ -142,6 +153,11 @@ namespace SerAr {
     struct archive_enum_value_from_type<Archives::HDF5_OutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::HDF5;
     };
+
+    namespace traits {
+        template<>
+        struct is_file_archive<ArchiveTypeEnum::HDF5> : std::true_type {};
+    }
 }
 #else
 namespace Archives {
@@ -177,8 +193,8 @@ namespace SerAr {
         static constexpr const ArchiveTypeEnum enum_value = ArchiveTypeEnum::JSON;
         using output = output_archive_traits<enum_value>;
         using input= input_archive_traits<enum_value>;
-        static constexpr std::string_view defaut_file_extension {"json"};
-        static constexpr std::array<std::string_view,1> possible_file_extensions { {"json"} };
+        static constexpr std::string_view defaut_file_extension {".json"};
+        static constexpr std::array<std::string_view,1> native_file_extensions { {".json"} };
     };
     template<>
     struct archive_enum_value_from_type<Archives::JSON_InputArchive> {
@@ -188,10 +204,19 @@ namespace SerAr {
     struct archive_enum_value_from_type<Archives::JSON_OutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::JSON;
     };
+
+    namespace traits {
+        template<>
+        struct is_file_archive<ArchiveTypeEnum::JSON> : std::true_type {};
+    }
 }
 #endif
 
 namespace SerAr {
+    // static constexpr ArchiveTypeEnum get_archive_enum_from_file_extension(std::string_view extension) {
+
+    // }
+
 
     template<std::size_t count = 0, const auto &Input, template <std::remove_cvref_t<decltype(::std::get<0>(Input))>> typename available_if, std::size_t... Is>
     constexpr auto count_available_if_impl(std::index_sequence<Is...>) {
