@@ -384,12 +384,32 @@ namespace Archives
     public:
         using Options = HDF5_InputOptions;
 
-        HDF5_InputArchive(const std::filesystem::path &path, const HDF5_InputOptions& options)
+        HDF5_InputArchive(const std::filesystem::path &path, const HDF5_InputOptions& options = HDF5_InputOptions{})
             : InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
             static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
         }
 
         DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
+
+        auto list(const std::string& str) -> std::map<std::string,std::string>;
+        auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string>;
+        template<typename T>
+        std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, std::map<std::string,std::string>> list(const Archives::NamedValue<T>& value)
+        {
+            const bool empty_string = value.getName().empty();
+            if (!empty_string) {
+                appendPath(value.getName()); //Sets the name for the next Dataset or Group
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    openGroup(value, getPath());
+            }
+            const auto tmp {list(value.val)};
+            if (!empty_string) {
+                if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
+                    closeLastGroup();
+                removePath(); //Remove the Last Fieldname
+            }
+            return tmp;
+        }
 
         template<typename T>
         inline void load(Archives::NamedValue<T>& value)
