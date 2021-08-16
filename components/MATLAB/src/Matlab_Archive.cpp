@@ -23,6 +23,40 @@ namespace Archives
         }
         matClose(&m_MatlabFile);
     }
+
+    auto MatlabInputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string> {
+        return list(value.getName());
+    }
+
+    auto MatlabInputArchive::list(const std::string& str) -> std::map<std::string,std::string> {
+        std::map<std::string,std::string> ret;
+        if(!mFields.empty()) {
+            const auto& current_top = mFields.top();
+            const auto arr = mxGetField(std::get<1>(current_top),0,str.c_str());
+            const auto num = mxGetNumberOfFields(arr);
+            for(int i = 0; i < num; i++ )
+            {
+                const auto name_cstr = mxGetFieldNameByNumber(arr,i);
+                std::string value{};
+                getValue(value,mxGetField(arr,0,name_cstr));
+                ret.emplace(name_cstr,std::move(value));
+                mxFree((void *)name_cstr);
+            }
+        } else {
+           int num;
+           const char ** field_names = (const char **)matGetDir(&m_MatlabFile, &num);
+           for(int i = 0; i < num; i++ )
+           {
+               auto array = matGetVariable(&m_MatlabFile, field_names[0]);
+               std::string value{};
+               getValue(value,array);
+               mxFree(array);
+               ret.emplace(field_names[0],value);
+           }
+           mxFree(field_names);
+        }
+        return ret;
+    };
     ///-------------------------------------------------------------------------------------------------
     /// <summary>	Constructor. </summary>
     ///

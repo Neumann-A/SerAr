@@ -300,6 +300,7 @@ namespace Archives
             }
         }
 
+
         //Starting a new field
         template<typename T> requires (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
         inline void startMATLABArray(const T& val)
@@ -565,6 +566,18 @@ namespace Archives
             mxFree(res); //mxArrayToString uses heap memory for the returned char array. 
         };
 
+        auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string>;
+        template<typename T>
+        std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, std::map<std::string,std::string>> list(const Archives::NamedValue<T>& value)
+        {
+            checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
+            loadNextField(value.name);			//Loads the next Field with given name; (Move Down)
+            const auto tmp {list(value.val)};
+            releaseField();						//Remove the last Fieldname (Move Up)
+            return tmp;
+        }
+        auto list(const std::string& str) -> std::map<std::string,std::string>;
+
         template<typename T>
         inline std::enable_if_t<stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>> load(T& value)
         {
@@ -598,7 +611,7 @@ namespace Archives
         template<typename T>
         inline std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>> load(T& value)
         {
-            using Type = std::remove_cvref_t<T>; // T cannot be const
+            //using Type = std::remove_cvref_t<T>; // T cannot be const
             using DataType = typename T::Scalar;
             const auto fieldptr = std::get<1>(mFields.top());
 
