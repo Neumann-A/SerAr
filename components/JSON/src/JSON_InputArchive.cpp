@@ -36,6 +36,16 @@ namespace SerAr {
         *pstr >> json;
     }
 
+    auto JSON_InputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string> {
+        return list(value.getName());
+    }
+
+    auto JSON_InputArchive::list(const std::string& str) -> std::map<std::string,std::string> {
+        std::map<std::string,std::string> ret;
+
+        return ret;
+    };
+
     #define JSON_ARCHIVE_LOAD(type) template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type &> &>(NamedValue< type &> &);
     JSON_ARCHIVE_LOAD(bool)
     JSON_ARCHIVE_LOAD(short)

@@ -57,6 +57,19 @@ namespace SerAr
         using Options = JSON_InputArchive_Options;
 
         JSON_InputArchive(const Options& opt, const std::filesystem::path& path);
+
+
+        auto list(const std::string& str) -> std::map<std::string,std::string>;
+        auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string>;
+        template<typename T>
+        std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, std::map<std::string,std::string>> list(const Archives::NamedValue<T>& value)
+        {
+            json_pointer.push_back(nval.name);
+            const auto tmp {list(value.val)};
+            json_pointer.pop_back();
+            return tmp;
+        }
+
         template<typename T> requires (JSON::detail::IsJSONLoadable<JSONType, T>)
         inline ThisClass& load(T& value)
         {
