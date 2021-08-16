@@ -13,12 +13,12 @@
         "interface": [
             "SerAr::Core",
             "MyCEL::MyCEL",
-            "$<$<BOOL:SERAR_WITH_CONFIGFILE>:$<TARGET_NAME_IF_EXISTS:SerAr::ConfigFile>>",
-            "$<$<BOOL:SERAR_WITH_PROGRAMOPTIONS>:$<TARGET_NAME_IF_EXISTS:SerAr::ProgramOptionsWrapper>>",
-            "$<$<BOOL:SERAR_WITH_MATLAB>:$<TARGET_NAME_IF_EXISTS:SerAr::MATLAB>>",
-            "$<$<BOOL:SERAR_WITH_HDF5>:$<TARGET_NAME_IF_EXISTS:SerAr::HDF5>>",
-            "$<$<BOOL:SERAR_WITH_CEREAL>:$<TARGET_NAME_IF_EXISTS:SerAr::CerealWrappers>>",
-            "$<$<BOOL:SERAR_WITH_JSON>:$<TARGET_NAME_IF_EXISTS:SerAr::JSON>>"
+            "$<TARGET_NAME_IF_EXISTS:SerAr::ConfigFile>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::ProgramOptionsWrapper>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::MATLAB>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::HDF5>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::CerealWrappers>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::JSON>"
         ]
     },
     "compile_features" : {
