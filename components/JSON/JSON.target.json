@@ -30,10 +30,7 @@
             "cxx_std_20"
         ]
     },
-    "compile_definition" : {
-        "public" : [ 
-            "JSON_USE_IMPLICIT_CONVERSIONS=0"
-        ],
+    "compile_definitions" : {
         "interface" : [
             "SERAR_HAS_JSON"
         ]
