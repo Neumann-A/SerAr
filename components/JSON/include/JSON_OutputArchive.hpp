@@ -39,7 +39,7 @@ namespace SerAr
     public:
         using Options = JSON_OutputArchive_Options;
 
-        JSON_OutputArchive(const Options& opt, const std::filesystem::path& path);
+        JSON_OutputArchive(const std::filesystem::path& path, const Options& opt = JSON_OutputArchive_Options{});
         ~JSON_OutputArchive() noexcept;
         template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
             inline ThisClass& save(const T& value)

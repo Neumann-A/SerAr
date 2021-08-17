@@ -210,6 +210,11 @@ namespace SerAr {
         struct is_file_archive<ArchiveTypeEnum::JSON> : std::true_type {};
     }
 }
+#else
+namespace SerAr {
+    class JSON_OutputArchive;
+    class JSON_InputArchive;
+}
 #endif
 
 namespace SerAr {

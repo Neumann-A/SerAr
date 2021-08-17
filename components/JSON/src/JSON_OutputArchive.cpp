@@ -14,7 +14,7 @@ namespace SerAr {
         throw std::runtime_error{ s.c_str() };
     }
 
-    JSON_OutputArchive::JSON_OutputArchive(const Options &opt, const std::filesystem::path& path /*, const std::source_location& loc = std::source_location::current()*/)
+    JSON_OutputArchive::JSON_OutputArchive( const std::filesystem::path& path, const Options &opt /*, const std::source_location& loc = std::source_location::current()*/)
         : OutputArchive(this), options(opt)
     {   
         json_stack.push(JSONType{});

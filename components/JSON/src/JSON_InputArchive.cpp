@@ -14,7 +14,7 @@ namespace SerAr {
         throw std::runtime_error{ s.c_str() };
     }
 
-    JSON_InputArchive::JSON_InputArchive(const Options& opt, const std::filesystem::path& path /*, const std::source_location& loc = std::source_location::current()*/)
+    JSON_InputArchive::JSON_InputArchive(const std::filesystem::path& path, const Options& opt /*, const std::source_location& loc = std::source_location::current()*/)
         : InputArchive(this), options(opt)
     {
         if (!path.has_filename())
@@ -42,7 +42,13 @@ namespace SerAr {
 
     auto JSON_InputArchive::list(const std::string& str) -> std::map<std::string,std::string> {
         std::map<std::string,std::string> ret;
-
+        json_pointer.push_back(str);
+        auto json_objects = json[json_pointer];
+        for(auto& [key, value] : json_objects.items() )
+        {
+            ret.emplace(key, value);
+        }
+        json_pointer.pop_back();
         return ret;
     };
 
