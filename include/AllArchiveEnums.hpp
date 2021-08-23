@@ -24,7 +24,10 @@ namespace SerAr {
     constexpr const auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
 
     template<ArchiveTypeEnum value>
-    struct archive_traits;
+    struct archive_traits {
+        using input = input_archive_traits<value>;
+        using output = output_archive_traits<value>;
+    };
 
     template<ArchiveTypeEnum value>
     struct get_archive_type {

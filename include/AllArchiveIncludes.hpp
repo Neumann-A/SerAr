@@ -175,6 +175,8 @@ namespace SerAr {
     template<>
     struct is_input_archive_available<ArchiveTypeEnum::JSON> : std::true_type {};
 
+
+
     template<>
     struct input_archive_traits<ArchiveTypeEnum::JSON> {
         using archive_type = SerAr::JSON_InputArchive;
@@ -216,12 +218,8 @@ namespace SerAr {
     class JSON_InputArchive;
 }
 #endif
-
+//AllArchiveTypeEnums
 namespace SerAr {
-    // static constexpr ArchiveTypeEnum get_archive_enum_from_file_extension(std::string_view extension) {
-
-    // }
-
 
     template<std::size_t count = 0, const auto &Input, template <std::remove_cvref_t<decltype(::std::get<0>(Input))>> typename available_if, std::size_t... Is>
     constexpr auto count_available_if_impl(std::index_sequence<Is...>) {
@@ -261,10 +259,25 @@ namespace SerAr {
     static constexpr const auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
     template<const auto &Input>
     static constexpr const auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
+    template<const auto &Input>
+    static constexpr const auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
 
-    //static constexpr const auto all_available_output_archives = available_output_archives_from_array<AllArchiveTypeEnums>;
-    //static constexpr const auto all_available_input_archives = available_input_archives_from_array<AllArchiveTypeEnums>;
+    static constexpr const auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
+    template<ArchiveTypeEnum value>
+    struct input_archive_enum_type_mapping {
+        using type = archive<value>::input::archive_type;
+    };
+<   template<ArchiveTypeEnum value>
+    using file_archive_input_enum_mapping = input_archive_enum_property_mapping<value>;
+    template<ArchiveTypeEnum value>
+    struct output_archive_enum_type_mapping {
+        using type = archive<value>::output::archive_type;
+    };
+    template<ArchiveTypeEnum value>
+    using file_archive_output_enum_mapping = output_archive_enum_type_mapping<value>;
 
+    using file_input_archive_variants = ::MyCEL::enum_variant<ArchiveTypeEnum, file_archive_input_enum_mapping, all_file_archives>;
+    using file_output_archive_variants = ::MyCEL::enum_variant<ArchiveTypeEnum, file_archive_output_enum_mapping, all_file_archives>;
     //template<ArchiveTypeEnum value>
     //struct output_archives_enum_mapping { using type = typename output_archive_traits<value>::archive_type; };
     //template <ArchiveTypeEnum... Values>
