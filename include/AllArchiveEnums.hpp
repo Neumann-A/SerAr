@@ -10,7 +10,7 @@ namespace SerAr {
     using namespace std::literals::string_view_literals;
     enum class ArhiveType { Input, Output};
     enum class ArchiveInputMode { Open };
-    enum class ArchiveOutputMode { Overwrite = 1, Append= 2};
+    enum class ArchiveOutputMode { Overwrite = 1, CreateOrAppend= 2};
     enum class ArchiveTypeEnum { ConfigFile = 1, JSON, MATLAB, HDF5, ProgramOptionsWrapper, CerealWrapper};
     static constexpr const MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumMap { { { 
                             { ArchiveTypeEnum::ConfigFile,              "ConfigFile"sv }
