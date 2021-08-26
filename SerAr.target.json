@@ -2,15 +2,17 @@
     "name" : "AllArchives" ,
     "target_type" : "library",
     "parameters" : [
-        "INTERFACE"
+        "STATIC",
+        "src/AllInputArchiveWrapper.cpp",
+        "src/AllOutputArchiveWrapper.cpp"
     ],
     "include_directories" : {
-        "interface" : [ 
+        "public" : [ 
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
             "$<INSTALL_INTERFACE:include>" ]
     },
     "link_libraries" : {
-        "interface": [
+        "public": [
             "SerAr::Core",
             "MyCEL::MyCEL",
             "$<TARGET_NAME_IF_EXISTS:SerAr::ConfigFile>",
@@ -22,10 +24,15 @@
         ]
     },
     "compile_features" : {
-        "interface" : [ 
+        "public" : [ 
             "cxx_std_20"
         ]
     },
-    "public_headers" : ["include/SerAr.hpp", "include/AllArchiveIncludes.hpp", "include/AllArchiveEnums.hpp"]
+    "public_headers" : [ 
+        "include/SerAr.hpp", 
+        "include/AllArchiveIncludes.hpp", 
+        "include/AllArchiveEnums.hpp",
+        "include/AllInputArchiveWrapper.hpp",
+        "include/AllOutputArchiveWrapper.hpp"]
 }
 

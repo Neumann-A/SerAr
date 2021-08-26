@@ -14,8 +14,8 @@ int main()
     using namespace SerAr;
     // constexpr auto bool_array = bool_array_available_archives<AllArchiveTypeEnums,is_output_archive_available>();
     // constexpr auto size = count_available_archives<AllArchiveTypeEnums,is_output_archive_available>();
-    static_assert(count_available_if<AllArchiveTypeEnums,is_output_archive_available>()==3);
-    static_assert(!(count_available_if<AllArchiveTypeEnums,is_output_archive_available>()==4));
+    //static_assert(count_available_if<AllArchiveTypeEnums,is_output_archive_available>()==3);
+    //static_assert(!(count_available_if<AllArchiveTypeEnums,is_output_archive_available>()==4));
 
     for( std::size_t i = 0; i < AllArchiveTypeEnums.size(); ++i)
     {
