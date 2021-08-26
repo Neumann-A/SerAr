@@ -317,9 +317,29 @@ namespace SerAr {
         }
     };
 
+    template< ArchiveTypeEnum value>
+    struct get_archive_extension_switch_case {
+        std::string_view operator()() const
+        {
+            return archive_details<value>::defaut_file_extension;
+        }
+    };
+    struct get_archive_extension_switch_case_default {
+        std::string_view operator()()
+        {
+            throw std::runtime_error{"Invalid value for ArchiveTypeEnum!"};
+        }
+    };
+
     template<ArchiveTypeEnum... values>
     using archive_enum_tuple = ::MyCEL::enum_tuple<ArchiveTypeEnum,values...>;
 
+    static constexpr std::string_view getArchiveDefaultExtension(ArchiveTypeEnum value) {
+        using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
+        return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, 
+                get_archive_extension_switch_case_default, get_archive_extension_switch_case>(
+                value);
+    }
 
     static constexpr std::optional<ArchiveTypeEnum> getArchiveEnumByExtension(std::string_view sv) {
         //TODO: Make this code better since currently it is ineffective
@@ -356,9 +376,24 @@ namespace SerAr {
     template< ArchiveTypeEnum value>
     struct output_archive_from_enum_case {
         template<typename... Args>
-        file_output_archive_variants operator()(Args ... args)
+        file_output_archive_variants operator()(ArchiveOutputMode mode, Args ... args)
         {
             using Type = typename output_archive_traits<value>::archive_type;
+            switch(mode)
+            {
+                case ArchiveOutputMode::Overwrite:
+                    return file_output_archive_variants{value, 
+                        file_output_archive_variants::enum_variant_type( std::in_place_type_t<Type>(),
+                        std::forward<Args>(args)...,
+                        output_archive_traits<value>::overwrite_option
+                        )};
+                case ArchiveOutputMode::CreateOrAppend:
+                    return file_output_archive_variants{value, 
+                        file_output_archive_variants::enum_variant_type( std::in_place_type_t<Type>(),
+                        std::forward<Args>(args)...,
+                        output_archive_traits<value>::append_option
+                        )};
+            }
             return file_output_archive_variants{value, file_output_archive_variants::enum_variant_type( std::in_place_type_t<Type>(),std::forward<Args>(args)...)};
         }
     };
@@ -371,7 +406,7 @@ namespace SerAr {
     };
     struct output_archive_from_enum_default {
         template<typename... Args>
-        file_output_archive_variants operator()(Args... args)
+        file_output_archive_variants operator()(ArchiveOutputMode , Args...)
         {
             throw std::out_of_range{"Unknown value for archive type!"};
         }
@@ -381,15 +416,16 @@ namespace SerAr {
     file_input_archive_variants input_archive_from_enum(ArchiveTypeEnum value, Args ... args)
     {
         using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
-        return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, input_archive_from_enum_default, input_archive_from_enum_case, Args...>(
+        return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, input_archive_from_enum_default, input_archive_from_enum_case>(
                 value, std::forward<Args>(args)...);
     }
     template<typename... Args>
-    file_output_archive_variants output_archive_from_enum(ArchiveTypeEnum value, Args ... args)
+    file_output_archive_variants output_archive_from_enum(ArchiveOutputMode mode, ArchiveTypeEnum value, Args ... args)
     {
         using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
-        return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, output_archive_from_enum_default, output_archive_from_enum_case, Args...>(
-                value, std::forward<Args>(args)...);
+        static_assert(EnumTuple::count!=0);
+        return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, output_archive_from_enum_default, output_archive_from_enum_case>(
+                value, mode, std::forward<Args>(args)...);
     }
 }
 
