@@ -388,7 +388,7 @@ namespace Archives
             : InputArchive(this), mFile(openFile(path, options)), mOptions(options) {
             static_assert(std::is_same_v<ThisClass, std::remove_cvref_t<decltype(*this)>>);
         }
-
+        ALLOW_DEFAULT_MOVE_AND_ASSIGN(HDF5_InputArchive)
         DISALLOW_COPY_AND_ASSIGN(HDF5_InputArchive)
 
         auto list(const std::string& str) -> std::map<std::string,std::string>;

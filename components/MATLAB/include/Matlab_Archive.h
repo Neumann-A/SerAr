@@ -228,6 +228,8 @@ namespace Archives
 
         MatlabOutputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update);
         ~MatlabOutputArchive();
+
+        ALLOW_DEFAULT_MOVE_AND_ASSIGN(MatlabOutputArchive)
         DISALLOW_COPY_AND_ASSIGN(MatlabOutputArchive)
         template<typename T>
         inline void save(const Archives::NamedValue<T>& value)
@@ -261,18 +263,17 @@ namespace Archives
 
     //private:
     private:
-        const std::filesystem::path m_filepath;
+        std::filesystem::path m_filepath;
         MatlabOptions m_options;
-        MATFile &m_MatlabFile;
-        
+        std::unique_ptr<MATFile, void(*)(MATFile*)> m_MatlabFile;
+
         using Field = std::tuple<std::string, mxArray*>;	
         std::stack<Field> Fields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
         // std::stack<std::string> Fieldnames;
         std::string nextFieldname;
         // std::stack<bool> skip_finish;
-        
 
-        MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
+        std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
 
         inline void setNextFieldname(const std::string &str) noexcept
         {
@@ -520,7 +521,7 @@ namespace Archives
 
         MatlabInputArchive(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::read);
         ~MatlabInputArchive();
-
+        ALLOW_DEFAULT_MOVE_AND_ASSIGN(MatlabInputArchive)
         DISALLOW_COPY_AND_ASSIGN(MatlabInputArchive)
         //TODO: Write load function!
         template<typename T>
@@ -740,25 +741,12 @@ namespace Archives
 #endif
 #endif
     private:
-        MATFile &m_MatlabFile;
+        std::unique_ptr<MATFile, void(*)(MATFile*)> m_MatlabFile;
 
         using Field = std::tuple<std::string, mxArray * const>;
         std::stack<Field> mFields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
 
-        MATFile& getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
-        {
-            assert(options == MatlabOptions::read || options == MatlabOptions::update);// , "Cannot have a MatlabInputArchive with write-only access!");
-
-            if (!fpath.has_filename())
-                throw std::runtime_error{ std::string{ "Could not open file due to missing filename: " } +fpath.string() };
-
-            MATFile *pMAT = matOpen(fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
-
-            if (pMAT == nullptr)
-                throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
-
-            return *pMAT;
-        };
+        std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const;
 
         inline void checkCurrentField()
         {
@@ -784,7 +772,7 @@ namespace Archives
 
             if (mFields.empty())
             {
-                nextarr = matGetVariable(&m_MatlabFile,str.c_str());
+                nextarr = matGetVariable(m_MatlabFile.get(),str.c_str());
             }
             else
             {

@@ -1056,8 +1056,6 @@ namespace Archives
         ~ConfigFile_InputArchive();
 
         ConfigFile_InputArchive operator=(ConfigFile_InputArchive&& CFG);
-
-        //ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_InputArchive)
         DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
         auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;

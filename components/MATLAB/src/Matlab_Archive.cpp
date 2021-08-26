@@ -6,6 +6,8 @@
 
 #include "Matlab_Archive.h"
 
+#include <memory>
+
 namespace Archives 
 {
 
@@ -21,8 +23,24 @@ namespace Archives
 
             mFields.pop();
         }
-        matClose(&m_MatlabFile);
     }
+
+    std::unique_ptr<MATFile, void(*)(MATFile*)> MatlabInputArchive::getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
+    {
+        assert(options == MatlabOptions::read || options == MatlabOptions::update);// , "Cannot have a MatlabInputArchive with write-only access!");
+
+        if (!fpath.has_filename())
+            throw std::runtime_error{ std::string{ "Could not open file due to missing filename: " } +fpath.string() };
+
+        std::unique_ptr<MATFile, void(*)(MATFile*)> pMat(
+            matOpen(fpath.string().c_str(), MatlabHelper::getMatlabMode(options)),
+            [](MATFile* mat) {matClose(mat);} );
+
+        if (pMat == nullptr)
+            throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
+
+        return std::move(pMat);
+    };
 
     auto MatlabInputArchive::list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string> {
         return list(value.getName());
@@ -44,10 +62,10 @@ namespace Archives
             }
         } else {
            int num;
-           const char ** field_names = (const char **)matGetDir(&m_MatlabFile, &num);
+           const char ** field_names = (const char **)matGetDir(m_MatlabFile.get(), &num);
            for(int i = 0; i < num; i++ )
            {
-               auto array = matGetVariable(&m_MatlabFile, field_names[0]);
+               auto array = matGetVariable(m_MatlabFile.get(), field_names[0]);
                std::string value{};
                getValue(value,array);
                mxFree(array);
@@ -81,22 +99,23 @@ namespace Archives
             mxDestroyArray(std::get<1>(Fields.top()));
             Fields.pop();
         }
-        matClose(&m_MatlabFile);
     };
 
-    MATFile& MatlabOutputArchive::getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
+    std::unique_ptr<MATFile, void(*)(MATFile*)> MatlabOutputArchive::getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const
         {	
             assert(options != MatlabOptions::read);//, "Cannot have a MatlabOutputArchive with read-only access!");
 
             if(!fpath.has_filename())
                 throw std::runtime_error{ std::string{"Could not open file due to missing filename: "} + fpath.string() };
 
-            MATFile *pMAT = matOpen( fpath.string().c_str(), MatlabHelper::getMatlabMode(options));
+            std::unique_ptr<MATFile, void(*)(MATFile*)> pMAT(
+                matOpen(fpath.string().c_str(), MatlabHelper::getMatlabMode(options)),
+                [](MATFile* mat) {matClose(mat);} );
 
             if (pMAT == nullptr)
                 throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
 
-            return *pMAT;
+            return std::move(pMAT);
         }
 
     void MatlabOutputArchive::finishMATLABArray()
@@ -111,7 +130,7 @@ namespace Archives
 
         if (Fields.empty()) //at the bottom lvl; write array to mat
         {
-            int status = matPutVariable(&m_MatlabFile, std::get<0>(TopField).c_str(), std::get<1>(TopField)); // This throws an expection and catches it itself!
+            int status = matPutVariable(m_MatlabFile.get(), std::get<0>(TopField).c_str(), std::get<1>(TopField)); // This throws an expection and catches it itself!
             if (status != 0)
                 throw std::runtime_error{ "Unable to write Array to MATLAB file! (Out of Memory?)" };
             mxDestroyArray(std::get<1>(TopField)); //release array and automaticlly destroys all arrays which have been added into the array!
