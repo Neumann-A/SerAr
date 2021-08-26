@@ -292,7 +292,7 @@ void ConfigFile::toString::checkSyntax(const std::string& section, const std::st
 ///-------------------------------------------------------------------------------------------------
 
 ConfigFile_OutputArchive::ConfigFile_OutputArchive(std::ostream& stream) : OutputArchive(this), mOutputstream(stream), mStorage() {}
-ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path) : OutputArchive(this), mOutputstream(createFileStream(path)), mStorage() {}
+ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &path, const ConfigFile_Options& ) : OutputArchive(this), mOutputstream(createFileStream(path)), mStorage() {}
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
     mStorage.writeContentsToStream(mOutputstream);

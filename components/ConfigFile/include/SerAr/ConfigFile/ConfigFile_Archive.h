@@ -995,7 +995,7 @@ namespace Archives
     public:
         using Options = ConfigFile_Options;
         ConfigFile_OutputArchive(std::ostream& stream);
-        ConfigFile_OutputArchive(const std::filesystem::path &path);
+        ConfigFile_OutputArchive(const std::filesystem::path &path, const ConfigFile_Options &opts = {});
         ~ConfigFile_OutputArchive();
 
         //ALLOW_DEFAULT_MOVE_AND_ASSIGN(ConfigFile_OutputArchive)
