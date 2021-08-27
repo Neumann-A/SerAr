@@ -12,7 +12,7 @@ namespace SerAr {
     enum class ArchiveInputMode { Open };
     enum class ArchiveOutputMode { Overwrite = 1, CreateOrAppend= 2};
     enum class ArchiveTypeEnum { ConfigFile = 1, JSON, MATLAB, HDF5, ProgramOptionsWrapper, CerealWrapper};
-    static constexpr const MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumMap { { { 
+    constexpr MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumMap { { { 
                             { ArchiveTypeEnum::ConfigFile,              "ConfigFile"sv }
                             ,{ ArchiveTypeEnum::JSON,                    "JSON"sv }
                             ,{ ArchiveTypeEnum::MATLAB,                  "MATLAB"sv }
@@ -21,7 +21,7 @@ namespace SerAr {
                             ,{ ArchiveTypeEnum::CerealWrapper,           "Cereal"sv }
                             } } };
 
-    constexpr const auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
+    constexpr auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
 
 
     template<ArchiveTypeEnum value>
@@ -64,7 +64,7 @@ namespace SerAr {
         template<ArchiveTypeEnum value>
         struct is_file_archive : std::false_type {};
         template<ArchiveTypeEnum value>
-        constexpr bool is_file_archive_v = is_file_archive<value>::value;
+        inline constexpr bool is_file_archive_v = is_file_archive<value>::value;
     }
 }
 

@@ -262,16 +262,15 @@ namespace SerAr {
     }
 
     template<const auto &Input, template <std::remove_cvref_t<decltype(::std::get<0>(Input))>> typename available_if>
-    constexpr const auto available_archives_from_array = get_input_available_if<Input,available_if>();
+    constexpr auto available_archives_from_array = get_input_available_if<Input,available_if>();
+    template<const auto &Input>
+    constexpr auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
+    template<const auto &Input>
+    constexpr auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
+    template<const auto &Input>
+    constexpr auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
+    constexpr auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
 
-    template<const auto &Input>
-    constexpr const auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
-    template<const auto &Input>
-    constexpr const auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
-    template<const auto &Input>
-    constexpr const auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
-
-    static constexpr const auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
     template<ArchiveTypeEnum value>
     struct input_archive_enum_type_mapping {
         using type = typename archive_traits<value>::input::archive_type;
