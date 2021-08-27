@@ -356,7 +356,7 @@ ConfigFile_InputArchive& ConfigFile_InputArchive::operator=(ConfigFile_InputArch
     //delegate to move constructor
     std::swap(this->mStorage, CFG.mStorage);
     std::swap(this->mStreamOwner, CFG.mStreamOwner);
-    this->mInputstream = CFG.mInputstream;
+    this->mInputstream = std::move(CFG.mInputstream);
     CFG.mStreamOwner = false;
     return *this;
 }
