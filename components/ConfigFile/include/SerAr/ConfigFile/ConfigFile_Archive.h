@@ -23,6 +23,7 @@
 #include <complex>
 #include <exception>
 #include <cassert>
+#include <functional>
 
 //#ifdef EIGEN_CORE_H
 //#include <Eigen/Core>
@@ -1030,7 +1031,7 @@ namespace Archives
         //template <typename T>
         //std::size_t typecounter{ 0 };
         bool mStreamOwner{ false };
-        std::ostream &mOutputstream;
+        std::reference_wrapper<std::ostream> mOutputstream;
             
         ConfigFile::Storage mStorage{};
 
@@ -1055,7 +1056,7 @@ namespace Archives
         ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG);
         ~ConfigFile_InputArchive();
 
-        ConfigFile_InputArchive operator=(ConfigFile_InputArchive&& CFG);
+        ConfigFile_InputArchive& operator=(ConfigFile_InputArchive&& CFG);
         DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
         auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
@@ -1139,7 +1140,7 @@ namespace Archives
         ConfigFile::Logic ConfigLogic{};
     private:
         bool mStreamOwner{ false };
-        std::istream& mInputstream;
+        std::reference_wrapper<std::istream> mInputstream;
         ConfigFile::Storage mStorage;
 
         std::ifstream& createFileStream(const std::filesystem::path &path);

@@ -296,7 +296,7 @@ ConfigFile_OutputArchive::ConfigFile_OutputArchive(const std::filesystem::path &
 ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 {
     mStorage.writeContentsToStream(mOutputstream);
-    mOutputstream << std::flush;
+    mOutputstream.get() << std::flush;
 
     if (mStreamOwner) 
     {
@@ -331,7 +331,7 @@ std::ofstream& ConfigFile_OutputArchive::createFileStream(const std::filesystem:
 ///-------------------------------------------------------------------------------------------------
 ///ConfigFile::Input Archive
 ///-------------------------------------------------------------------------------------------------
-ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(stream), mStorage()
+ConfigFile_InputArchive::ConfigFile_InputArchive(std::istream &stream) : InputArchive(this), mInputstream(std::ref(stream)), mStorage()
 {
     parseStream();
 }
@@ -340,29 +340,32 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile::Storage storage) : 
 {
 }
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(createFileStream(path)), mStorage()
+ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &path) : InputArchive(this), mInputstream(std::ref(createFileStream(path))), mStorage()
 {
     parseStream();
 }
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream) 
+ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) 
+ : InputArchive(this), mStreamOwner(CFG.mStreamOwner), mInputstream(CFG.mInputstream), mStorage(CFG.mStorage)
 {
-    std::swap(this->mStreamOwner, CFG.mStreamOwner);
-    std::swap(this->mStorage, CFG.mStorage);
     CFG.mStreamOwner = false;
 }
 
-ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
+ConfigFile_InputArchive& ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
 {
     //delegate to move constructor
-    return ConfigFile_InputArchive{ std::move(CFG) };
+    mStreamOwner = CFG.mStreamOwner;
+    mInputstream = CFG.mInputstream;
+    CFG.mStreamOwner = false;
+    mStorage = CFG.mStorage;
+    return *this;
 }
 
 ConfigFile_InputArchive::~ConfigFile_InputArchive()
 {
     if (mStreamOwner)
     {
-        delete (&mInputstream); // We created the Stream object we also have to delete it!
+        delete (&mInputstream.get()); // We created the Stream object we also have to delete it!
     }
 }
 
@@ -411,7 +414,7 @@ std::ifstream& ConfigFile_InputArchive::createFileStream(const std::filesystem::
 
 void ConfigFile_InputArchive::parseStream()
 {
-    if (!mInputstream)
+    if (!mInputstream.get())
     {
         throw std::runtime_error{ "Cannot read from Stream. Stream not ready! " };
     }
@@ -421,7 +424,7 @@ void ConfigFile_InputArchive::parseStream()
     size_t lineNo = 0;
     bool FirstRun{ true };
 
-    while (std::getline(mInputstream, line))
+    while (std::getline(mInputstream.get(), line))
     {
         ++lineNo;
 

@@ -35,7 +35,7 @@ namespace Archives {
         mGroupStack.pop();
 
         return ret;
-    };
+    }
 
     #define HDF5_ARCHIVE_LOAD(type) template void HDF5_InputArchive::load< type &>(NamedValue< type &> &);
     HDF5_ARCHIVE_LOAD(bool)
