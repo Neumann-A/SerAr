@@ -265,11 +265,11 @@ namespace SerAr {
     constexpr const auto available_archives_from_array = get_input_available_if<Input,available_if>();
 
     template<const auto &Input>
-    static constexpr const auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
+    constexpr const auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
     template<const auto &Input>
-    static constexpr const auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
+    constexpr const auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
     template<const auto &Input>
-    static constexpr const auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
+    constexpr const auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
 
     static constexpr const auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
     template<ArchiveTypeEnum value>
