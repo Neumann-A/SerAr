@@ -16,16 +16,17 @@ namespace SerAr {
         AllFileInputArchiveWrapper(ArchiveTypeEnum type, const std::filesystem::path &path);
     
         template<typename... Args>
-        auto operator()(Args... args)
+        AllFileInputArchiveWrapper& operator()(Args... args)
         {
-            return std::visit([&args](auto& ar){ return ar.operator()(std::forward<Args>(args)...); },archive_enum_variant.variant);
+            std::visit([&args...](auto&& ar){ ar(std::forward<Args>(args)...); },archive_enum_variant.variant);
+            return *this;
         }
 
         template<typename T>
         auto construct()
         {
-            return std::visit([](auto& archive) -> T { return Archives::LoadConstructor<T>::construct(archive); },
-            archive_enum_variant.variant);
+            return std::visit([](auto&& archive) -> T { return Archives::LoadConstructor<T>::construct(archive); },
+                archive_enum_variant.variant);
         }
     };
 
