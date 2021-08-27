@@ -362,7 +362,7 @@ namespace SerAr {
             }
         }
         return std::nullopt;
-    };
+    }
 
     template< ArchiveTypeEnum value>
     struct input_archive_from_enum_case {
@@ -399,7 +399,7 @@ namespace SerAr {
     };
     struct input_archive_from_enum_default {
         template<typename... Args>
-        file_input_archive_variants operator()(Args... args)
+        file_input_archive_variants operator()(Args...)
         {
             throw std::out_of_range{"Unknown value for archive type!"};
         }

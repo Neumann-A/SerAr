@@ -1052,10 +1052,10 @@ namespace Archives
         ConfigFile_InputArchive(std::istream& stream);
         ConfigFile_InputArchive(ConfigFile::Storage storage);
         ConfigFile_InputArchive(const std::filesystem::path &path);
-        ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG);
+        ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) noexcept;
         ~ConfigFile_InputArchive();
 
-        ConfigFile_InputArchive operator=(ConfigFile_InputArchive&& CFG);
+        ConfigFile_InputArchive& operator=(ConfigFile_InputArchive&& CFG) noexcept;
         DISALLOW_COPY_AND_ASSIGN(ConfigFile_InputArchive)
 
         auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;

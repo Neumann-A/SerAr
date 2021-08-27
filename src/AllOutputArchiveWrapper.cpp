@@ -21,6 +21,6 @@ namespace SerAr {
     AllFileOutputArchiveWrapper::AllFileOutputArchiveWrapper(const std::filesystem::path &path, ArchiveOutputMode mode) 
         : archive_enum_variant(getOutputArchiveTypeByPath(path,mode)) {}
     AllFileOutputArchiveWrapper::AllFileOutputArchiveWrapper(ArchiveTypeEnum type, const std::filesystem::path &path, ArchiveOutputMode mode) 
-        : archive_enum_variant(output_archive_from_enum(mode, type, path)) {};
+        : archive_enum_variant(output_archive_from_enum(mode, type, path)) {}
 
 }

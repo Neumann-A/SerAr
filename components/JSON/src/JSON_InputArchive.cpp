@@ -50,7 +50,7 @@ namespace SerAr {
         }
         json_pointer.pop_back();
         return ret;
-    };
+    }
 
     #define JSON_ARCHIVE_LOAD(type) template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type &> &>(NamedValue< type &> &);
     JSON_ARCHIVE_LOAD(bool)

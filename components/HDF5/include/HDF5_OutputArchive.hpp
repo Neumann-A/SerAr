@@ -435,13 +435,13 @@ namespace Archives
                     closeLastGroup(value);
                 removePath(); //Remove the Last Fieldname
             }
-        };
+        }
 
         template <typename T> requires HDF5_ArchiveWriteAble<T, ThisClass>
         inline void save(const T& value)
         {
             write(value);
-        };
+        }
     };
     
     #define HDF5_ARCHIVE_SAVE(type) extern template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &);
