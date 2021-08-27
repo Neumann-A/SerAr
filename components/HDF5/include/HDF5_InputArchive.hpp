@@ -248,7 +248,7 @@ namespace Archives
             using namespace HDF5_Wrapper;
 
             const auto spacetype = DataspaceTypeSelector<std::remove_cvref_t<T>>::value();
-            HDF5_DataspaceOptions spaceopts;
+            //HDF5_DataspaceOptions spaceopts;
 
             const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
 
