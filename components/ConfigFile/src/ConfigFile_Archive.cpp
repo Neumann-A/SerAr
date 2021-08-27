@@ -346,7 +346,7 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &pa
 }
 
 ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) noexcept
-: InputArchive(this), mStreamOwner(CFG.mStreamOwner), mInputstream(CFG.mInputstream), mStorage(std::move(CFG.mStorage)), 
+: InputArchive(this), mStreamOwner(CFG.mStreamOwner), mInputstream(CFG.mInputstream), mStorage(std::move(CFG.mStorage))
 {
     CFG.mStreamOwner = false;
 }
