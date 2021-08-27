@@ -118,8 +118,8 @@ namespace Archives
             {
                 //assert(HDF5_DatatypeWrapper(H5Tget_super(dataset.getDatatype())) == HDF5_DatatypeWrapper(H5Tget_super(HDF5_DatatypeWrapper(val, datatypeopts))));
             }
-            const auto& dataspace{ dataset.getDataspace() };
-            assert(dataspace.getDimensions().size() <= 1);
+            //const auto& dataspace{ dataset.getDataspace() };
+            //assert(dataspace.getDimensions().size() <= 1);
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val, datatypeopts), HDF5_DataspaceWrapper(spacetype) };
             dataset.readData(val, memoryopts);
         }
