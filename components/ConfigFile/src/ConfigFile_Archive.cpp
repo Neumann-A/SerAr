@@ -354,9 +354,10 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) 
 ConfigFile_InputArchive& ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) noexcept
 {
     //delegate to move constructor
-    std::swap(this->mStreamOwner, CFG.mStreamOwner);
-    std::swap(this->mInputstream, CFG.mInputstream);
     std::swap(this->mStorage, CFG.mStorage);
+    std::swap(this->mStreamOwner, CFG.mStreamOwner);
+    this->mInputstream = CFG.mInputstream;
+    CFG.mStreamOwner = false;
     return *this;
 }
 
