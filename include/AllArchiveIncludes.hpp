@@ -289,7 +289,7 @@ namespace SerAr {
 
     template< ArchiveTypeEnum value>
     struct archive_default_extension_switch_case {
-        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv)
+        inline std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const 
         {
             if(archive_details<value>::defaut_file_extension.compare(sv)==0) {
                 return value;
@@ -299,7 +299,7 @@ namespace SerAr {
     };
     template< ArchiveTypeEnum value>
     struct archive_native_extensions_switch_case {
-        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv)
+        inline constexpr std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
         {
             for(const auto& ext: archive_details<value>::native_file_extensions) {
                 if(ext.compare(sv)==0)
@@ -310,7 +310,7 @@ namespace SerAr {
     };
 
     struct archive_extension_switch_case_default {
-        static constexpr std::optional<ArchiveTypeEnum> operator()(std::string_view)
+        inline constexpr std::optional<ArchiveTypeEnum> operator()(std::string_view) const
         {
             return std::nullopt;
         }
@@ -318,12 +318,12 @@ namespace SerAr {
 
     template< ArchiveTypeEnum value>
     struct get_archive_extension_switch_case {
-        std::string_view operator()() {
+        inline std::string_view operator()() {
             return archive_details<value>::defaut_file_extension;
         }
     };
     struct get_archive_extension_switch_case_default {
-        std::string_view operator()() {
+        inline std::string_view operator()() {
             throw std::runtime_error{"Invalid value for ArchiveTypeEnum!"};
         }
     };
@@ -338,7 +338,7 @@ namespace SerAr {
                 value);
     }
 
-    static constexpr std::optional<ArchiveTypeEnum> getArchiveEnumByExtension(std::string_view sv) {
+    inline static constexpr std::optional<ArchiveTypeEnum> getArchiveEnumByExtension(std::string_view sv) {
         //TODO: Make this code better since currently it is ineffective
         using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
         for(const auto& archive_enum : all_file_archives) {
@@ -364,7 +364,7 @@ namespace SerAr {
     template< ArchiveTypeEnum value>
     struct input_archive_from_enum_case {
         template<typename... Args>
-        file_input_archive_variants operator()(Args ... args)
+        inline file_input_archive_variants operator()(Args ... args) const 
         {
             using Type = typename input_archive_traits<value>::archive_type;
             return file_input_archive_variants{value,file_input_archive_variants::enum_variant_type( std::in_place_type_t<Type>(),std::forward<Args>(args)...)};
@@ -373,7 +373,7 @@ namespace SerAr {
     template< ArchiveTypeEnum value>
     struct output_archive_from_enum_case {
         template<typename... Args>
-        file_output_archive_variants operator()(ArchiveOutputMode mode, Args ... args)
+        inline file_output_archive_variants operator()(ArchiveOutputMode mode, Args ... args) const 
         {
             using Type = typename output_archive_traits<value>::archive_type;
             switch(mode)
@@ -396,28 +396,28 @@ namespace SerAr {
     };
     struct input_archive_from_enum_default {
         template<typename... Args>
-        file_input_archive_variants operator()(Args...)
+        inline file_input_archive_variants operator()(Args...) const 
         {
             throw std::out_of_range{"Unknown value for archive type!"};
         }
     };
     struct output_archive_from_enum_default {
         template<typename... Args>
-        file_output_archive_variants operator()(ArchiveOutputMode , Args...)
+        inline file_output_archive_variants operator()(ArchiveOutputMode , Args...) const
         {
             throw std::out_of_range{"Unknown value for archive type!"};
         }
     };
 
     template<typename... Args>
-    file_input_archive_variants input_archive_from_enum(ArchiveTypeEnum value, Args ... args)
+    inline file_input_archive_variants input_archive_from_enum(ArchiveTypeEnum value, Args ... args)
     {
         using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
         return MyCEL::enum_switch::switch_impl<EnumTuple::count, EnumTuple, input_archive_from_enum_default, input_archive_from_enum_case>(
                 value, std::forward<Args>(args)...);
     }
     template<typename... Args>
-    file_output_archive_variants output_archive_from_enum(ArchiveOutputMode mode, ArchiveTypeEnum value, Args ... args)
+    inline file_output_archive_variants output_archive_from_enum(ArchiveOutputMode mode, ArchiveTypeEnum value, Args ... args)
     {
         using EnumTuple = typename MyCEL::apply_nttp_t<all_file_archives,archive_enum_tuple>;
         static_assert(EnumTuple::count!=0);
