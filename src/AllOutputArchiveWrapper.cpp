@@ -5,7 +5,7 @@
 
 namespace SerAr {
 
-    file_output_archive_variants getOutputArchiveTypeByPath(const std::filesystem::path &path, ArchiveOutputMode mode) {
+    static file_output_archive_variants getOutputArchiveTypeByPath(const std::filesystem::path &path, ArchiveOutputMode mode) {
         if(!path.has_extension()) {
             const auto error = fmt::format("Given path '{}' has no extension. Cannot deduce archive type!", path.string() );
             throw std::runtime_error{error.c_str()};

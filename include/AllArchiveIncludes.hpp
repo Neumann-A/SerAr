@@ -262,14 +262,14 @@ namespace SerAr {
     }
 
     template<const auto &Input, template <std::remove_cvref_t<decltype(::std::get<0>(Input))>> typename available_if>
-    constexpr auto available_archives_from_array = get_input_available_if<Input,available_if>();
+    inline constexpr auto available_archives_from_array = get_input_available_if<Input,available_if>();
     template<const auto &Input>
-    constexpr auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
+    inline constexpr auto available_output_archives_from_array = get_input_available_if<Input,is_output_archive_available>();
     template<const auto &Input>
-    constexpr auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
+    inline constexpr auto available_input_archives_from_array = get_input_available_if<Input,is_input_archive_available>();
     template<const auto &Input>
-    constexpr auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
-    constexpr auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
+    inline constexpr auto available_file_archives_from_array = get_input_available_if<Input,traits::is_file_archive>();
+    inline constexpr auto all_file_archives = available_file_archives_from_array<AllArchiveTypeEnums>;
 
     template<ArchiveTypeEnum value>
     struct input_archive_enum_type_mapping {
@@ -289,7 +289,7 @@ namespace SerAr {
 
     template< ArchiveTypeEnum value>
     struct archive_default_extension_switch_case {
-        std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
+        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
         {
             if(archive_details<value>::defaut_file_extension.compare(sv)==0) {
                 return value;
@@ -299,7 +299,7 @@ namespace SerAr {
     };
     template< ArchiveTypeEnum value>
     struct archive_native_extensions_switch_case {
-        std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
+        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
         {
             for(const auto& ext: archive_details<value>::native_file_extensions) {
                 if(ext.compare(sv)==0)
@@ -310,7 +310,7 @@ namespace SerAr {
     };
 
     struct archive_extension_switch_case_default {
-        constexpr std::optional<ArchiveTypeEnum> operator()(std::string_view)
+        static constexpr std::optional<ArchiveTypeEnum> operator()(std::string_view)
         {
             return std::nullopt;
         }

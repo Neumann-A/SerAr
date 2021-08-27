@@ -12,7 +12,7 @@ namespace SerAr {
     enum class ArchiveInputMode { Open };
     enum class ArchiveOutputMode { Overwrite = 1, CreateOrAppend= 2};
     enum class ArchiveTypeEnum { ConfigFile = 1, JSON, MATLAB, HDF5, ProgramOptionsWrapper, CerealWrapper};
-    constexpr MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumMap { { { 
+    inline constexpr MyCEL::static_map<ArchiveTypeEnum, std::string_view, 6> ArchiveTypeEnumMap { { { 
                             { ArchiveTypeEnum::ConfigFile,              "ConfigFile"sv }
                             ,{ ArchiveTypeEnum::JSON,                    "JSON"sv }
                             ,{ ArchiveTypeEnum::MATLAB,                  "MATLAB"sv }
@@ -21,7 +21,7 @@ namespace SerAr {
                             ,{ ArchiveTypeEnum::CerealWrapper,           "Cereal"sv }
                             } } };
 
-    constexpr auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
+    inline constexpr auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
 
 
     template<ArchiveTypeEnum value>
@@ -30,11 +30,11 @@ namespace SerAr {
     template<ArchiveTypeEnum value>
     struct is_output_archive_available : std::false_type {};
     template<ArchiveTypeEnum value>
-    constexpr bool is_output_archive_available_v = is_output_archive_available<value>::value;
+    inline constexpr bool is_output_archive_available_v = is_output_archive_available<value>::value;
     template<ArchiveTypeEnum value>
     struct is_input_archive_available : std::false_type {};
     template<ArchiveTypeEnum value>
-    constexpr bool is_input_archive_available_v = is_input_archive_available<value>::value;
+    inline constexpr bool is_input_archive_available_v = is_input_archive_available<value>::value;
 
     template<ArchiveTypeEnum value>
     struct archive_details {};

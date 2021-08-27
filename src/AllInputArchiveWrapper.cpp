@@ -5,7 +5,7 @@
 
 namespace SerAr {
 
-    file_input_archive_variants getInputArchiveTypeByPath(const std::filesystem::path &path) {
+    static file_input_archive_variants getInputArchiveTypeByPath(const std::filesystem::path &path) {
         if(!path.has_extension()) {
             const auto error = fmt::format("Given path '{}' has no extension. Cannot deduce archive type!", path.string() );
             throw std::runtime_error{error.c_str()};
