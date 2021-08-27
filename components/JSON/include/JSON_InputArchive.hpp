@@ -126,7 +126,7 @@ namespace SerAr
 
             if constexpr (T::IsVectorAtCompileTime) {
                 res = json[json_pointer].get<decltype(res)>();
-                value = Eigen::Map< T, Eigen::Unaligned>(res.data(),res.size());
+                value = Eigen::Map< T, Eigen::Unaligned>(res.data(),static_cast<Eigen::Index>(res.size()));
             }
             else {
                 const auto rows = json[json_pointer].size();

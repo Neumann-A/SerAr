@@ -118,7 +118,7 @@ namespace SerAr
             auto& parrent_json = json_stack.top();
 
             if constexpr (T::IsVectorAtCompileTime) {
-                std::vector<DataType> tmp(size);
+                std::vector<DataType> tmp(static_cast<std::vector<DataType>::size_type>(size));
                 Eigen::Map< T, Eigen::Unaligned>(tmp.data(), value.rows(), value.cols()) = value;
                 parrent_json.push_back(tmp);
             }
