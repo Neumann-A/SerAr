@@ -345,20 +345,17 @@ ConfigFile_InputArchive::ConfigFile_InputArchive(const std::filesystem::path &pa
     parseStream();
 }
 
-ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) noexcept
-: InputArchive(this), mStreamOwner(CFG.mStreamOwner), mInputstream(CFG.mInputstream), mStorage(std::move(CFG.mStorage))
+ConfigFile_InputArchive::ConfigFile_InputArchive(ConfigFile_InputArchive&& CFG) : InputArchive(this), mInputstream(CFG.mInputstream) 
 {
+    std::swap(this->mStreamOwner, CFG.mStreamOwner);
+    std::swap(this->mStorage, CFG.mStorage);
     CFG.mStreamOwner = false;
 }
 
-ConfigFile_InputArchive& ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) noexcept
+ConfigFile_InputArchive ConfigFile_InputArchive::operator=(ConfigFile_InputArchive&& CFG) 
 {
     //delegate to move constructor
-    std::swap(this->mStorage, CFG.mStorage);
-    std::swap(this->mStreamOwner, CFG.mStreamOwner);
-    this->mInputstream = std::move(CFG.mInputstream);
-    CFG.mStreamOwner = false;
-    return *this;
+    return ConfigFile_InputArchive{ std::move(CFG) };
 }
 
 ConfigFile_InputArchive::~ConfigFile_InputArchive()
