@@ -289,7 +289,7 @@ namespace SerAr {
 
     template< ArchiveTypeEnum value>
     struct archive_default_extension_switch_case {
-        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
+        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv)
         {
             if(archive_details<value>::defaut_file_extension.compare(sv)==0) {
                 return value;
@@ -299,7 +299,7 @@ namespace SerAr {
     };
     template< ArchiveTypeEnum value>
     struct archive_native_extensions_switch_case {
-        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv) const
+        static std::optional<ArchiveTypeEnum> operator()(std::string_view sv)
         {
             for(const auto& ext: archive_details<value>::native_file_extensions) {
                 if(ext.compare(sv)==0)
@@ -318,14 +318,12 @@ namespace SerAr {
 
     template< ArchiveTypeEnum value>
     struct get_archive_extension_switch_case {
-        std::string_view operator()() const
-        {
+        std::string_view operator()() {
             return archive_details<value>::defaut_file_extension;
         }
     };
     struct get_archive_extension_switch_case_default {
-        std::string_view operator()()
-        {
+        std::string_view operator()() {
             throw std::runtime_error{"Invalid value for ArchiveTypeEnum!"};
         }
     };
