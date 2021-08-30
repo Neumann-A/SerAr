@@ -300,7 +300,7 @@ ConfigFile_OutputArchive::~ConfigFile_OutputArchive()
 
     if (mStreamOwner) 
     {
-        delete &mOutputstream; // We created the Stream object we also have to delete it!
+        delete &(mOutputstream.get()); // We created the Stream object we also have to delete it!
     }
 }
 
