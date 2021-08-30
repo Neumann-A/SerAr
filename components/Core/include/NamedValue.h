@@ -82,6 +82,12 @@ namespace Archives
     {
         return NamedValue<T>{std::move(name), std::forward<T>(value)};
     }
+    template <typename T>
+    inline NamedValue<T> createNamedValue(T&& value)
+    {
+        return NamedValue<T>{getTypeNameDescription(value), std::forward<T>(value)};
+    }
+
 
     template<typename T, typename _ = std::void_t<> >
     struct is_NamedValue : std::false_type {};

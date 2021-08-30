@@ -35,6 +35,7 @@ namespace SerAr {
         using underlying_enum_variant_type = typename std::remove_cvref_t<T>::enum_variant_type;
         template<underlying_enum_type Value>
         using underlying_enum_variant_mapping_type = typename std::remove_cvref_t<T>::template enum_variant_mapping_t<Value>;
+        inline static constexpr auto allowed_values = std::remove_cvref_t<T>::values;
 
         const std::string enum_name;
         const std::string type_name;
@@ -128,9 +129,9 @@ namespace SerAr {
             ar(Archives::createNamedValue(enum_name,enum_str));
             enum_value = from_string(enum_str,enum_value);
             if(type_name.empty()) {
-                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,enum_variant,ar);
+                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, allowed_values, enum_switch_case_functor>(enum_value,enum_variant,ar);
             } else {
-                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, enum_switch_case_functor>(enum_value,type_name,enum_variant,ar);
+                enum_switch::run<std::remove_cvref_t<underlying_enum_type>, allowed_values, enum_switch_case_functor>(enum_value,type_name,enum_variant,ar);
             }
         }
     };
@@ -141,6 +142,14 @@ namespace SerAr {
     inline NamedEnumVariant<T> createNamedEnumVariant(std::string ename,std::string tname, T&& value)
     {
         return NamedEnumVariant<T>{std::move(ename),std::move(tname), std::forward<T>(value)};
+    }
+
+    template<typename T>
+    inline NamedEnumVariant<T> createNamedEnumVariant(T&& value)
+    {
+        return NamedEnumVariant<T>{getTypeNameDescription(value.value), 
+                                   std::visit([](auto&& type) -> std::string { return getTypeNameDescription(type); }, value.variant),
+                                   std::forward<T>(value)};
     }
 
     template<typename T>
