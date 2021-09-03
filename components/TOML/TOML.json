@@ -1,0 +1,16 @@
+{
+    "condition" : "SERAR_WITH_TOML",
+    "component_name" : "TOML",
+    "homepage" : "https://github.com/Neumann-A/SerAr",
+    "description" : "TOML archive of SerializationArchive (SerAr)",
+    "languages" : ["CXX"],
+    "list" : [
+        "TOML.target.json",
+        "TOMLTest.target.json"
+    ],
+    "dependencies" : [
+        "MyCEL",
+        "nlohmann_json",
+        "fmt"
+    ]
+}
