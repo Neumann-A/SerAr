@@ -1,0 +1,44 @@
+{
+    "name" : "TOML" ,
+    "target_type" : "library",
+    "parameters" : [
+        "STATIC"
+    ],
+    "sources" : [
+        "src/TOML_Archives.cpp",
+        "src/TOML_OutputArchive.cpp",
+        "src/TOML_InputArchive.cpp",
+        "include/TOML_Archives.hpp",
+        "include/TOML_OutputArchive.hpp",
+        "include/TOML_InputArchive.hpp"
+    ],
+    "include_directories" : {
+        "private" : [
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+        ]
+    },
+    "link_libraries" : {
+        "public" : [ 
+            "MyCEL::MyCEL",
+            "SerAr::Core",
+            "nlohmann_json::nlohmann_json",
+            "fmt::fmt"
+        ]
+    },
+    "compile_features" : {
+        "public" : [ 
+            "cxx_std_20"
+        ]
+    },
+    "compile_definitions" : {
+        "interface" : [
+            "SERAR_HAS_TOML"
+        ]
+    },
+    "public_headers": [
+        "include/TOML_Archives.hpp",
+        "include/TOML_OutputArchive.hpp",
+        "include/TOML_InputArchive.hpp"
+    ]
+}
+

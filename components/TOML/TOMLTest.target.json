@@ -1,0 +1,15 @@
+{
+    "condition" : "SerAr_BUILD_TESTING",
+    "name" : "TOML-Test" ,
+    "target_type" : "executable",
+    "sources" : [
+        "test/main.cpp"
+    ],
+    "link_libraries" : {
+        "private" : [ 
+            "SerAr::TOML",
+            "Eigen3::Eigen"
+        ]
+    }
+}
+
