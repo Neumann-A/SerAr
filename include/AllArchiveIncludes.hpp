@@ -208,11 +208,11 @@ namespace SerAr {
     };
 
     template<>
-    struct archive_enum_value_from_type<Archives::JSON_InputArchive> {
+    struct archive_enum_value_from_type<SerAr::JSON_InputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::JSON;
     };
     template<>
-    struct archive_enum_value_from_type<Archives::JSON_OutputArchive> {
+    struct archive_enum_value_from_type<SerAr::JSON_OutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::JSON;
     };
 

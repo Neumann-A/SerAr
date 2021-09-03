@@ -12,7 +12,7 @@
         "MyCEL",
         { 
           "name": "Matlab",
-          "version": "9.11",
+          "version": "${SERAR_MATLAB_VERSION}",
           "components": [ "MAT_LIBRARY" ]
         }
     ]
