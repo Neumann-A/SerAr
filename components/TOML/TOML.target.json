@@ -8,7 +8,9 @@
         "src/TOML_Archives.cpp",
         "src/TOML_OutputArchive.cpp",
         "src/TOML_InputArchive.cpp",
+        "src/TOML_Common.cpp",
         "include/TOML_Archives.hpp",
+        "include/TOML_Common.hpp",
         "include/TOML_OutputArchive.hpp",
         "include/TOML_InputArchive.hpp"
     ],
@@ -21,7 +23,7 @@
         "public" : [ 
             "MyCEL::MyCEL",
             "SerAr::Core",
-            "nlohmann_json::nlohmann_json",
+            "toml11::toml11",
             "fmt::fmt"
         ]
     },
@@ -37,6 +39,7 @@
     },
     "public_headers": [
         "include/TOML_Archives.hpp",
+        "include/TOML_Common.hpp",
         "include/TOML_OutputArchive.hpp",
         "include/TOML_InputArchive.hpp"
     ]

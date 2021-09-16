@@ -38,9 +38,15 @@
         },
         {
             "name" : "JSON",
-            "description" : "Include and enable JSON Archive (requires nlohmann_json)",
+            "description" : "Include and enable JSON archive (requires nlohmann_json)",
             "default_value" : "ON",
             "dependencies" : [ "nlohmann_json" ]
+        },
+        {
+            "name" : "TOML",
+            "description" : "Include and enable TOML archive (requires toml++)",
+            "default_value" : "ON",
+            "dependencies" : [ "toml11" ]
         },
         {
             "name" : "QtUI",
@@ -63,8 +69,8 @@
         "components/CerealWrappers",
         "components/ProgramOptionsWrapper",
         "components/JSON",
+        "components/TOML",
         "components/QtUI",
-        "SerAr.target.setup.cmake",
         "SerAr_Test.target.json"
     ]
 }

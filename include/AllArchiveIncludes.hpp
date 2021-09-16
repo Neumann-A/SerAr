@@ -227,6 +227,55 @@ namespace SerAr {
     class JSON_InputArchive;
 }
 #endif
+
+#ifdef SERAR_HAS_TOML
+#include <SerAr/TOML/TOML_Archives.hpp>
+// TOML defines
+namespace SerAr {
+    template<>
+    struct is_output_archive_available<ArchiveTypeEnum::TOML> : std::true_type {};
+    template<>
+    struct is_input_archive_available<ArchiveTypeEnum::TOML> : std::true_type {};
+
+    template<>
+    struct input_archive_traits<ArchiveTypeEnum::TOML> {
+        using archive_type = SerAr::TOML_InputArchive;
+        using option_type = SerAr::TOML_InputArchive_Options;
+    };
+    template<>
+    struct output_archive_traits<ArchiveTypeEnum::TOML> {
+        using archive_type = SerAr::TOML_OutputArchive;
+        using option_type = SerAr::TOML_OutputArchive_Options;
+        static constexpr auto append_option = option_type{.mode=std::ios::app};
+        static constexpr auto overwrite_option = option_type{.mode=std::ios::trunc};
+    };
+
+    template<>
+    struct archive_details<ArchiveTypeEnum::TOML> {
+        static constexpr std::string_view defaut_file_extension {".toml"};
+        static constexpr std::array<std::string_view,1> native_file_extensions { {".toml"} };
+    };
+
+    template<>
+    struct archive_enum_value_from_type<SerAr::TOML_InputArchive> {
+        static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::TOML;
+    };
+    template<>
+    struct archive_enum_value_from_type<SerAr::TOML_OutputArchive> {
+        static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::TOML;
+    };
+
+    namespace traits {
+        template<>
+        struct is_file_archive<ArchiveTypeEnum::TOML> : std::true_type {};
+    }
+}
+#else
+namespace SerAr {
+    class TOML_OutputArchive;
+    class TOML_InputArchive;
+}
+#endif
 //AllArchiveTypeEnums
 namespace SerAr {
 

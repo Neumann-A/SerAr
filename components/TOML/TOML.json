@@ -10,7 +10,7 @@
     ],
     "dependencies" : [
         "MyCEL",
-        "nlohmann_json",
+        "toml11",
         "fmt"
     ]
 }

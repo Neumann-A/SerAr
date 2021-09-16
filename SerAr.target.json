@@ -20,7 +20,8 @@
             "$<TARGET_NAME_IF_EXISTS:SerAr::MATLAB>",
             "$<TARGET_NAME_IF_EXISTS:SerAr::HDF5>",
             "$<TARGET_NAME_IF_EXISTS:SerAr::CerealWrappers>",
-            "$<TARGET_NAME_IF_EXISTS:SerAr::JSON>"
+            "$<TARGET_NAME_IF_EXISTS:SerAr::JSON>",
+            "$<TARGET_NAME_IF_EXISTS:SerAr::TOML>"
         ]
     },
     "compile_features" : {
