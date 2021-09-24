@@ -67,12 +67,14 @@ namespace Archives
         // Does all the work for only element
         template <typename T>
         inline void worksplitter(T&& head)
-        {			
-            //std::cout << "Called: " << __FUNCTION__  << "\n" << " with Type: " << typeid(head).name() << std::endl;
-            // Would be nice if we could forward here!
-            self().beforework(head);
+        {
+            if constexpr (HasPrologue<T, ArchiveType>) {
+                self().beforework(head);
+            }
             self().dowork(head);
-            self().afterwork(head);
+            if constexpr (HasEpilogue<T, ArchiveType>) {
+                self().afterwork(head);
+            }
         }
 
         // Compile Time Recursion to unwind parameter list (has to be an overload for ADL lookup)
@@ -91,8 +93,6 @@ namespace Archives
         inline void beforework(T&& val) { val.prologue(self()); }
         template <typename T> requires (UseTypeFunctionPrologue<T,ArchiveType>)
         inline void beforework(T&& val) { prologue(std::forward<T>(val), self()); }
-        template <typename T> requires (!HasPrologue<T,ArchiveType>)
-        inline void beforework(T&&) { }
 
         template <typename T> requires (UseArchiveMemberEpilogue<T,ArchiveType>)
         inline void afterwork(T&& val) { self().epilogue(std::forward<T>(val)); }
@@ -102,8 +102,6 @@ namespace Archives
         inline void afterwork(T&& val) { val.epilogue(self()); }
         template <typename T> requires (UseTypeFunctionEpilogue<T,ArchiveType>)
         inline void afterwork(T&& val) { epilogue(std::forward<T>(val), self()); }
-        template <typename T> requires (!HasEpilogue<T,ArchiveType>)
-        inline void afterwork(T&&) { }
 
         //Archive Member Save. Archive knows how to save the type
         //If this is called with Type T, T must have been already constructed!
@@ -157,29 +155,6 @@ namespace Archives
             serialize(self(), value);
             return self();
         }
-
-//        //We do not have a clue how to save/serialize T....
-//        template <typename T = void> requires (! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>))
-//        inline ArchiveType& dowork(T&&)
-//        {
-//            assert(false);
-//            //Game Over
-//            static_assert(std::is_same_v<std::remove_const_t<T>,const T>, "Type cannot be saved to Archive. No implementation has been defined for it!");
-//#ifdef _MSC_VER
-//#ifdef __llvm__
-//#pragma clang diagnostic push
-//#pragma clang diagnostic ignored "-Wlanguage-extension-token"
-//#endif
-//            //static_assert(!(IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>), __FUNCSIG__);
-//#ifdef __llvm__
-//#pragma clang diagnostic pop
-//#endif
-//#else
-//            static_assert(! (IsSaveable<T,ArchiveType> || IsSerializeable<T,ArchiveType>));
-//#endif
-//            return self();
-//        }
-
     protected:
         constexpr OutputArchive(ArchiveType * const) noexcept {}
         
