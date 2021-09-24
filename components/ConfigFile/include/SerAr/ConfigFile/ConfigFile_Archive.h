@@ -36,8 +36,6 @@
 #include <SerAr/Core/NamedValue.h>
 #include <SerAr/Core/InputArchive.h>
 #include <SerAr/Core/OutputArchive.h>
-//#include "../Core/InputArchive.h"
-//#include "../Core/OutputArchive.h"
 
 namespace Archives
 {
@@ -524,8 +522,10 @@ namespace Archives
             }
 
             /// <summary>	Convert containers into a braced string representation. </summary>
-            template<typename T>
-            static inline std::enable_if_t<stdext::is_container<T>::value && !stdext::is_string_v<T>, T> from_string(std::string& str)
+            template <typename T>
+            requires(stdext::is_container<T>::value &&
+                     !stdext::is_string_v<T>)
+            static inline T from_string(std::string& str)
             {
                 T resvec;
                 // TODO:: String within Braces
@@ -547,7 +547,8 @@ namespace Archives
 
             /// <summary>	Convert string into a pair </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_same<T, std::pair<typename T::first_type, typename T::second_type>>::value, T> from_string(std::string &str)
+            requires(std::is_same_v<T, std::pair<typename T::first_type, typename T::second_type>>)
+            static inline T from_string(std::string &str)
             {
                 removeBraces(str);
                 auto pos = findNextCommaSeperator(str);
@@ -571,7 +572,9 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
             template <typename Derived>
-            static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<Derived>, Derived>::value, typename Derived::PlainObject> from_string(std::string& str)
+            requires(std::is_base_of_v<Eigen::EigenBase<Derived>, Derived>)
+            static inline
+                typename Derived::PlainObject from_string(std::string& str)
             {
                 auto tmpvec = from_string<std::vector<typename Derived::PlainObject::Scalar>>(str);
                 
@@ -764,7 +767,8 @@ namespace Archives
 
             /// <summary>	Special case if parameter is already a string </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_same<std::decay_t<T>, std::string>::value, std::string> to_string(T&& val)
+            requires(std::is_same_v<std::remove_cvref_t<T>, std::string>)
+            static inline std::string to_string(T&& val)
             {
                 std::string str{ val };
                 auto pos = str.find_first_of(SpecialCharacters::stringidentifier);
@@ -779,15 +783,16 @@ namespace Archives
 
             /// <summary>	Convert numbers into a string representation. </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && !std::is_same<std::decay_t<T>,bool>::value, std::string> to_string(T&& val)
+            requires(std::is_arithmetic_v<std::remove_cvref_t<T>> &&
+                     !std::is_same_v<std::remove_cvref_t<T>, bool>)
+            static inline std::string to_string(T&& val)
             {
                 return BasicTools::toStringScientific(val);
                 //std::to_string(val); Does a silly rounding to 0.00000 for small doubles (1E-7) 
             }
 
             /// <summary>	Convert numbers into a string representation. </summary>
-            template <typename T>
-            static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::string> to_string(T&& val)
+            static inline std::string to_string(bool val)
             {
                 return (val ? std::string{ "TRUE" } : std::string{ "FALSE" });
             }
@@ -796,7 +801,7 @@ namespace Archives
 
             /// <summary>	Convert complex numbers into a string representation. </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_same<T,std::complex<typename T::value_type>>::value, std::string> to_string(const T& val)
+            static inline std::string to_string(const std::complex<T>& val)
             {
                 std::string sign{ (val.imag() < 0 ? "" : "+") };
                 return to_string_selector(val.real()) + sign + to_string_selector(val.imag()) + "i";
@@ -805,8 +810,14 @@ namespace Archives
             /***End complex number***/
 
             /// <summary>	Convert containers into a braced string representation. </summary>
-            template<typename T>
-            static inline std::enable_if_t<stdext::is_container<T>::value && !std::is_same<T,std::string>::value, std::string> to_string(const T& values)
+            template <typename T>
+            requires (stdext::is_container_v<T> && 
+                      !stdext::is_string_v<T> && 
+                      requires(const T& values) {
+                      to_string_selector(*values.begin());
+                    })
+            static inline std::string
+            to_string(const T& values)
             {
                 std::stringstream sstr;
                 sstr << SpecialCharacters::openbracket;
@@ -830,7 +841,8 @@ namespace Archives
 
             /// <summary>	Convert pairs into a string representation. </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_same<T, std::pair<typename T::x, typename T::y>>::value, std::string> to_string(const T &val)
+            requires(std::is_same_v<T, std::pair<typename T::x, typename T::y>>)
+            static inline std::string to_string(const T &val)
             {
                 std::stringstream sstr;
                 sstr << SpecialCharacters::openbracket << to_string_selector(val.first) << " " << SpecialCharacters::seperator << " " << to_string_selector(val.second) << SpecialCharacters::closebracket;
@@ -944,8 +956,6 @@ namespace Archives
                 }
             }
 
-
-
         public:
             ///-------------------------------------------------------------------------------------------------
             /// <summary>	Sets current key. </summary>
@@ -1009,10 +1019,21 @@ namespace Archives
             this->operator()(value.getValue());
             ConfigLogic.resetCurrKey();
         }
+        template <typename T>
+        requires(stdext::is_container_v<std::remove_cvref_t<T>> &&
+                 !stdext::is_string_v<std::remove_cvref_t<T>> &&
+                 !traits::use_to_string_v<T, ConfigFile::toString, ConfigFile_OutputArchive>)
+        inline void save(const T& vals)
+        {
+            for (auto& elem : vals) {
+                this->operator()(elem);
+            }
+        }
         //Saves the data if it is known how to convert the given type to a string. 
         //If the type has a seperate save operation than that one should be most likely used instead of the to_string operation
         template<typename T> 
-        inline std::enable_if_t<traits::use_to_string_v<T, ConfigFile::toString, ConfigFile_OutputArchive > > save(const T& val)
+        requires(traits::use_to_string_v < T, ConfigFile::toString, ConfigFile_OutputArchive>)
+        inline void save(const T& val)
         {
             const std::string valstr{ ConfigFile::toString::to_string_selector(val) };
             ConfigFile::toString::checkSyntax(ConfigLogic.getSection(), ConfigLogic.getKey(), valstr);
@@ -1024,12 +1045,6 @@ namespace Archives
         ConfigFile::Logic ConfigLogic{};
     
     private:
-        //std::string currentsection{}; // Cache for the current Section
-        //std::string currentkey{}; //Cache for current key
-
-        //TODO:: for unnamed values!
-        //template <typename T>
-        //std::size_t typecounter{ 0 };
         bool mStreamOwner{ false };
         std::reference_wrapper<std::ostream> mOutputstream;
             
@@ -1062,7 +1077,8 @@ namespace Archives
         auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> typename ConfigFile::Storage::keyvalues;
 
         template<typename T>
-        std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, ConfigFile::Storage::keyvalues> list(const Archives::NamedValue<T>& value)
+        requires(std::is_same_v<T, typename Archives::NamedValue<T>::internal_type>)
+        ConfigFile::Storage::keyvalues list(const Archives::NamedValue<T>& value)
         {
             ConfigLogic.setCurrKey(value.getName());
             const auto tmp {list(value.getValue())};
@@ -1082,21 +1098,12 @@ namespace Archives
         }
 
         template<typename T>
-        std::enable_if_t<traits::use_from_string_v<std::decay_t<T> , ConfigFile::fromString, ConfigFile_InputArchive> > load(T&& val)
+        requires(traits::use_from_string_v<std::remove_cvref_t<T>, ConfigFile::fromString, ConfigFile_InputArchive>)
+        void load(T&& val)
         {			
             const auto& currentsection{ ConfigLogic.getSection() };
             const auto& currentkey{ ConfigLogic.getKey() };
 
-            //const auto& nosec{ currentsection.empty() };
-            //const auto& nokey{ currentkey.empty() };
-            
-            ////TODO:: Empty Section;
-            //if (nosec = currentsection.empty())
-            //{
-            //	currentsection = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
-            //}
-
-            //using type = typename std::decay_t<T>;
             try
             {
                 auto res = mStorage._contents.find(currentsection);
@@ -1128,11 +1135,6 @@ namespace Archives
                 std::runtime_error exp{ str };
                 throw exp;
             }
-
-            //if (nokey)
-            //	currentkey.clear();
-            //if (nosec)
-            //	currentsection.clear();
         }
 
         inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; }
@@ -1180,6 +1182,35 @@ namespace Archives
     extern template void ConfigFile_InputArchive::load<double&>(Archives::NamedValue<double&>& value);
     extern template void ConfigFile_InputArchive::load<long double&>(Archives::NamedValue<long double&>& value);
     extern template void ConfigFile_InputArchive::load<std::string&>(Archives::NamedValue<std::string&>& value);
+
+#define CONFIG_ARCHIVE_SAVE(type)                                                                     \
+    extern template void ConfigFile_OutputArchive::save<type&>(const Archives::NamedValue<type&>&);   \
+    extern template void ConfigFile_OutputArchive::save<type>(const Archives::NamedValue<type>&);
+    CONFIG_ARCHIVE_SAVE(bool)
+    CONFIG_ARCHIVE_SAVE(short)
+    CONFIG_ARCHIVE_SAVE(unsigned short)
+    CONFIG_ARCHIVE_SAVE(int)
+    CONFIG_ARCHIVE_SAVE(unsigned int)
+    CONFIG_ARCHIVE_SAVE(long)
+    CONFIG_ARCHIVE_SAVE(unsigned long)
+    CONFIG_ARCHIVE_SAVE(long long)
+    CONFIG_ARCHIVE_SAVE(unsigned long long)
+    CONFIG_ARCHIVE_SAVE(double)
+    CONFIG_ARCHIVE_SAVE(float)
+    CONFIG_ARCHIVE_SAVE(std::string)
+    CONFIG_ARCHIVE_SAVE(std::vector<short>)
+    CONFIG_ARCHIVE_SAVE(std::vector<unsigned short>)
+    CONFIG_ARCHIVE_SAVE(std::vector<int>)
+    CONFIG_ARCHIVE_SAVE(std::vector<unsigned int>)
+    CONFIG_ARCHIVE_SAVE(std::vector<long>)
+    CONFIG_ARCHIVE_SAVE(std::vector<unsigned long>)
+    CONFIG_ARCHIVE_SAVE(std::vector<long long>)
+    CONFIG_ARCHIVE_SAVE(std::vector<unsigned long long>)
+    CONFIG_ARCHIVE_SAVE(std::vector<double>)
+    CONFIG_ARCHIVE_SAVE(std::vector<float>)
+    CONFIG_ARCHIVE_SAVE(std::vector<std::string>)
+#undef CONFIG_ARCHIVE_SAVE
+
 }
 
 

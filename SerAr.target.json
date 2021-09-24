@@ -4,7 +4,8 @@
     "parameters" : [
         "STATIC",
         "src/AllInputArchiveWrapper.cpp",
-        "src/AllOutputArchiveWrapper.cpp"
+        "src/AllOutputArchiveWrapper.cpp",
+        "src/AllArchiveEnums.cpp"
     ],
     "include_directories" : {
         "public" : [ 

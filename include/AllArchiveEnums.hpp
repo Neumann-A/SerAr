@@ -24,6 +24,14 @@ namespace SerAr {
 
     inline constexpr auto AllArchiveTypeEnums{ ArchiveTypeEnumMap.get_key_array() };
 
+    template<typename T>
+    T from_string(const std::string&);
+    template<>
+    ArchiveTypeEnum from_string<ArchiveTypeEnum>(const std::string& FieldString);
+
+    ArchiveTypeEnum from_string(std::string_view, ArchiveTypeEnum&);
+    std::string to_string(const ArchiveTypeEnum& field);
+
 
     template<ArchiveTypeEnum value>
     struct get_archive_type {};

@@ -43,6 +43,7 @@ namespace SerAr {
         *pstr << std::setw(options.indent_spaces) << json_stack.top();
         json_stack.pop();
         *pstr << std::flush;
+        pstr->close();
     }
 
     // void throw_runtime_error(std::string_view msg,const std::source_location& loc = std::source_location::current())

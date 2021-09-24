@@ -41,8 +41,9 @@ namespace SerAr {
         if(value_stack.empty())
             return;
         //std::cout << std::scientific << std::setprecision(7) << std::setw(80) << value_stack.top()  << std::endl;
-        *fileptr  << std::scientific << std::setprecision(7) << std::setw(40) << value_stack.top() << std::flush;
+        *fileptr  << std::scientific << std::setprecision(7) << std::setw(80) << value_stack.top() << std::flush;
         value_stack.pop();
+        fileptr->close();
     }
 
     // void throw_runtime_error(std::string_view msg,const std::source_location& loc = std::source_location::current())

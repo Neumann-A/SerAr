@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include <MyCEL/basics/BasicMacros.h>
+#include <MyCEL/stdext/std_extensions.h>
 
 #include <SerAr/Core/NamedValue.h>
 #include <SerAr/Core/NamedEnumVariant.hpp>
@@ -115,7 +116,8 @@ namespace Archives
         
         public: // For some reason the write functions must be public for clang to detect that the class can use them.
         template <typename T>
-        std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>> || stdext::is_complex_v<std::remove_cvref_t<T>> > write(const T& val)
+        requires(std::is_arithmetic_v<std::remove_cvref_t<T>> || stdext::is_complex_v<std::remove_cvref_t<T>>)
+        void write(const T& val)
         {
             using namespace HDF5_Wrapper;
             //Creating the dataset! 
@@ -135,7 +137,8 @@ namespace Archives
         }
 
         template <typename T>
-        std::enable_if_t<stdext::is_string_v<std::remove_cvref_t<T>>> write(const T& val)
+        requires(stdext::is_string_v<std::remove_cvref_t<T>>)
+        void write(const T& val)
         {
             using namespace HDF5_Wrapper;
             //Creating the dataset! 
@@ -156,7 +159,8 @@ namespace Archives
         }
         
         template <typename T>
-        std::enable_if_t<stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>> write(const T& val)
+        requires(stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>)
+        void write(const T& val)
         {
             using namespace HDF5_Wrapper;
 
@@ -234,9 +238,9 @@ namespace Archives
         }
 
         template <typename T>
-        std::enable_if_t<stdext::is_container_of_strings_v<std::remove_cvref_t<T>> &&
-                         !stdext::is_associative_container_v<std::remove_cvref_t<T>>>
-        write(const T& val)
+        requires( stdext::is_container_of_strings_v<std::remove_cvref_t<T>> &&
+                 !stdext::is_associative_container_v<std::remove_cvref_t<T>>)
+        void write(const T& val)
         {
                 using namespace HDF5_Wrapper;
 
@@ -272,8 +276,8 @@ namespace Archives
                 }	
         }
 #ifdef EIGEN_CORE_H
-        template <typename T>
-        std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>> write(const T& val)
+        template <stdext::IsEigen3Type T>
+        void write(const T& val)
         {
             using namespace HDF5_Wrapper;
             
@@ -322,8 +326,8 @@ namespace Archives
             }
         }
 
-        template <typename T>
-        std::enable_if_t<stdext::is_container_with_eigen_type_v<std::remove_cvref_t<T>>> write(const T& val)
+        template <stdext::IsEigen3Type T, template <typename> class Container>
+        void write(const Container<T>& val)
         {
             using namespace HDF5_Wrapper;
             const auto& currentLoc {getCurrentLocation()};
@@ -434,6 +438,15 @@ namespace Archives
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
                     closeLastGroup(value);
                 removePath(); //Remove the Last Fieldname
+            }
+        }
+
+        template<stdext::IsContainer T>
+        requires (!HDF5_ArchiveWriteAble<T, ThisClass>)
+        inline void save(const T& values )
+        {
+            for(auto& elem: values) {
+                this->operator()(elem);
             }
         }
 

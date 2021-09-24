@@ -99,7 +99,7 @@ namespace Archives
         {
             // Normally this static assert should not be necessary but sometimes we seem to need it!
             // (Due to template specilization and selection rules)
-            static_assert(std::is_same<T,void>::value,"MATLABClassFinder: Unknown type!");
+            static_assert(std::is_same_v<T,void>,"MATLABClassFinder: Unknown type!");
         };
 
         //Partial specialization for all relevant types
@@ -246,6 +246,14 @@ namespace Archives
 
             clearNextFieldname();           //Remove the last Fieldname
         }
+        template<typename T>
+        requires(!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
+        inline void save(const std::vector<T>& values)
+        {
+            for (auto& elem : values) {
+                this->operator()(elem);
+            }
+        }
         
         template<typename T> requires (HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
         inline void save(const T& value)
@@ -256,7 +264,7 @@ namespace Archives
                 setNextFieldname(typeid(T).name()); //TODO: Sanitize Fieldnames(remove spaces, points etc)! Currently wont work correctly without a (allowed) fieldname
             }
             static_assert(!std::is_same< MATLAB::MATLABClassFinder<Type>, MATLAB::MATLAB_UnknownClass>::value,"T is not known within MATLAB. Will be unable to create mxArrray*!");
-            auto& arrdata = createMATLABArray<Type>(value);
+            auto& arrdata = createMATLABArray(value);
             Fields.push(std::make_tuple(getCurrentFieldname(), &arrdata));
             finishMATLABArray();
         }
@@ -269,64 +277,39 @@ namespace Archives
 
         using Field = std::tuple<std::string, mxArray*>;	
         std::stack<Field> Fields;	//Using a stack to hold all Fields; Since the implementation is recursive in save().
-        // std::stack<std::string> Fieldnames;
         std::string nextFieldname;
-        // std::stack<bool> skip_finish;
 
         std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
 
-        inline void setNextFieldname(const std::string &str) noexcept
-        {
-            
-            nextFieldname = str;
-        }
-
-        inline void clearNextFieldname() noexcept
-        {
-            nextFieldname.clear();
-
-        }
-
-        inline auto getCurrentFieldname() noexcept
-        {
-            return nextFieldname;
-        }
-
-        inline void checkNextFieldname()
-        {
+        inline void setNextFieldname(const std::string &str) noexcept { nextFieldname = str; }
+        inline void clearNextFieldname() noexcept { nextFieldname.clear(); }
+        inline auto getCurrentFieldname() noexcept { return nextFieldname; }
+        inline void checkNextFieldname() {
             //TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
-            if (getCurrentFieldname().empty())
-            {
+            if (getCurrentFieldname().empty()) {
                 throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
             }
         }
 
-
         //Starting a new field
         template<typename T> requires (!HasCreateMATLAB<MatlabOutputArchive, std::remove_cvref_t<T>>)
-        inline void startMATLABArray(const T& val)
-        {
-
+        inline void startMATLABArray(const T& val) {
             mxArray *pStruct = nullptr;
             
-            if (!Fields.empty())
-            {
+            if (!Fields.empty()) {
                 pStruct = mxGetField(std::get<1>(Fields.top()), 0, getCurrentFieldname().c_str());
             }
             
-            if (pStruct == nullptr)
-            {
+            if (pStruct == nullptr) {
                 constexpr mwSize ndims = 2;
                 constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want. What we want -> [1,1])
-                pStruct = mxCreateStructArray(ndims, dims, 0, nullptr);
-                if (pStruct == nullptr)
-                    throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
-
-                //std::cout << "Creating Field:" << nextFieldname << std::endl;
+                pStruct = mxCreateStructArray(ndims, dims, 0, nullptr); //MatException here. 
+                if (pStruct == nullptr) {
+                    throw std::runtime_error{"Unable create new mxArray! (Out of memory?)"};
+                }
             }
 
-            if (mxGetClassID(pStruct) != mxSTRUCT_CLASS)
-            {
+            if (mxGetClassID(pStruct) != mxSTRUCT_CLASS) {
                 throw std::runtime_error{ "Updating a mxArray which is not a struct! (Unwanted behavior!)" };
             }
 
@@ -337,9 +320,9 @@ namespace Archives
         void finishMATLABArray();
     
         //Save all other arithmetics types
-        template<typename T>
-        std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const T& value) const
-        {
+        template<typename T> 
+        requires(std::is_arithmetic_v<std::remove_cvref_t<T>>)
+        mxArray& createMATLABArray(const T& value) const {
             mxArray *valarray = mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::remove_cvref_t<T>>::value, mxREAL);
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
@@ -349,19 +332,18 @@ namespace Archives
 
         //Saving Strings
         template<typename T>
-        std::enable_if_t<stdext::is_string_v<T>,mxArray&> createMATLABArray(const T& value) const
-        {
+        requires(stdext::is_string_v<T>)
+        mxArray& createMATLABArray(const T& value) const {
             mxArray *valarray = mxCreateString(value.c_str());
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
-
             return *valarray;
         }
 
         //Save for container types with arithmetic payload type
         template<typename T>
-        std::enable_if_t<stdext::is_arithmetic_container_v<T>, mxArray&> createMATLABArray(const T& value) const
-        {
+        requires(stdext::is_arithmetic_container_v<T>)
+        mxArray& createMATLABArray(const T& value) const {
             using DataType = std::remove_cvref_t<typename T::value_type>;
 
             mxArray *valarray = mxCreateNumericMatrix(value.size(),1, MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
@@ -372,8 +354,7 @@ namespace Archives
             DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
             assert(dataposition != nullptr);
 
-            for (const auto& tmp : value)
-            {
+            for (const auto& tmp : value) {
                 *dataposition++ = tmp;
             }
 
@@ -382,11 +363,10 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
         //Eigen Types 
-        template<typename T>
-        std::enable_if_t<stdext::is_container_with_eigen_type_v<T>, mxArray&>
-            createMATLABArray(const T& value) const
+        template <stdext::IsEigen3Type T>
+        mxArray& createMATLABArray(const std::vector<T>& value) const
         {
-            using EigenMatrix = typename std::remove_cvref_t<T>::value_type;
+            using EigenMatrix = std::remove_cvref_t<T>;
             using DataType = typename EigenMatrix::Scalar;
             const auto& first = value.begin();
             const mwSize rows = static_cast<mwSize>(first->rows());
@@ -453,8 +433,8 @@ namespace Archives
             return *valarray;
         }
 
-        template<typename T>
-        std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const Eigen::EigenBase<T>& value) const
+        template <stdext::IsEigen3Type T>
+        mxArray& createMATLABArray(const T& value) const
         {
             using DataType = typename T::Scalar;
 
@@ -476,32 +456,33 @@ namespace Archives
             return *valarray;
         }
 
-#ifdef EIGEN_CXX11_TENSOR_TENSOR_H
-        template<typename T>
-        inline std::enable_if_t< stdext::is_eigen_tensor_v<std::remove_cvref_t<T>>, mxArray&> createMATLABArray(const T& value) const
-        {
-            using Type = std::remove_cvref_t<T>; // T cannot be const
-            using DataType = typename T::Scalar;
-            using Index = typename T::Index;
-            using Dimensions = typename T::Dimensions;
-            using ArrayBase = typename T::Dimensions::Base;
+// #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
+//         template<typename T>
+//         requires(!stdext::is_string_v<T> && stdext::is_eigen_tensor_v<std::remove_cvref_t<T>>)
+//         mxArray& createMATLABArray(const T& value) const
+//         {
+//             using Type = std::remove_cvref_t<T>; // T cannot be const
+//             using DataType = typename T::Scalar;
+//             using Index = typename T::Index;
+//             using Dimensions = typename T::Dimensions;
+//             using ArrayBase = typename T::Dimensions::Base;
 
-            const auto ndims = value.NumDimensions;
-            const auto dims = static_cast<T>(value).dimensions();
+//             const auto ndims = value.NumDimensions;
+//             const auto dims = static_cast<T>(value).dimensions();
 
-            mxArray *valarray = mxCreateNumericArray(ndims, (const std::size_t*)(dims.data()), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
-            if (valarray == nullptr)
-                throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+//             mxArray *valarray = mxCreateNumericArray(ndims, (const std::size_t*)(dims.data()), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
+//             if (valarray == nullptr)
+//                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
 
-            DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
-            assert(dataposition != nullptr);
+//             DataType * dataposition = reinterpret_cast<DataType*>(mxGetData(valarray));
+//             assert(dataposition != nullptr);
 
-            /* Reading Data from Array */
-            Eigen::TensorMap<Type>(dataposition, dims) = static_cast<T>(value);
-            return *valarray;
+//             /* Reading Data from Array */
+//             Eigen::TensorMap<Type>(dataposition, dims) = static_cast<T>(value);
+//             return *valarray;
             
-        }
-#endif
+//         }
+// #endif
 #endif
         //TODO: tuple version
     };
@@ -884,6 +865,11 @@ namespace Archives
     extern template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
     extern template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
     extern template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
+
+#ifdef EIGEN_CORE_H
+    static_assert(stdext::IsEigen3Type<Eigen::Matrix<double, 9, 1>>);
+    //static_assert(HasCreateMATLAB<MatlabOutputArchive, std::vector<Eigen::Matrix<double, 9, 1>>>);
+#endif
 }
 
 #endif	// INC_Matlab_Archive_H

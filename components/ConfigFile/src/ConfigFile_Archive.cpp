@@ -521,3 +521,35 @@ template void ConfigFile_InputArchive::load<float&>(Archives::NamedValue<float&>
 template void ConfigFile_InputArchive::load<double&>(Archives::NamedValue<double&>& value);
 template void ConfigFile_InputArchive::load<long double&>(Archives::NamedValue<long double&>& value);
 template void ConfigFile_InputArchive::load<std::string&>(Archives::NamedValue<std::string&>& value);
+
+
+#define CONFIG_ARCHIVE_SAVE(type)                                                            \
+    template void ConfigFile_OutputArchive::save<type&>(const Archives::NamedValue<type&>&); \
+    template void ConfigFile_OutputArchive::save<type>(const Archives::NamedValue<type>&);
+CONFIG_ARCHIVE_SAVE(bool)
+CONFIG_ARCHIVE_SAVE(short)
+CONFIG_ARCHIVE_SAVE(unsigned short)
+CONFIG_ARCHIVE_SAVE(int)
+CONFIG_ARCHIVE_SAVE(unsigned int)
+CONFIG_ARCHIVE_SAVE(long)
+CONFIG_ARCHIVE_SAVE(unsigned long)
+CONFIG_ARCHIVE_SAVE(long long)
+CONFIG_ARCHIVE_SAVE(unsigned long long)
+CONFIG_ARCHIVE_SAVE(double)
+CONFIG_ARCHIVE_SAVE(float)
+CONFIG_ARCHIVE_SAVE(std::string)
+CONFIG_ARCHIVE_SAVE(std::vector<short>)
+CONFIG_ARCHIVE_SAVE(std::vector<unsigned short>)
+CONFIG_ARCHIVE_SAVE(std::vector<int>)
+CONFIG_ARCHIVE_SAVE(std::vector<unsigned int>)
+CONFIG_ARCHIVE_SAVE(std::vector<long>)
+CONFIG_ARCHIVE_SAVE(std::vector<unsigned long>)
+CONFIG_ARCHIVE_SAVE(std::vector<long long>)
+CONFIG_ARCHIVE_SAVE(std::vector<unsigned long long>)
+CONFIG_ARCHIVE_SAVE(std::vector<double>)
+CONFIG_ARCHIVE_SAVE(std::vector<float>)
+CONFIG_ARCHIVE_SAVE(std::vector<std::string>)
+#undef CONFIG_ARCHIVE_SAVE
+
+static_assert(UseArchiveMemberSave<std::vector<double>, ConfigFile_OutputArchive>);
+static_assert(Archives::traits::use_to_string_v<std::vector<double>, ConfigFile::toString, ConfigFile_OutputArchive>);

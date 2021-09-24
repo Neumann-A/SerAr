@@ -35,7 +35,6 @@ namespace SerAr
         requires (TOML::IsTOMLValue<std::remove_cvref_t<T>>)
         inline ThisClass& save(const NamedValue<T>& nval)
         {
-
             auto& current_table = value_stack.top();
             current_table[nval.name] = toml::value(nval.val);
             return *this;
