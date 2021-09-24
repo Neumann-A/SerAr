@@ -52,8 +52,11 @@ namespace SerAr {
     //     throw std::runtime_error{ s.c_str() };
     // }
     
-
-    #define TOML_ARCHIVE_SAVE(type) template TOML_OutputArchive& TOML_OutputArchive::save< type &>(const NamedValue< type &> &);
+    #define TOML_ARCHIVE_SAVE(type) \
+        template TOML_OutputArchive& TOML_OutputArchive::save< type &>(const NamedValue< type &> &); \
+        template TOML_OutputArchive& TOML_OutputArchive::save< const type &>(const NamedValue< const type &> &); \
+        template TOML_OutputArchive& TOML_OutputArchive::save< type >(const NamedValue< type > &); \
+        template TOML_OutputArchive& TOML_OutputArchive::save< const type >(const NamedValue< const type > &); 
     TOML_ARCHIVE_SAVE(bool)
     TOML_ARCHIVE_SAVE(short)
     TOML_ARCHIVE_SAVE(unsigned short)

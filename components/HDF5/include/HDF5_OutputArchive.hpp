@@ -457,7 +457,11 @@ namespace Archives
         }
     };
     
-    #define HDF5_ARCHIVE_SAVE(type) extern template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &);
+    #define HDF5_ARCHIVE_SAVE(type) \
+        extern template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &); \
+        extern template void HDF5_OutputArchive::save< const type & >(const NamedValue< const type &> &); \
+        extern template void HDF5_OutputArchive::save< type >(const NamedValue< type > &); \
+        extern template void HDF5_OutputArchive::save< const type >(const NamedValue< const type > &); 
     HDF5_ARCHIVE_SAVE(bool)
     HDF5_ARCHIVE_SAVE(short)
     HDF5_ARCHIVE_SAVE(unsigned short)

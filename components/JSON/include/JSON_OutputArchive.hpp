@@ -41,23 +41,24 @@ namespace SerAr
 
         JSON_OutputArchive(const std::filesystem::path& path, const Options& opt = JSON_OutputArchive_Options{});
         ~JSON_OutputArchive() noexcept;
-        template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
-            inline ThisClass& save(const T& value)
+        template<typename T> 
+        requires (JSON::detail::IsJSONStoreable<JSONType, std::remove_cvref_t<T>> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
+        inline JSON_OutputArchive& save(T&& value)
         {
             auto& current_json = json_stack.top();
-            current_json = value;
+            current_json = std::forward<T>(value);
             return *this;
         }
         template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T>)
-        inline ThisClass& save(const NamedValue<T>& nval)
+        inline JSON_OutputArchive& save(const NamedValue<T>& nval)
         {
             auto& current_json = json_stack.top();
             current_json[nval.name] = nval.val;
             return *this;
         }
 
-        template<typename T> requires (!SerAr::IsTypeSaveable<T, ThisClass> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> && !JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_container_v<std::remove_cvref_t<T>>)
-            inline ThisClass& save(const T& value)
+        template<typename T> requires (!SerAr::IsTypeSaveable<T, JSON_OutputArchive> && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> && !JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_container_v<std::remove_cvref_t<T>>)
+            inline JSON_OutputArchive& save(const T& value)
         {
             json_stack.push(JSONType{});
             this->operator()(value);                // Fill the JSON object
@@ -69,7 +70,7 @@ namespace SerAr
         }
 
         template<typename T> requires (!JSON::detail::IsJSONStoreable<JSONType, T> && !stdext::is_container_v<std::remove_cvref_t<T>>)
-            inline ThisClass& save(const NamedValue<T>& nvalue)
+            inline JSON_OutputArchive& save(const NamedValue<T>& nvalue)
         {
             json_stack.push(JSONType{});
             this->operator()(nvalue.val);                // Fill the JSON object
@@ -81,7 +82,7 @@ namespace SerAr
         }
         template<typename T> requires (!JSON::detail::IsJSONStoreable<JSONType, T>
             && stdext::is_container_v<std::remove_cvref_t<T>>)
-            inline ThisClass& save(const T& value)
+            inline JSON_OutputArchive& save(const T& value)
         {
             JSONType current_json{};
             for (const auto& element : value) {
@@ -97,7 +98,7 @@ namespace SerAr
         }
         template<typename T> requires (!JSON::detail::IsJSONStoreable<JSONType, T>
             && stdext::is_container_v<std::remove_cvref_t<T>>)
-            inline ThisClass& save(const NamedValue<T>& value)
+            inline JSON_OutputArchive& save(const NamedValue<T>& value)
         {
             auto& parrent_json = json_stack.top();
             for (const auto& element : value.val) {
@@ -144,7 +145,11 @@ namespace SerAr
         std::stack<JSONType> json_stack{};
     };
 
-    #define JSON_ARCHIVE_SAVE(type) extern template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &);
+    #define JSON_ARCHIVE_SAVE(type) \
+        extern template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &); \
+        extern template JSON_OutputArchive& JSON_OutputArchive::save< const type &>(const NamedValue< const type &> &); \
+        extern template JSON_OutputArchive& JSON_OutputArchive::save< type >(const NamedValue< type > &); \
+        extern template JSON_OutputArchive& JSON_OutputArchive::save< const type >(const NamedValue< const type > &); 
     JSON_ARCHIVE_SAVE(bool)
     JSON_ARCHIVE_SAVE(short)
     JSON_ARCHIVE_SAVE(unsigned short)

@@ -52,7 +52,9 @@ namespace SerAr {
         return ret;
     }
 
-    #define JSON_ARCHIVE_LOAD(type) template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type &> &>(NamedValue< type &> &);
+    #define JSON_ARCHIVE_LOAD(type) \
+        template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type &> &>(NamedValue< type &> &); \
+        template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type > &>(NamedValue< type > &);
     JSON_ARCHIVE_LOAD(bool)
     JSON_ARCHIVE_LOAD(short)
     JSON_ARCHIVE_LOAD(unsigned short)

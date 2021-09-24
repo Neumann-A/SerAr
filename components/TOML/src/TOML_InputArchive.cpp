@@ -38,7 +38,9 @@ namespace SerAr {
         return ret;
     }
 
-    #define TOML_ARCHIVE_LOAD(type) template TOML_InputArchive& TOML_InputArchive::load<type &>(NamedValue< type &> &);
+    #define TOML_ARCHIVE_LOAD(type) \
+        template TOML_InputArchive& TOML_InputArchive::load<type&>(NamedValue< type &> &); \
+        template TOML_InputArchive& TOML_InputArchive::load<type>(NamedValue< type > &);
     TOML_ARCHIVE_LOAD(bool)
     TOML_ARCHIVE_LOAD(short)
     TOML_ARCHIVE_LOAD(unsigned short)

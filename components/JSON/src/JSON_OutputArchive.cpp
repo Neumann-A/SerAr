@@ -53,7 +53,11 @@ namespace SerAr {
     // }
     
 
-    #define JSON_ARCHIVE_SAVE(type) template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &);
+    #define JSON_ARCHIVE_SAVE(type) \
+        template JSON_OutputArchive& JSON_OutputArchive::save< type &>(const NamedValue< type &> &); \
+        template JSON_OutputArchive& JSON_OutputArchive::save< const type &>(const NamedValue< const type &> &); \
+        template JSON_OutputArchive& JSON_OutputArchive::save< type >(const NamedValue< type > &); \
+        template JSON_OutputArchive& JSON_OutputArchive::save< const type >(const NamedValue< const type > &); 
     JSON_ARCHIVE_SAVE(bool)
     JSON_ARCHIVE_SAVE(short)
     JSON_ARCHIVE_SAVE(unsigned short)

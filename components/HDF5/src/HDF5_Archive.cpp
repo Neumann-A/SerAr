@@ -37,7 +37,9 @@ namespace Archives {
         return ret;
     }
 
-    #define HDF5_ARCHIVE_LOAD(type) template void HDF5_InputArchive::load< type &>(NamedValue< type &> &);
+    #define HDF5_ARCHIVE_LOAD(type) \
+        extern template void HDF5_InputArchive::load< type &>(NamedValue< type &> &); \
+        extern template void HDF5_InputArchive::load< type >(NamedValue< type > &);
     HDF5_ARCHIVE_LOAD(bool)
     HDF5_ARCHIVE_LOAD(short)
     HDF5_ARCHIVE_LOAD(unsigned short)
@@ -63,7 +65,11 @@ namespace Archives {
     HDF5_ARCHIVE_LOAD(std::vector<std::string>)
     #undef HDF5_ARCHIVE_LOAD
 
-    #define HDF5_ARCHIVE_SAVE(type) template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &);
+    #define HDF5_ARCHIVE_SAVE(type) \
+        template void HDF5_OutputArchive::save< type & >(const NamedValue< type &> &); \
+        template void HDF5_OutputArchive::save< const type & >(const NamedValue< const type &> &); \
+        template void HDF5_OutputArchive::save< type >(const NamedValue< type > &); \
+        template void HDF5_OutputArchive::save< const type >(const NamedValue< const type > &); 
     HDF5_ARCHIVE_SAVE(bool)
     HDF5_ARCHIVE_SAVE(short)
     HDF5_ARCHIVE_SAVE(unsigned short)

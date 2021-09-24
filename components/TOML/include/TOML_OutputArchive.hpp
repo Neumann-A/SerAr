@@ -135,7 +135,11 @@ namespace SerAr
         std::stack<toml::value> value_stack;
     };
 
-    #define TOML_ARCHIVE_SAVE(type) template TOML_OutputArchive& TOML_OutputArchive::save< type &>(const NamedValue< type &> &);
+    #define TOML_ARCHIVE_SAVE(type) \
+        extern template TOML_OutputArchive& TOML_OutputArchive::save< type &>(const NamedValue< type &> &); \
+        extern template TOML_OutputArchive& TOML_OutputArchive::save< const type &>(const NamedValue< const type &> &); \
+        extern template TOML_OutputArchive& TOML_OutputArchive::save< type >(const NamedValue< type > &); \
+        extern template TOML_OutputArchive& TOML_OutputArchive::save< const type >(const NamedValue< const type > &); 
     TOML_ARCHIVE_SAVE(bool)
     TOML_ARCHIVE_SAVE(short)
     TOML_ARCHIVE_SAVE(unsigned short)

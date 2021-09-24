@@ -170,28 +170,85 @@ namespace Archives
         }
     }
 
-    template void MatlabOutputArchive::save<bool>(const Archives::NamedValue<bool>& value);
-    template void MatlabOutputArchive::save<short>(const Archives::NamedValue<short>& value);
-    template void MatlabOutputArchive::save<int>(const Archives::NamedValue<int>& value);
-    //template void MatlabOutputArchive::save<long>(const Archives::NamedValue<long>& value);
-    template void MatlabOutputArchive::save<long long>(const Archives::NamedValue<long long>& value);
-    template void MatlabOutputArchive::save<unsigned int>(const Archives::NamedValue<unsigned int>& value);
-    //template void MatlabOutputArchive::save<unsigned long>(const Archives::NamedValue<unsigned long>& value);
-    template void MatlabOutputArchive::save<unsigned long long>(const Archives::NamedValue<unsigned long long>& value);
-    template void MatlabOutputArchive::save<float>(const Archives::NamedValue<float>& value);
-    template void MatlabOutputArchive::save<double>(const Archives::NamedValue<double>& value);
-    template void MatlabOutputArchive::save<long double>(const Archives::NamedValue<long double>& value);
-    template void MatlabOutputArchive::save<std::string>(const Archives::NamedValue<std::string>& value);
-    template void MatlabOutputArchive::save<bool&>(const Archives::NamedValue<bool&>& value);
-    template void MatlabOutputArchive::save<short&>(const Archives::NamedValue<short&>& value);
-    template void MatlabOutputArchive::save<int&>(const Archives::NamedValue<int&>& value);
-    //template void MatlabOutputArchive::save<long&>(const Archives::NamedValue<long&>& value);
-    template void MatlabOutputArchive::save<long long&>(const Archives::NamedValue<long long&>& value);
-    template void MatlabOutputArchive::save<unsigned int&>(const Archives::NamedValue<unsigned int&>& value);
-    //template void MatlabOutputArchive::save<unsigned long&>(const Archives::NamedValue<unsigned long&>& value);
-    template void MatlabOutputArchive::save<unsigned long long&>(const Archives::NamedValue<unsigned long long&>& value);
-    template void MatlabOutputArchive::save<float&>(const Archives::NamedValue<float&>& value);
-    template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
-    template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
-    template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
+
+    #define MATLAB_ARCHIVE_SAVE(type) \
+        template void MatlabOutputArchive::save< type & >(const NamedValue< type &> &); \
+        template void MatlabOutputArchive::save< const type & >(const NamedValue< const type &> &); \
+        template void MatlabOutputArchive::save< type >(const NamedValue< type > &); \
+        template void MatlabOutputArchive::save< const type >(const NamedValue< const type > &); 
+    MATLAB_ARCHIVE_SAVE(bool)
+    MATLAB_ARCHIVE_SAVE(short)
+    MATLAB_ARCHIVE_SAVE(unsigned short)
+    MATLAB_ARCHIVE_SAVE(int)
+    MATLAB_ARCHIVE_SAVE(unsigned int)
+    //MATLAB_ARCHIVE_SAVE(long)
+    //MATLAB_ARCHIVE_SAVE(unsigned long)
+    MATLAB_ARCHIVE_SAVE(long long)
+    MATLAB_ARCHIVE_SAVE(unsigned long long)
+    MATLAB_ARCHIVE_SAVE(double)
+    MATLAB_ARCHIVE_SAVE(float)
+    MATLAB_ARCHIVE_SAVE(std::string)
+    MATLAB_ARCHIVE_SAVE(std::vector<short>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned short>)
+    MATLAB_ARCHIVE_SAVE(std::vector<int>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned int>)
+    //MATLAB_ARCHIVE_SAVE(std::vector<long>)
+    //MATLAB_ARCHIVE_SAVE(std::vector<unsigned long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<long long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned long long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<double>)
+    MATLAB_ARCHIVE_SAVE(std::vector<float>)
+    MATLAB_ARCHIVE_SAVE(std::vector<std::string>)
+    #undef MATLAB_ARCHIVE_SAVE
+    #define MATLAB_ARCHIVE_LOAD(type) \
+        template void MatlabInputArchive::load< type &>(NamedValue< type &> &); \
+        template void MatlabInputArchive::load< type >(NamedValue< type > &);
+    MATLAB_ARCHIVE_LOAD(bool)
+    MATLAB_ARCHIVE_LOAD(short)
+    MATLAB_ARCHIVE_LOAD(unsigned short)
+    MATLAB_ARCHIVE_LOAD(int)
+    MATLAB_ARCHIVE_LOAD(unsigned int)
+    //MATLAB_ARCHIVE_LOAD(long)
+    //MATLAB_ARCHIVE_LOAD(unsigned long)
+    MATLAB_ARCHIVE_LOAD(long long)
+    MATLAB_ARCHIVE_LOAD(unsigned long long)
+    MATLAB_ARCHIVE_LOAD(double)
+    MATLAB_ARCHIVE_LOAD(float)
+    MATLAB_ARCHIVE_LOAD(std::string)
+    MATLAB_ARCHIVE_LOAD(std::vector<short>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned short>)
+    MATLAB_ARCHIVE_LOAD(std::vector<int>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned int>)
+    //MATLAB_ARCHIVE_LOAD(std::vector<long>)
+    //MATLAB_ARCHIVE_LOAD(std::vector<unsigned long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<long long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned long long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<double>)
+    MATLAB_ARCHIVE_LOAD(std::vector<float>)
+    //MATLAB_ARCHIVE_LOAD(std::vector<std::string>)
+    #undef MATLAB_ARCHIVE_LOAD
+    // template void MatlabOutputArchive::save<bool>(const Archives::NamedValue<bool>& value);
+    // template void MatlabOutputArchive::save<short>(const Archives::NamedValue<short>& value);
+    // template void MatlabOutputArchive::save<int>(const Archives::NamedValue<int>& value);
+    // //template void MatlabOutputArchive::save<long>(const Archives::NamedValue<long>& value);
+    // template void MatlabOutputArchive::save<long long>(const Archives::NamedValue<long long>& value);
+    // template void MatlabOutputArchive::save<unsigned int>(const Archives::NamedValue<unsigned int>& value);
+    // //template void MatlabOutputArchive::save<unsigned long>(const Archives::NamedValue<unsigned long>& value);
+    // template void MatlabOutputArchive::save<unsigned long long>(const Archives::NamedValue<unsigned long long>& value);
+    // template void MatlabOutputArchive::save<float>(const Archives::NamedValue<float>& value);
+    // template void MatlabOutputArchive::save<double>(const Archives::NamedValue<double>& value);
+    // template void MatlabOutputArchive::save<long double>(const Archives::NamedValue<long double>& value);
+    // template void MatlabOutputArchive::save<std::string>(const Archives::NamedValue<std::string>& value);
+    // template void MatlabOutputArchive::save<bool&>(const Archives::NamedValue<bool&>& value);
+    // template void MatlabOutputArchive::save<short&>(const Archives::NamedValue<short&>& value);
+    // template void MatlabOutputArchive::save<int&>(const Archives::NamedValue<int&>& value);
+    // //template void MatlabOutputArchive::save<long&>(const Archives::NamedValue<long&>& value);
+    // template void MatlabOutputArchive::save<long long&>(const Archives::NamedValue<long long&>& value);
+    // template void MatlabOutputArchive::save<unsigned int&>(const Archives::NamedValue<unsigned int&>& value);
+    // //template void MatlabOutputArchive::save<unsigned long&>(const Archives::NamedValue<unsigned long&>& value);
+    // template void MatlabOutputArchive::save<unsigned long long&>(const Archives::NamedValue<unsigned long long&>& value);
+    // template void MatlabOutputArchive::save<float&>(const Archives::NamedValue<float&>& value);
+    // template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
+    // template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
+    // template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
 }

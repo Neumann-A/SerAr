@@ -435,7 +435,9 @@ namespace Archives
         }
     };
 
-    #define HDF5_ARCHIVE_LOAD(type) extern template void HDF5_InputArchive::load< type &>(NamedValue< type &> &);
+    #define HDF5_ARCHIVE_LOAD(type) \
+        extern template void HDF5_InputArchive::load< type &>(NamedValue< type &> &); \
+        extern template void HDF5_InputArchive::load< type >(NamedValue< type > &);
     HDF5_ARCHIVE_LOAD(bool)
     HDF5_ARCHIVE_LOAD(short)
     HDF5_ARCHIVE_LOAD(unsigned short)

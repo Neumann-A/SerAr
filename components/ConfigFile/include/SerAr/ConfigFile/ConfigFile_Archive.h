@@ -1158,30 +1158,33 @@ namespace Archives
 
     };
 
-    extern template void ConfigFile_InputArchive::load<bool>(Archives::NamedValue<bool>& value);
-    extern template void ConfigFile_InputArchive::load<short>(Archives::NamedValue<short>& value);
-    extern template void ConfigFile_InputArchive::load<int>(Archives::NamedValue<int>& value);
-    extern template void ConfigFile_InputArchive::load<long>(Archives::NamedValue<long>& value);
-    extern template void ConfigFile_InputArchive::load<long long>(Archives::NamedValue<long long>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned int>(Archives::NamedValue<unsigned int>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned long>(Archives::NamedValue<unsigned long>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned long long>(Archives::NamedValue<unsigned long long>& value);
-    extern template void ConfigFile_InputArchive::load<float>(Archives::NamedValue<float>& value);
-    extern template void ConfigFile_InputArchive::load<double>(Archives::NamedValue<double>& value);
-    extern template void ConfigFile_InputArchive::load<long double>(Archives::NamedValue<long double>& value);
-    extern template void ConfigFile_InputArchive::load<std::string>(Archives::NamedValue<std::string>& value);
-    extern template void ConfigFile_InputArchive::load<bool&>(Archives::NamedValue<bool&>& value);
-    extern template void ConfigFile_InputArchive::load<short&>(Archives::NamedValue<short&>& value);
-    extern template void ConfigFile_InputArchive::load<int&>(Archives::NamedValue<int&>& value);
-    extern template void ConfigFile_InputArchive::load<long&>(Archives::NamedValue<long&>& value);
-    extern template void ConfigFile_InputArchive::load<long long&>(Archives::NamedValue<long long&>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned int&>(Archives::NamedValue<unsigned int&>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned long&>(Archives::NamedValue<unsigned long&>& value);
-    extern template void ConfigFile_InputArchive::load<unsigned long long&>(Archives::NamedValue<unsigned long long&>& value);
-    extern template void ConfigFile_InputArchive::load<float&>(Archives::NamedValue<float&>& value);
-    extern template void ConfigFile_InputArchive::load<double&>(Archives::NamedValue<double&>& value);
-    extern template void ConfigFile_InputArchive::load<long double&>(Archives::NamedValue<long double&>& value);
-    extern template void ConfigFile_InputArchive::load<std::string&>(Archives::NamedValue<std::string&>& value);
+#define CONFIG_ARCHIVE_LOAD(type)                                                                     \
+    extern template void ConfigFile_InputArchive::load<type&>(Archives::NamedValue<type&>&);   \
+    extern template void ConfigFile_InputArchive::load<type>(Archives::NamedValue<type>&);
+    CONFIG_ARCHIVE_LOAD(bool)
+    CONFIG_ARCHIVE_LOAD(short)
+    CONFIG_ARCHIVE_LOAD(unsigned short)
+    CONFIG_ARCHIVE_LOAD(int)
+    CONFIG_ARCHIVE_LOAD(unsigned int)
+    CONFIG_ARCHIVE_LOAD(long)
+    CONFIG_ARCHIVE_LOAD(unsigned long)
+    CONFIG_ARCHIVE_LOAD(long long)
+    CONFIG_ARCHIVE_LOAD(unsigned long long)
+    CONFIG_ARCHIVE_LOAD(double)
+    CONFIG_ARCHIVE_LOAD(float)
+    CONFIG_ARCHIVE_LOAD(std::string)
+    CONFIG_ARCHIVE_LOAD(std::vector<short>)
+    CONFIG_ARCHIVE_LOAD(std::vector<unsigned short>)
+    CONFIG_ARCHIVE_LOAD(std::vector<int>)
+    CONFIG_ARCHIVE_LOAD(std::vector<unsigned int>)
+    CONFIG_ARCHIVE_LOAD(std::vector<long>)
+    CONFIG_ARCHIVE_LOAD(std::vector<unsigned long>)
+    CONFIG_ARCHIVE_LOAD(std::vector<long long>)
+    CONFIG_ARCHIVE_LOAD(std::vector<unsigned long long>)
+    CONFIG_ARCHIVE_LOAD(std::vector<double>)
+    CONFIG_ARCHIVE_LOAD(std::vector<float>)
+    CONFIG_ARCHIVE_LOAD(std::vector<std::string>)
+#undef CONFIG_ARCHIVE_LOAD
 
 #define CONFIG_ARCHIVE_SAVE(type)                                                                     \
     extern template void ConfigFile_OutputArchive::save<type&>(const Archives::NamedValue<type&>&);   \

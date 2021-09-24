@@ -141,7 +141,9 @@ namespace SerAr
         std::stack<toml::value> value_stack;
     };
 
-    #define TOML_ARCHIVE_LOAD(type) template TOML_InputArchive& TOML_InputArchive::load<type&>(NamedValue< type &> &);
+    #define TOML_ARCHIVE_LOAD(type) \
+        extern template TOML_InputArchive& TOML_InputArchive::load<type&>(NamedValue< type &> &); \
+        extern template TOML_InputArchive& TOML_InputArchive::load<type>(NamedValue< type > &);
     TOML_ARCHIVE_LOAD(bool)
     TOML_ARCHIVE_LOAD(short)
     TOML_ARCHIVE_LOAD(unsigned short)

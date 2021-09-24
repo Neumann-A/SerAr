@@ -156,7 +156,9 @@ namespace SerAr
         JSONPointerType json_pointer {};
     };
 
-    #define JSON_ARCHIVE_LOAD(type) extern template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type&>& >(NamedValue< type& >&);
+    #define JSON_ARCHIVE_LOAD(type) \
+        extern template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type&>& >(NamedValue< type& >&); \
+        extern template JSON_InputArchive& JSON_InputArchive::load< NamedValue<type>& >(NamedValue< type >&);
     JSON_ARCHIVE_LOAD(bool)
     JSON_ARCHIVE_LOAD(short)
     JSON_ARCHIVE_LOAD(unsigned short)

@@ -28,6 +28,8 @@
 #include <exception>
 #include <numeric>
 
+#include <fmt/format.h>
+
 //#ifdef EIGEN_CORE_H
 //#include <Eigen/Core>
 //#endif
@@ -170,7 +172,7 @@ namespace Archives
     //write_v7: Creates a MAT-file compatible with MATLAB Version 7.0 (R14) software or earlier. Equivalent to wz mode.
     //write_compressed: Opens file for writing compressed data. By default, the MATLAB save function compresses workspace variables as they are saved to a MAT-file. To use the same compression ratio when creating a MAT-file with the matOpen function, use the wz option.
     //                  Equivalent to w7 mode.
-    //write_v73: Creates a MAT-file in an HDF5-based format that can store objects that occupy more than 2 GB.
+    //write_v73: Creates a MAT-file in an MATLAB-based format that can store objects that occupy more than 2 GB.
     enum class MatlabOptions {read, update, write, write_v4, write_v6, write_local, write_v7, write_compressed, write_v73};
     
     class MatlabHelper
@@ -281,6 +283,11 @@ namespace Archives
 
         std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
 
+        inline void checkmxArrayPtr(mxArray* ptr ) const {
+            if(ptr==nullptr)
+                throw std::runtime_error{ fmt::format("Unable create new mxArray! (Out of memory?)") };
+        }
+
         inline void setNextFieldname(const std::string &str) noexcept { nextFieldname = str; }
         inline void clearNextFieldname() noexcept { nextFieldname.clear(); }
         inline auto getCurrentFieldname() noexcept { return nextFieldname; }
@@ -304,9 +311,7 @@ namespace Archives
                 constexpr mwSize ndims = 2;
                 constexpr mwSize dims[ndims]{ 1,1 }; // Higher dimensional structs are a bit strange... looks like an array of structs (not what we normally want. What we want -> [1,1])
                 pStruct = mxCreateStructArray(ndims, dims, 0, nullptr); //MatException here. 
-                if (pStruct == nullptr) {
-                    throw std::runtime_error{"Unable create new mxArray! (Out of memory?)"};
-                }
+                checkmxArrayPtr(pStruct);
             }
 
             if (mxGetClassID(pStruct) != mxSTRUCT_CLASS) {
@@ -324,8 +329,7 @@ namespace Archives
         requires(std::is_arithmetic_v<std::remove_cvref_t<T>>)
         mxArray& createMATLABArray(const T& value) const {
             mxArray *valarray = mxCreateNumericMatrix(1, 1, MATLAB::MATLABClassFinder<std::remove_cvref_t<T>>::value, mxREAL);
-            if (valarray == nullptr)
-                throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+            checkmxArrayPtr(valarray);
             *static_cast<T*>(mxGetData(valarray)) = value;
             return *valarray;
         }
@@ -335,8 +339,7 @@ namespace Archives
         requires(stdext::is_string_v<T>)
         mxArray& createMATLABArray(const T& value) const {
             mxArray *valarray = mxCreateString(value.c_str());
-            if (valarray == nullptr)
-                throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+            checkmxArrayPtr(valarray);
             return *valarray;
         }
 
@@ -345,19 +348,27 @@ namespace Archives
         requires(stdext::is_arithmetic_container_v<T>)
         mxArray& createMATLABArray(const T& value) const {
             using DataType = std::remove_cvref_t<typename T::value_type>;
-
             mxArray *valarray = mxCreateNumericMatrix(value.size(),1, MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
             if (valarray == nullptr)
                 throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
-
             //Cast needed since mxGetPr always returns an double pointer!
             DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
             assert(dataposition != nullptr);
-
             for (const auto& tmp : value) {
                 *dataposition++ = tmp;
             }
+            return *valarray;
+        }
 
+
+        template<typename T>
+        requires(stdext::is_container_of_strings_v<T>)
+        mxArray& createMATLABArray(const T& values) const {
+            std::vector<const char*> cstr;
+            std::transform(values.begin(),values.end(),cstr.begin(),[](auto& str) {return str.c_str();});
+            //using DataType = std::remove_cvref_t<typename T::value_type>;
+            mxArray *valarray = mxCreateCharMatrixFromStrings(cstr.size(),cstr.data());
+            checkmxArrayPtr(valarray);
             return *valarray;
         }
 
@@ -407,8 +418,7 @@ namespace Archives
 
             //This command will double memory consumption since it has to allocate the memory!
             mxArray *valarray = mxCreateNumericArray(ndim, dims.data(), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);           
-            if (valarray == nullptr)
-                throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+            checkmxArrayPtr(valarray);
 
             DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
         
@@ -440,8 +450,7 @@ namespace Archives
 
             //Be Aware: Matlab stores the matrix in column-major order, Eigen in row major!
             mxArray *valarray = mxCreateNumericMatrix(static_cast<std::size_t>(value.rows()), static_cast<std::size_t>(value.cols()), MATLAB::MATLABClassFinder<DataType>::value, mxREAL);
-            if (valarray == nullptr)
-                throw std::runtime_error{ "Unable create new mxArray! (Out of memory?)" };
+            checkmxArrayPtr(valarray);
 
             DataType * dataposition = static_cast<DataType*>(mxGetData(valarray));
             /* Inserting Data into Array */
@@ -494,9 +503,6 @@ namespace Archives
     ///-------------------------------------------------------------------------------------------------
     class MatlabInputArchive : public InputArchive<MatlabInputArchive>
     {
-        //needed so that the detector idom works with clang-cl (for some unknown reason!)
-        friend class InputArchive<MatlabOutputArchive>;
-        template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
     public:
         using Options = MatlabOptions;
 
@@ -504,7 +510,7 @@ namespace Archives
         ~MatlabInputArchive();
         ALLOW_DEFAULT_MOVE_AND_ASSIGN(MatlabInputArchive)
         DISALLOW_COPY_AND_ASSIGN(MatlabInputArchive)
-        //TODO: Write load function!
+
         template<typename T>
         inline void load(Archives::NamedValue<T>& value)
         {
@@ -521,7 +527,8 @@ namespace Archives
             this->operator()(value.val);		//Load Data from the Field or struct.
             releaseField();						//Remove the last Fieldname (Move Up)
         }
-        template<typename T> requires (HasGetValueMATLAB<MatlabInputArchive,std::remove_cvref_t<T>>)
+        template<typename T> 
+        requires (HasGetValueMATLAB<MatlabInputArchive,std::remove_cvref_t<T>>)
         inline void load(T& value)
         {
             using Type = std::decay_t<T>; // T cannot be const 
@@ -532,14 +539,17 @@ namespace Archives
             getValue(value, fieldptr);
         }
         template<typename T>
-        inline std::enable_if_t<std::is_arithmetic_v<std::remove_cvref_t<T>>> getValue(T& loadtarget, mxArray const * const field)
+        requires (std::is_arithmetic_v<std::remove_cvref_t<T>>)
+        inline void getValue(T& loadtarget, mxArray const * const field)
         {
             assert(field != nullptr);
             using DataType = std::remove_cvref_t<T>;
             loadtarget = *reinterpret_cast<DataType*>(mxGetData(field));
         };
+
         template<typename T>
-        inline std::enable_if_t<stdext::is_string_v<T>> getValue(T& loadtarget, mxArray const * const field)
+        requires(stdext::is_string_v<T>)
+        inline void getValue(T& loadtarget, mxArray const * const field)
         {
             assert(field != nullptr);
             const auto length = mxGetN(field);
@@ -550,7 +560,8 @@ namespace Archives
 
         auto list(const Archives::NamedValue<decltype(nullptr)>& value) -> std::map<std::string,std::string>;
         template<typename T>
-        std::enable_if_t<std::is_same<T, typename Archives::NamedValue<T>::internal_type>::value, std::map<std::string,std::string>> list(const Archives::NamedValue<T>& value)
+        requires(std::is_same_v<T, typename Archives::NamedValue<T>::internal_type>)
+        std::map<std::string,std::string> list(const Archives::NamedValue<T>& value)
         {
             checkCurrentField();				//Need to check if the current field is a struct or not; If not we cannot nest further!
             loadNextField(value.name);			//Loads the next Field with given name; (Move Down)
@@ -561,10 +572,11 @@ namespace Archives
         auto list(const std::string& str) -> std::map<std::string,std::string>;
 
         template<typename T>
-        inline std::enable_if_t<stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>> load(T& value)
+        requires(stdext::is_arithmetic_container_v<std::remove_cvref_t<T>>)
+        inline void load(T& value)
         {
             //TODO: Check if this will work for all containers containing arithmetic types!
-            using Type = std::remove_cvref_t<T>; // T cannot be const
+            //using Type = std::remove_cvref_t<T>; // T cannot be const
             using DataType = typename std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type>;
             const auto fieldptr = std::get<1>(mFields.top());
             const auto cols = mxGetN(fieldptr);
@@ -586,6 +598,17 @@ namespace Archives
                 elem = *dataposition;
                 ++dataposition;
             }
+        }
+
+        template<typename T>
+        requires(stdext::is_container_of_strings_v<T>)
+        mxArray& createMATLABArray(const T& values) const {
+            std::vector<const char*> cstr;
+            std::transform(values.begin(),values.end(),cstr.begin(),[](auto& str) {return str.c_str();});
+            using DataType = std::remove_cvref_t<typename T::value_type>;
+            mxArray *valarray = mxCreateCharMatrixFromStrings(cstr.size(),cstr.data());
+            checkmxArrayPtr(valarray);
+            return *valarray;
         }
 
 #ifdef EIGEN_CORE_H
@@ -841,30 +864,86 @@ namespace Archives
 
     };
 
-    extern template void MatlabOutputArchive::save<bool>(const Archives::NamedValue<bool>& value);
-    extern template void MatlabOutputArchive::save<short>(const Archives::NamedValue<short>& value);
-    extern template void MatlabOutputArchive::save<int>(const Archives::NamedValue<int>& value);
-    //extern template void MatlabOutputArchive::save<long>(const Archives::NamedValue<long>& value);
-    extern template void MatlabOutputArchive::save<long long>(const Archives::NamedValue<long long>& value);
-    extern template void MatlabOutputArchive::save<unsigned int>(const Archives::NamedValue<unsigned int>& value);
-    //extern template void MatlabOutputArchive::save<unsigned long>(const Archives::NamedValue<unsigned long>& value);
-    extern template void MatlabOutputArchive::save<unsigned long long>(const Archives::NamedValue<unsigned long long>& value);
-    extern template void MatlabOutputArchive::save<float>(const Archives::NamedValue<float>& value);
-    extern template void MatlabOutputArchive::save<double>(const Archives::NamedValue<double>& value);
-    extern template void MatlabOutputArchive::save<long double>(const Archives::NamedValue<long double>& value);
-    extern template void MatlabOutputArchive::save<std::string>(const Archives::NamedValue<std::string>& value);
-    extern template void MatlabOutputArchive::save<bool&>(const Archives::NamedValue<bool&>& value);
-    extern template void MatlabOutputArchive::save<short&>(const Archives::NamedValue<short&>& value);
-    extern template void MatlabOutputArchive::save<int&>(const Archives::NamedValue<int&>& value);
-    //extern template void MatlabOutputArchive::save<long&>(const Archives::NamedValue<long&>& value);
-    extern template void MatlabOutputArchive::save<long long&>(const Archives::NamedValue<long long&>& value);
-    extern template void MatlabOutputArchive::save<unsigned int&>(const Archives::NamedValue<unsigned int&>& value);
-    //extern template void MatlabOutputArchive::save<unsigned long&>(const Archives::NamedValue<unsigned long&>& value);
-    extern template void MatlabOutputArchive::save<unsigned long long&>(const Archives::NamedValue<unsigned long long&>& value);
-    extern template void MatlabOutputArchive::save<float&>(const Archives::NamedValue<float&>& value);
-    extern template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
-    extern template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
-    extern template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
+    #define MATLAB_ARCHIVE_SAVE(type) \
+        extern template void MatlabOutputArchive::save< type & >(const NamedValue< type &> &); \
+        extern template void MatlabOutputArchive::save< const type & >(const NamedValue< const type &> &); \
+        extern template void MatlabOutputArchive::save< type >(const NamedValue< type > &); \
+        extern template void MatlabOutputArchive::save< const type >(const NamedValue< const type > &); 
+    MATLAB_ARCHIVE_SAVE(bool)
+    MATLAB_ARCHIVE_SAVE(short)
+    MATLAB_ARCHIVE_SAVE(unsigned short)
+    MATLAB_ARCHIVE_SAVE(int)
+    MATLAB_ARCHIVE_SAVE(unsigned int)
+    //MATLAB_ARCHIVE_SAVE(long)
+    //MATLAB_ARCHIVE_SAVE(unsigned long)
+    MATLAB_ARCHIVE_SAVE(long long)
+    MATLAB_ARCHIVE_SAVE(unsigned long long)
+    MATLAB_ARCHIVE_SAVE(double)
+    MATLAB_ARCHIVE_SAVE(float)
+    MATLAB_ARCHIVE_SAVE(std::string)
+    MATLAB_ARCHIVE_SAVE(std::vector<short>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned short>)
+    MATLAB_ARCHIVE_SAVE(std::vector<int>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned int>)
+    MATLAB_ARCHIVE_SAVE(std::vector<long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<long long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<unsigned long long>)
+    MATLAB_ARCHIVE_SAVE(std::vector<double>)
+    MATLAB_ARCHIVE_SAVE(std::vector<float>)
+    MATLAB_ARCHIVE_SAVE(std::vector<std::string>)
+    #undef MATLAB_ARCHIVE_SAVE
+    #define MATLAB_ARCHIVE_LOAD(type) \
+        extern template void MatlabInputArchive::load< type &>(NamedValue< type &> &); \
+        extern template void MatlabInputArchive::load< type >(NamedValue< type > &);
+    MATLAB_ARCHIVE_LOAD(bool)
+    MATLAB_ARCHIVE_LOAD(short)
+    MATLAB_ARCHIVE_LOAD(unsigned short)
+    MATLAB_ARCHIVE_LOAD(int)
+    MATLAB_ARCHIVE_LOAD(unsigned int)
+    //MATLAB_ARCHIVE_LOAD(long)
+    //MATLAB_ARCHIVE_LOAD(unsigned long)
+    MATLAB_ARCHIVE_LOAD(long long)
+    MATLAB_ARCHIVE_LOAD(unsigned long long)
+    MATLAB_ARCHIVE_LOAD(double)
+    MATLAB_ARCHIVE_LOAD(float)
+    MATLAB_ARCHIVE_LOAD(std::string)
+    MATLAB_ARCHIVE_LOAD(std::vector<short>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned short>)
+    MATLAB_ARCHIVE_LOAD(std::vector<int>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned int>)
+    MATLAB_ARCHIVE_LOAD(std::vector<long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<long long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<unsigned long long>)
+    MATLAB_ARCHIVE_LOAD(std::vector<double>)
+    MATLAB_ARCHIVE_LOAD(std::vector<float>)
+    //MATLAB_ARCHIVE_LOAD(std::vector<std::string>)
+    #undef MATLAB_ARCHIVE_LOAD
+    // extern template void MatlabOutputArchive::save<bool>(const Archives::NamedValue<bool>& value);
+    // extern template void MatlabOutputArchive::save<short>(const Archives::NamedValue<short>& value);
+    // extern template void MatlabOutputArchive::save<int>(const Archives::NamedValue<int>& value);
+    // //extern template void MatlabOutputArchive::save<long>(const Archives::NamedValue<long>& value);
+    // extern template void MatlabOutputArchive::save<long long>(const Archives::NamedValue<long long>& value);
+    // extern template void MatlabOutputArchive::save<unsigned int>(const Archives::NamedValue<unsigned int>& value);
+    // //extern template void MatlabOutputArchive::save<unsigned long>(const Archives::NamedValue<unsigned long>& value);
+    // extern template void MatlabOutputArchive::save<unsigned long long>(const Archives::NamedValue<unsigned long long>& value);
+    // extern template void MatlabOutputArchive::save<float>(const Archives::NamedValue<float>& value);
+    // extern template void MatlabOutputArchive::save<double>(const Archives::NamedValue<double>& value);
+    // extern template void MatlabOutputArchive::save<long double>(const Archives::NamedValue<long double>& value);
+    // extern template void MatlabOutputArchive::save<std::string>(const Archives::NamedValue<std::string>& value);
+    // extern template void MatlabOutputArchive::save<bool&>(const Archives::NamedValue<bool&>& value);
+    // extern template void MatlabOutputArchive::save<short&>(const Archives::NamedValue<short&>& value);
+    // extern template void MatlabOutputArchive::save<int&>(const Archives::NamedValue<int&>& value);
+    // //extern template void MatlabOutputArchive::save<long&>(const Archives::NamedValue<long&>& value);
+    // extern template void MatlabOutputArchive::save<long long&>(const Archives::NamedValue<long long&>& value);
+    // extern template void MatlabOutputArchive::save<unsigned int&>(const Archives::NamedValue<unsigned int&>& value);
+    // //extern template void MatlabOutputArchive::save<unsigned long&>(const Archives::NamedValue<unsigned long&>& value);
+    // extern template void MatlabOutputArchive::save<unsigned long long&>(const Archives::NamedValue<unsigned long long&>& value);
+    // extern template void MatlabOutputArchive::save<float&>(const Archives::NamedValue<float&>& value);
+    // extern template void MatlabOutputArchive::save<double&>(const Archives::NamedValue<double&>& value);
+    // extern template void MatlabOutputArchive::save<long double&>(const Archives::NamedValue<long double&>& value);
+    // extern template void MatlabOutputArchive::save<std::string&>(const Archives::NamedValue<std::string&>& value);
 
 #ifdef EIGEN_CORE_H
     static_assert(stdext::IsEigen3Type<Eigen::Matrix<double, 9, 1>>);
