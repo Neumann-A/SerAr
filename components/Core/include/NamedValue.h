@@ -36,10 +36,10 @@ namespace Archives
         //If T is an Array: keep the type
         //If T is a l value: store a reference (T&)
         //If T is a r value: copy the value (T) (if used as intended this is an unlikly case but sometimes happens)
-        using internal_type = typename std::conditional<std::is_array<typename std::remove_reference<T>::type>::value,
+        using internal_type = typename std::conditional_t<std::is_array_v<typename std::remove_reference_t<T>>,
                                                 typename std::remove_cv<T>::type,
-                                                typename std::conditional<std::is_lvalue_reference<T>::value,
-                                                                        T&,	typename std::decay<T>::type>::type>::type;
+                                                typename std::conditional_t<std::is_lvalue_reference_v<T>,
+                                                                        T&,	typename std::decay_t<T>>>;
     public:
         const std::string name;
         internal_type val;
@@ -74,8 +74,11 @@ namespace Archives
         BASIC_ALWAYS_INLINE const std::string& getName() const noexcept { return name; }
     };
 
+
     template<typename T>
-    NamedValue(std::string valname, T&& value) -> NamedValue<T>;
+    NamedValue(std::string valname, T&& value) -> NamedValue<std::remove_cvref_t<T>>;
+    template<typename T>
+    NamedValue(std::string valname, T& value) -> NamedValue<std::remove_cvref_t<T>&>;
 
     template<typename T>
     inline NamedValue<T> createNamedValue(std::string name, T&& value)
