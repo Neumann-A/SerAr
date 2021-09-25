@@ -3,6 +3,7 @@
 #include <string>
 #include <type_traits>
 #include <cassert>
+#include <optional>
 
 #include <string_view>
 
@@ -30,10 +31,6 @@ namespace Archives
     ///-------------------------------------------------------------------------------------------------
     class HDF5_OutputOptions : OutputArchive_Options<HDF5_OutputOptions, HDF5_OutputArchive>
     {
-        friend class OutputArchive<HDF5_OutputOptions>;
-        //needed so that the detector idom works with clang-cl (for some unknown reason!)
-        template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
-
     public:
         bool										 dontReorderData {false} ;
         HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode FileCreationMode{ HDF5_Wrapper::HDF5_GeneralOptions::HDF5_Mode::CreateOrOverwrite };
@@ -52,9 +49,7 @@ namespace Archives
     class HDF5_OutputArchive : public OutputArchive<HDF5_OutputArchive>
     {
         using ThisClass = HDF5_OutputArchive;
-
     private:
-        
         using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
         using File = HDF5_Wrapper::HDF5_FileWrapper;
         
@@ -76,20 +71,20 @@ namespace Archives
             //TODO: Check the Location name for invalid characters
             return true;
         }
-        void appendPath(const std::string& str)
+        inline void appendPath(const std::string& str)
         {
             if (!isValidNextLocation(str))
                 throw std::runtime_error{ "Invalid HDF5 path string!" };
             assert(!str.empty());
             mPathStack.push(str);
         }
-        const auto& getPath()
+        inline const auto& getPath()
         {
             const auto& path = mPathStack.top();
             assert(!path.empty());
             return path;
         }
-        void removePath()
+        inline void removePath()
         {
             assert(!mPathStack.empty());
             mPathStack.pop();
@@ -455,6 +450,18 @@ namespace Archives
         {
             write(value);
         }
+
+        template <typename T>
+        inline void save(const std::optional<T>& value)
+        {
+            if(value)
+                this->operator()(*value);
+        }
+
+        inline void save(const std::filesystem::path& value)
+        {
+            this->operator()(value.string());
+        }
     };
     
     #define HDF5_ARCHIVE_SAVE(type) \
@@ -474,6 +481,7 @@ namespace Archives
     HDF5_ARCHIVE_SAVE(double)
     HDF5_ARCHIVE_SAVE(float)
     HDF5_ARCHIVE_SAVE(std::string)
+    HDF5_ARCHIVE_SAVE(std::filesystem::path)
     HDF5_ARCHIVE_SAVE(std::vector<short>)
     HDF5_ARCHIVE_SAVE(std::vector<unsigned short>)
     HDF5_ARCHIVE_SAVE(std::vector<int>)
@@ -485,5 +493,31 @@ namespace Archives
     HDF5_ARCHIVE_SAVE(std::vector<double>)
     HDF5_ARCHIVE_SAVE(std::vector<float>)
     HDF5_ARCHIVE_SAVE(std::vector<std::string>)
+    HDF5_ARCHIVE_SAVE(std::vector<std::filesystem::path>)
+    HDF5_ARCHIVE_SAVE(std::optional<bool>)
+    HDF5_ARCHIVE_SAVE(std::optional<short>)
+    HDF5_ARCHIVE_SAVE(std::optional<unsigned short>)
+    HDF5_ARCHIVE_SAVE(std::optional<int>)
+    HDF5_ARCHIVE_SAVE(std::optional<unsigned int>)
+    HDF5_ARCHIVE_SAVE(std::optional<long>)
+    HDF5_ARCHIVE_SAVE(std::optional<unsigned long>)
+    HDF5_ARCHIVE_SAVE(std::optional<long long>)
+    HDF5_ARCHIVE_SAVE(std::optional<unsigned long long>)
+    HDF5_ARCHIVE_SAVE(std::optional<double>)
+    HDF5_ARCHIVE_SAVE(std::optional<float>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::string>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::filesystem::path>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<short>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<unsigned short>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<int>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<unsigned int>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<long>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<unsigned long>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<long long>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<unsigned long long>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<double>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<float>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<std::string>>)
+    HDF5_ARCHIVE_SAVE(std::optional<std::vector<std::filesystem::path>>)
     #undef HDF5_ARCHIVE_SAVE
 }

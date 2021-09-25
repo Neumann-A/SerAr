@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <string>
 #include <type_traits>
+#include <optional>
 
 #include <MyCEL/basics/BasicMacros.h>
 
@@ -412,6 +413,30 @@ namespace Archives
         }
 
         template<typename T>
+        inline void load(std::optional<T>& value)
+        {
+            const auto result = H5Lexists(getCurrentLocation(),getPath().c_str(),H5P_LINK_ACCESS);
+            if(result == 0 ) {
+                value = std::nullopt;
+                return;
+            } else if( result < 0) {
+                value = std::nullopt;
+                throw std::runtime_error{ "HDF5_InputArchive failed function call: H5Lexists for std::optional<T>!" };
+                return;
+            }
+            std::remove_cvref_t<T> tmp;
+            this->operator()(tmp);
+            value = tmp;
+        }
+
+        inline void load(std::filesystem::path& value)
+        {
+            std::string tmp;
+            this->operator()(tmp);
+            value = std::filesystem::path(tmp);
+        }
+
+        template<typename T>
         inline void load(Archives::NamedValue<T>& value)
         {
             const bool empty_string = value.getName().empty();
@@ -450,6 +475,7 @@ namespace Archives
     HDF5_ARCHIVE_LOAD(double)
     HDF5_ARCHIVE_LOAD(float)
     HDF5_ARCHIVE_LOAD(std::string)
+    HDF5_ARCHIVE_LOAD(std::filesystem::path)
     HDF5_ARCHIVE_LOAD(std::vector<short>)
     HDF5_ARCHIVE_LOAD(std::vector<unsigned short>)
     HDF5_ARCHIVE_LOAD(std::vector<int>)
@@ -461,5 +487,31 @@ namespace Archives
     HDF5_ARCHIVE_LOAD(std::vector<double>)
     HDF5_ARCHIVE_LOAD(std::vector<float>)
     HDF5_ARCHIVE_LOAD(std::vector<std::string>)
+    //HDF5_ARCHIVE_LOAD(std::vector<std::filesystem::path>)
+    HDF5_ARCHIVE_LOAD(std::optional<bool>)
+    HDF5_ARCHIVE_LOAD(std::optional<short>)
+    HDF5_ARCHIVE_LOAD(std::optional<unsigned short>)
+    HDF5_ARCHIVE_LOAD(std::optional<int>)
+    HDF5_ARCHIVE_LOAD(std::optional<unsigned int>)
+    HDF5_ARCHIVE_LOAD(std::optional<long>)
+    HDF5_ARCHIVE_LOAD(std::optional<unsigned long>)
+    HDF5_ARCHIVE_LOAD(std::optional<long long>)
+    HDF5_ARCHIVE_LOAD(std::optional<unsigned long long>)
+    HDF5_ARCHIVE_LOAD(std::optional<double>)
+    HDF5_ARCHIVE_LOAD(std::optional<float>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::string>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::filesystem::path>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<short>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<unsigned short>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<int>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<unsigned int>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<long>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<unsigned long>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<long long>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<unsigned long long>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<double>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<float>>)
+    HDF5_ARCHIVE_LOAD(std::optional<std::vector<std::string>>)
+    //HDF5_ARCHIVE_LOAD(std::optional<std::vector<std::filesystem::path>>)
     #undef HDF5_ARCHIVE_LOAD
 }
