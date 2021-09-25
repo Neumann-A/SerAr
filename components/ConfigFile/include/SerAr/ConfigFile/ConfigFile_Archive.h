@@ -24,6 +24,8 @@
 #include <exception>
 #include <cassert>
 #include <functional>
+#include <optional>
+#include <tuple>
 
 //#ifdef EIGEN_CORE_H
 //#include <Eigen/Core>
@@ -46,6 +48,10 @@ namespace Archives
     template<typename T>
     concept HasMemberToString = requires(const T& t) {
         t.to_string();
+    };
+    template<typename T>
+    concept HasMemberString = requires(const T& t) {
+        t.string();
     };
     template<typename T>
     concept HasStdToString = requires(const T& t) {
@@ -133,19 +139,19 @@ namespace Archives
 
         //Checks if ToTest has a load function for itself
         template<typename TypeToTest, typename TypeToConvert>
-        class has_archive_member_from_string : public stdext::is_detected_exact <std::decay_t<TypeToConvert>, member_from_string_t, TypeToTest, std::decay_t<TypeToConvert> > {};
+        class has_archive_member_from_string : public stdext::is_detected_exact <std::remove_cvref_t<TypeToConvert>, member_from_string_t, TypeToTest, std::remove_cvref_t<TypeToConvert> > {};
         template<typename TypeToTest, typename TypeToConvert>
         static constexpr bool has_archive_member_from_string_v = has_archive_member_from_string<TypeToTest, TypeToConvert>::value;
 
         //Checks if ToTest has a load function for itself
         template<typename TypeToConvert>
-        class has_member_from_string : public stdext::is_detected_exact<std::decay_t<TypeToConvert>,member_from_string_t> {};
+        class has_member_from_string : public stdext::is_detected_exact<std::remove_cvref_t<TypeToConvert>,member_from_string_t> {};
         template<typename TypeToConvert>
         static constexpr bool has_member_from_string_v = has_member_from_string<TypeToConvert>::value;
 
         //Checks if there is a load function for ToTest
         template<typename TypeToConvert>
-        class has_func_from_string : public stdext::is_detected_exact<std::decay_t<TypeToConvert>, func_from_string_t> {};
+        class has_func_from_string : public stdext::is_detected_exact<std::remove_cvref_t<TypeToConvert>, func_from_string_t> {};
         template<typename TypeToConvert>
         static constexpr bool has_func_from_string_v = has_func_from_string<TypeToConvert>::value;
 
@@ -196,19 +202,12 @@ namespace Archives
                 Missing_comma_seperator, Missing_string_identifier,
                 Key_not_found, Section_not_found, First_line_is_not_section
             };
-
             Parse_error(const error_enum &err);
-            
-
             const char * what() const noexcept override;
-
             void append(std::string&& str);
-
         private:
             Parse_error(const error_enum &err, std::string&&);
             error_enum _err;
-            //std::string _msg{};
-
             static std::string getErrorInfoString(const error_enum &err) noexcept;
         };
 
@@ -264,21 +263,24 @@ namespace Archives
             /// <returns>	value as a string </returns>
             ///-------------------------------------------------------------------------------------------------
             template<typename T>
-            static inline std::enable_if_t<traits::use_archive_or_func_from_string_v<std::decay_t<T>, fromString>, std::decay_t<T>> from_string_selector(std::string& str)
+            requires(traits::use_archive_or_func_from_string_v<std::remove_cvref_t<T>, fromString>)
+            static inline std::remove_cvref_t<T> from_string_selector(std::string& str)
             {
-                using decT = std::decay_t<T>;
+                using decT = std::remove_cvref_t<T>;
                 return from_string<decT>(str);
             }
 
             template<typename T>
-            static inline std::enable_if_t<traits::use_type_member_from_string_v<std::decay_t<T>, fromString>, std::decay_t<T>> from_string_selector(std::string& str)
+            requires(traits::use_type_member_from_string_v<std::remove_cvref_t<T>, fromString>)
+            static inline std::remove_cvref_t<T> from_string_selector(std::string& str)
             {
-                using decT = std::decay_t<T>;
+                using decT = std::remove_cvref_t<T>;
                 return decT::template from_string<decT>(str);
             }
 
             template<typename T>
-            static inline std::enable_if_t<stdext::is_string_v<T>, std::string> from_string(std::string& str)
+            requires(stdext::is_string_v<std::remove_cvref_t<T>>)
+            static inline std::remove_cvref_t<T> from_string(std::string& str)
             {
                 //std::string str{ val };
                 //auto pos = str.find_first_of(SpecialCharacters::stringidentifier);
@@ -319,10 +321,11 @@ namespace Archives
 
             /// <summary>	Convert string into number representation. </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && !std::is_same<std::decay_t<T>, bool>::value, std::decay_t<T>> from_string(std::string &str)
+            requires(std::is_arithmetic_v<std::remove_cvref_t<T>> && !std::is_same_v<std::remove_cvref_t<T>, bool>)
+            static inline std::remove_cvref_t<T> from_string(std::string &str)
             {
                 std::size_t pos;
-                const auto num{ BasicTools::stringToNumber<std::decay_t<T>>(str, pos) };
+                const auto num{ BasicTools::stringToNumber<std::remove_cvref_t<T>>(str, pos) };
                 str.erase(0, pos);
 
                 afterConversionStringCheck(str);
@@ -330,15 +333,25 @@ namespace Archives
             }
 
             template <typename T>
-            static inline std::enable_if_t<std::is_arithmetic<std::decay_t<T>>::value && std::is_same<std::decay_t<T>, bool>::value, std::decay_t<T>> from_string(std::string &str)
+            requires(std::is_same_v<std::remove_cvref_t<T>, bool>)
+            static inline std::remove_cvref_t<T> from_string(std::string &str)
             {
                 std::regex rx{ "^\\s*[Tt][Rr][Uu][Ee]\\s*$" };
                 return std::regex_search(str, rx);
             }
 
+
+            template <typename T>
+            requires(std::is_same_v<std::remove_cvref_t<T>, std::filesystem::path>)
+            static inline std::filesystem::path from_string(std::string &str)
+            {
+                return std::filesystem::path(str);
+            }
+
             /// <summary>	Convert a string into a complex number. </summary>
             template <typename T>
-            static inline std::enable_if_t<std::is_same<T, std::complex<typename T::value_type>>::value, T> from_string(std::string &str)
+            requires(std::is_same_v<T, std::complex<typename T::value_type>>)
+            static inline T from_string(std::string &str)
             {
                 using type = typename T::value_type;
 
@@ -481,9 +494,7 @@ namespace Archives
                             {
                                 complex = BasicTools::stringToNumber<type>(str, currentparse);
                             }
-
                             str.erase(0, currentparse);
-
                             //auto val = str.compare(0, 1, "+");
                             if (str.compare(0, 1, "+") == 0)
                             {
@@ -495,20 +506,13 @@ namespace Archives
                             throw Parse_error{ Parse_error::error_enum::Invalid_expression };
                         }
                     }
-
-                    if (str.empty()) // nothing left -> real = 0
-                    {
+                    if (str.empty()) { // nothing left -> real = 0 
                         real = 0;
                         return T{ real, complex };
-                    }
-                    else
-                    {
-                        try
-                        {
+                    } else {
+                        try {
                             real = BasicTools::stringToNumber<type>(str, currentparse);
-                        }
-                        catch (std::invalid_argument&)
-                        {
+                        } catch (std::invalid_argument&) {
                             throw Parse_error{ Parse_error::error_enum::Invalid_expression };
                         }
                         str.erase(0, currentparse);
@@ -564,7 +568,8 @@ namespace Archives
 
             /// <summary>	Convert tuples into a braced string representation. </summary>
             template<typename T>
-            static inline std::enable_if_t<(std::tuple_size<T>::value > 0), T> from_string(std::string &str)
+            requires(std::tuple_size<T>::value > 0)
+            static inline T from_string(std::string &str)
             {
                 removeBraces(str);
                 return buildtupletype<0, T>(str);
@@ -712,7 +717,7 @@ namespace Archives
             static inline std::enable_if_t< (N != std::tuple_size<Tuple>::value - 2), std::tuple<>> buildtupletype(std::string &str)
             {
                 auto seperator{ findNextCommaSeperator(str) };
-                using type = std::decay_t<std::tuple_element_t<N, Tuple>>;
+                using type = std::remove_cvref_t<std::tuple_element_t<N, Tuple>>;
                 auto head{ from_string_selector<type>(str.substr(0,seperator - 1)) };
                 str.erase(0, seperator);
                 auto tail{ buildtupletype<N,Tuple>(str) };
@@ -723,8 +728,8 @@ namespace Archives
             static inline std::enable_if_t< (N == std::tuple_size<Tuple>::value - 2), std::tuple<>> buildtupletype(std::string &str)
             {
                 auto seperator{ findNextCommaSeperator(str) };
-                using type = std::decay_t<std::tuple_element_t<N, Tuple>>;
-                using type2 = std::decay_t<std::tuple_element_t<N + 1, Tuple>>;
+                using type = std::remove_cvref_t<std::tuple_element_t<N, Tuple>>;
+                using type2 = std::remove_cvref_t<std::tuple_element_t<N + 1, Tuple>>;
                 auto head{ from_string_selector<type>(str.substr(0,seperator - 1)) };
                 str.erase(0, seperator);
                 auto tail{ from_string_selector<type2>(str) };
@@ -748,19 +753,19 @@ namespace Archives
             /// <returns>	value as a string </returns>
             ///-------------------------------------------------------------------------------------------------
             template<typename T>
-            static inline std::enable_if_t<traits::use_archive_or_func_to_string_v<std::decay_t<T>, toString>, std::string> to_string_selector(T&& val)
+            static inline std::enable_if_t<traits::use_archive_or_func_to_string_v<std::remove_cvref_t<T>, toString>, std::string> to_string_selector(T&& val)
             {
                 return to_string(val);
             }
 
             template<typename T>
-            static inline std::enable_if_t<traits::use_type_member_to_string_v<std::decay_t<T>, toString>, std::string> to_string_selector(T&& val)
+            static inline std::enable_if_t<traits::use_type_member_to_string_v<std::remove_cvref_t<T>, toString>, std::string> to_string_selector(T&& val)
             {
                 return val.to_string();
             }
 
             template<typename T>
-            static inline std::enable_if_t<traits::use_std_to_string_v<std::decay_t<T>, toString>, std::string> to_string_selector(T&& val)
+            static inline std::enable_if_t<traits::use_std_to_string_v<std::remove_cvref_t<T>, toString>, std::string> to_string_selector(T&& val)
             {
                 return std::to_string(val);
             }
@@ -790,7 +795,16 @@ namespace Archives
                 return BasicTools::toStringScientific(val);
                 //std::to_string(val); Does a silly rounding to 0.00000 for small doubles (1E-7) 
             }
-
+            static inline std::string to_string(const std::filesystem::path &path) noexcept {
+                return path.string();
+            }
+            template<typename T>
+            static inline std::string to_string(const std::optional<T>& opt)
+            {
+                if(opt)
+                    return to_string_selector(*opt);
+                return {};
+            }
             /// <summary>	Convert numbers into a string representation. </summary>
             static inline std::string to_string(bool val)
             {
@@ -862,7 +876,7 @@ namespace Archives
 
 #ifdef EIGEN_CORE_H
             template <typename Derived>
-            static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::decay_t<Derived>>, std::decay_t<Derived>>::value, std::string> to_string(const Derived& value)
+            static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::remove_cvref_t<Derived>>, std::remove_cvref_t<Derived>>::value, std::string> to_string(const Derived& value)
             {
                 Eigen::IOFormat CommaInitFmt(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "{", "}");
                 std::stringstream sstr;
@@ -1040,6 +1054,13 @@ namespace Archives
             mStorage._contents[ConfigLogic.getSection()][ConfigLogic.getKey()] = valstr;
         }
 
+        template<typename T> 
+        inline void save(const std::optional<T>& val)
+        {
+            if(val)
+                this->operator()(*val);
+        }
+
         inline const ConfigFile::Storage& getStorage() const noexcept { return mStorage; }
     protected:
         ConfigFile::Logic ConfigLogic{};
@@ -1097,10 +1118,37 @@ namespace Archives
             ConfigLogic.resetCurrKey();
         }
 
+        void load(std::filesystem::path& value)
+        {
+            std::string str;
+            this->operator()(str);
+            value = std::filesystem::path(str);
+        }
+
+        template<typename T>
+        void load(std::optional<T>& value)
+        {
+            const auto& currentsection{ ConfigLogic.getSection() };
+            const auto& currentkey{ ConfigLogic.getKey() };
+            auto res = mStorage._contents.find(currentsection);
+            if (res == mStorage._contents.end()) {
+                //Did not find the section
+                value = std::nullopt;
+                return;
+            }
+            if(!res->second.contains(currentkey)) {
+                value = std::nullopt;
+                return;
+            }
+            std::remove_cvref_t<T> tmp;
+            this->operator()(tmp);
+            value = std::move(tmp);
+        }
+
         template<typename T>
         requires(traits::use_from_string_v<std::remove_cvref_t<T>, ConfigFile::fromString, ConfigFile_InputArchive>)
         void load(T&& val)
-        {			
+        {
             const auto& currentsection{ ConfigLogic.getSection() };
             const auto& currentkey{ ConfigLogic.getKey() };
 
@@ -1114,7 +1162,7 @@ namespace Archives
                 }
                 //TODO:: Empty Key
                 //if (nokey = currentkey.empty())
-                //	currentkey = typeid(std::decay_t<T>).name() + "_" + std::to_string(typecounter<std::decay_t<T>>)
+                //	currentkey = typeid(std::remove_cvref_t<T>).name() + "_" + std::to_string(typecounter<std::remove_cvref_t<T>>)
                 std::string valstr{ res->second.at(currentkey) };
                 val = ConfigFile::fromString::from_string_selector<T>(valstr);
             }
@@ -1152,12 +1200,6 @@ namespace Archives
 
     };
 
-    //TODO:: Make this the combined Input/Output Class
-    class ConfigFile_Archive
-    {
-
-    };
-
 #define CONFIG_ARCHIVE_LOAD(type)                                                                     \
     extern template void ConfigFile_InputArchive::load<type&>(Archives::NamedValue<type&>&);   \
     extern template void ConfigFile_InputArchive::load<type>(Archives::NamedValue<type>&);
@@ -1173,6 +1215,7 @@ namespace Archives
     CONFIG_ARCHIVE_LOAD(double)
     CONFIG_ARCHIVE_LOAD(float)
     CONFIG_ARCHIVE_LOAD(std::string)
+    CONFIG_ARCHIVE_LOAD(std::filesystem::path)
     CONFIG_ARCHIVE_LOAD(std::vector<short>)
     CONFIG_ARCHIVE_LOAD(std::vector<unsigned short>)
     CONFIG_ARCHIVE_LOAD(std::vector<int>)
@@ -1184,6 +1227,32 @@ namespace Archives
     CONFIG_ARCHIVE_LOAD(std::vector<double>)
     CONFIG_ARCHIVE_LOAD(std::vector<float>)
     CONFIG_ARCHIVE_LOAD(std::vector<std::string>)
+    CONFIG_ARCHIVE_LOAD(std::vector<std::filesystem::path>)
+    CONFIG_ARCHIVE_LOAD(std::optional<bool>)
+    CONFIG_ARCHIVE_LOAD(std::optional<short>)
+    CONFIG_ARCHIVE_LOAD(std::optional<unsigned short>)
+    CONFIG_ARCHIVE_LOAD(std::optional<int>)
+    CONFIG_ARCHIVE_LOAD(std::optional<unsigned int>)
+    CONFIG_ARCHIVE_LOAD(std::optional<long>)
+    CONFIG_ARCHIVE_LOAD(std::optional<unsigned long>)
+    CONFIG_ARCHIVE_LOAD(std::optional<long long>)
+    CONFIG_ARCHIVE_LOAD(std::optional<unsigned long long>)
+    CONFIG_ARCHIVE_LOAD(std::optional<double>)
+    CONFIG_ARCHIVE_LOAD(std::optional<float>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::string>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::filesystem::path>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<short>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<unsigned short>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<int>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<unsigned int>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<long>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<unsigned long>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<long long>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<unsigned long long>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<double>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<float>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<std::string>>)
+    CONFIG_ARCHIVE_LOAD(std::optional<std::vector<std::filesystem::path>>)
 #undef CONFIG_ARCHIVE_LOAD
 
 #define CONFIG_ARCHIVE_SAVE(type)                                                                     \
@@ -1201,6 +1270,7 @@ namespace Archives
     CONFIG_ARCHIVE_SAVE(double)
     CONFIG_ARCHIVE_SAVE(float)
     CONFIG_ARCHIVE_SAVE(std::string)
+    CONFIG_ARCHIVE_SAVE(std::filesystem::path)
     CONFIG_ARCHIVE_SAVE(std::vector<short>)
     CONFIG_ARCHIVE_SAVE(std::vector<unsigned short>)
     CONFIG_ARCHIVE_SAVE(std::vector<int>)
@@ -1212,6 +1282,32 @@ namespace Archives
     CONFIG_ARCHIVE_SAVE(std::vector<double>)
     CONFIG_ARCHIVE_SAVE(std::vector<float>)
     CONFIG_ARCHIVE_SAVE(std::vector<std::string>)
+    CONFIG_ARCHIVE_SAVE(std::vector<std::filesystem::path>)
+    CONFIG_ARCHIVE_SAVE(std::optional<bool>)
+    CONFIG_ARCHIVE_SAVE(std::optional<short>)
+    CONFIG_ARCHIVE_SAVE(std::optional<unsigned short>)
+    CONFIG_ARCHIVE_SAVE(std::optional<int>)
+    CONFIG_ARCHIVE_SAVE(std::optional<unsigned int>)
+    CONFIG_ARCHIVE_SAVE(std::optional<long>)
+    CONFIG_ARCHIVE_SAVE(std::optional<unsigned long>)
+    CONFIG_ARCHIVE_SAVE(std::optional<long long>)
+    CONFIG_ARCHIVE_SAVE(std::optional<unsigned long long>)
+    CONFIG_ARCHIVE_SAVE(std::optional<double>)
+    CONFIG_ARCHIVE_SAVE(std::optional<float>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::string>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::filesystem::path>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<short>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<unsigned short>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<int>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<unsigned int>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<long>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<unsigned long>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<long long>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<unsigned long long>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<double>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<float>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<std::string>>)
+    CONFIG_ARCHIVE_SAVE(std::optional<std::vector<std::filesystem::path>>)
 #undef CONFIG_ARCHIVE_SAVE
 
 }
