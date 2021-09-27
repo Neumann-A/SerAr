@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <stack>
 #include <concepts>
 #include <type_traits>
@@ -69,7 +70,6 @@ namespace SerAr
             json_pointer.pop_back();
             return tmp;
         }
-
         template<typename T> requires (JSON::detail::IsJSONLoadable<JSONType, T>)
         inline ThisClass& load(T& value)
         {
@@ -95,6 +95,26 @@ namespace SerAr
             json_pointer.pop_back();
             return *this;
         }
+
+        inline ThisClass& load(std::filesystem::path& path)
+        {
+            std::string tmp;
+            this->operator()(tmp);
+            path = std::filesystem::path(tmp);
+            return *this;
+        }
+
+        template<typename T>
+        inline ThisClass& load(std::optional<T>& opt)
+        {
+            if(!json.contains(json_pointer))
+                opt = std::nullopt;
+            std::remove_cvref_t<T> tmp;
+            this->operator()(tmp);
+            opt = std::move(tmp);
+            return *this;
+        }
+
         template<typename T> 
         requires (!JSON::detail::IsJSONLoadable<JSONType, T>
                   && stdext::is_container_v<std::remove_cvref_t<T>>
@@ -171,6 +191,7 @@ namespace SerAr
     JSON_ARCHIVE_LOAD(double)
     JSON_ARCHIVE_LOAD(float)
     JSON_ARCHIVE_LOAD(std::string)
+    JSON_ARCHIVE_LOAD(std::filesystem::path)
     JSON_ARCHIVE_LOAD(std::vector<short>)
     JSON_ARCHIVE_LOAD(std::vector<unsigned short>)
     JSON_ARCHIVE_LOAD(std::vector<int>)
@@ -182,6 +203,32 @@ namespace SerAr
     JSON_ARCHIVE_LOAD(std::vector<double>)
     JSON_ARCHIVE_LOAD(std::vector<float>)
     JSON_ARCHIVE_LOAD(std::vector<std::string>)
+    //JSON_ARCHIVE_LOAD(std::vector<std::filesystem::path>)
+    JSON_ARCHIVE_LOAD(std::optional<bool>)
+    JSON_ARCHIVE_LOAD(std::optional<short>)
+    JSON_ARCHIVE_LOAD(std::optional<unsigned short>)
+    JSON_ARCHIVE_LOAD(std::optional<int>)
+    JSON_ARCHIVE_LOAD(std::optional<unsigned int>)
+    JSON_ARCHIVE_LOAD(std::optional<long>)
+    JSON_ARCHIVE_LOAD(std::optional<unsigned long>)
+    JSON_ARCHIVE_LOAD(std::optional<long long>)
+    JSON_ARCHIVE_LOAD(std::optional<unsigned long long>)
+    JSON_ARCHIVE_LOAD(std::optional<double>)
+    JSON_ARCHIVE_LOAD(std::optional<float>)
+    JSON_ARCHIVE_LOAD(std::optional<std::string>)
+    JSON_ARCHIVE_LOAD(std::optional<std::filesystem::path>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<short>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<unsigned short>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<int>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<unsigned int>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<long>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<unsigned long>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<long long>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<unsigned long long>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<double>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<float>>)
+    JSON_ARCHIVE_LOAD(std::optional<std::vector<std::string>>)
+    //JSON_ARCHIVE_LOAD(std::optional<std::vector<std::filesystem::path>>)
     #undef JSON_ARCHIVE_LOAD
 
 }

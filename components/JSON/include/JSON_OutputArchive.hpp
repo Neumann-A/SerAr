@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <stack>
 #include <concepts>
 #include <type_traits>
@@ -49,6 +50,20 @@ namespace SerAr
             current_json = std::forward<T>(value);
             return *this;
         }
+
+        inline JSON_OutputArchive& save(const std::filesystem::path& path)
+        {
+            this->operator()(path.string());
+            return *this;
+        }
+        template<typename T>
+        inline JSON_OutputArchive& save(const std::optional<T>& opt)
+        {
+            if(opt)
+                this->operator()(*opt);
+            return *this;
+        }
+
         template<typename T> requires (JSON::detail::IsJSONStoreable<JSONType, T>)
         inline JSON_OutputArchive& save(const NamedValue<T>& nval)
         {
@@ -162,6 +177,7 @@ namespace SerAr
     JSON_ARCHIVE_SAVE(double)
     JSON_ARCHIVE_SAVE(float)
     JSON_ARCHIVE_SAVE(std::string)
+    JSON_ARCHIVE_SAVE(std::filesystem::path)
     JSON_ARCHIVE_SAVE(std::vector<short>)
     JSON_ARCHIVE_SAVE(std::vector<unsigned short>)
     JSON_ARCHIVE_SAVE(std::vector<int>)
@@ -173,5 +189,31 @@ namespace SerAr
     JSON_ARCHIVE_SAVE(std::vector<double>)
     JSON_ARCHIVE_SAVE(std::vector<float>)
     JSON_ARCHIVE_SAVE(std::vector<std::string>)
+    JSON_ARCHIVE_SAVE(std::vector<std::filesystem::path>)
+    JSON_ARCHIVE_SAVE(std::optional<bool>)
+    JSON_ARCHIVE_SAVE(std::optional<short>)
+    JSON_ARCHIVE_SAVE(std::optional<unsigned short>)
+    JSON_ARCHIVE_SAVE(std::optional<int>)
+    JSON_ARCHIVE_SAVE(std::optional<unsigned int>)
+    JSON_ARCHIVE_SAVE(std::optional<long>)
+    JSON_ARCHIVE_SAVE(std::optional<unsigned long>)
+    JSON_ARCHIVE_SAVE(std::optional<long long>)
+    JSON_ARCHIVE_SAVE(std::optional<unsigned long long>)
+    JSON_ARCHIVE_SAVE(std::optional<double>)
+    JSON_ARCHIVE_SAVE(std::optional<float>)
+    JSON_ARCHIVE_SAVE(std::optional<std::string>)
+    JSON_ARCHIVE_SAVE(std::optional<std::filesystem::path>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<short>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<unsigned short>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<int>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<unsigned int>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<long>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<unsigned long>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<long long>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<unsigned long long>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<double>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<float>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<std::string>>)
+    JSON_ARCHIVE_SAVE(std::optional<std::vector<std::filesystem::path>>)
     #undef JSON_ARCHIVE_SAVE
 }
