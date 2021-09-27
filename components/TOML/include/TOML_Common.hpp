@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <filesystem>
 
 #include <MyCEL/stdext/is_string.h>
 #include <MyCEL/stdext/is_container.h>
@@ -12,7 +13,6 @@
 #include <fmt/format.h>
 
 #include <toml.hpp>
-
 
 namespace SerAr::TOML {
     void throw_runtime_error(std::string_view msg);
@@ -29,7 +29,9 @@ namespace SerAr::TOML {
     concept IsTOMLContainerValue = 
         stdext::is_container_v<T> 
         && (!stdext::is_container_v<std::remove_cvref_t<typename T::value_type>> 
-            || stdext::is_string_v<std::remove_cvref_t<typename T::value_type>>)
+            || stdext::is_string_v<std::remove_cvref_t<typename T::value_type>> 
+            || !std::is_same_v<std::remove_cvref_t<typename T::value_type>, std::filesystem::path>
+            )
         && !stdext::is_string_v<T>
         && requires (T &&value) {
             { toml::value(std::forward<T>(value)) };
@@ -37,7 +39,9 @@ namespace SerAr::TOML {
         };
 
     template<typename T>
-    concept IsTOMLValue = (IsTOMLNormalValue<T> || IsTOMLContainerValue<T>) && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> ;
+    concept IsTOMLValue = (IsTOMLNormalValue<T> || IsTOMLContainerValue<T>) 
+        && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> 
+        && !std::is_same_v<std::remove_cvref_t<T>,std::filesystem::path> ;
 
 
 }

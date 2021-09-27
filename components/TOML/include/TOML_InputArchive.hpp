@@ -38,6 +38,14 @@ namespace SerAr
             return tmp;
         }
 
+        inline ThisClass& load(std::filesystem::path& path)
+        {
+            std::string tmp;
+            this->operator()(tmp);
+            path = std::filesystem::path(tmp);
+            return *this;
+        }
+
         template<typename T> 
         requires (TOML::IsTOMLValue<std::remove_cvref_t<T>>)
         inline ThisClass& load(NamedValue<T>& nval)
@@ -61,9 +69,22 @@ namespace SerAr
         inline ThisClass& load(NamedValue<T>& nval)
         {
             auto& current_table = value_stack.top();
-            value_stack.push(current_table.as_table().at(nval.name));
-            this->operator()(nval.val);
-            value_stack.pop();
+            if constexpr(std::is_same_v<std::remove_cvref_t<T>,std::optional<typename std::remove_cvref_t<T>::value_type>>)
+            {
+                if(!current_table.as_table().contains(nval.name)) {
+                    nval.val = std::nullopt;
+                    return *this;
+                }
+                nval.val = std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type> {};
+                value_stack.push(current_table.as_table().at(nval.name));
+                this->operator()(*nval.val);
+                value_stack.pop();
+            }
+            else {
+                value_stack.push(current_table.as_table().at(nval.name));
+                this->operator()(nval.val);
+                value_stack.pop();
+            }
             return *this;
         }
         template<typename T> 
@@ -156,6 +177,7 @@ namespace SerAr
     TOML_ARCHIVE_LOAD(double)
     TOML_ARCHIVE_LOAD(float)
     TOML_ARCHIVE_LOAD(std::string)
+    TOML_ARCHIVE_LOAD(std::filesystem::path)
     TOML_ARCHIVE_LOAD(std::vector<short>)
     TOML_ARCHIVE_LOAD(std::vector<unsigned short>)
     TOML_ARCHIVE_LOAD(std::vector<int>)
@@ -167,5 +189,31 @@ namespace SerAr
     TOML_ARCHIVE_LOAD(std::vector<double>)
     TOML_ARCHIVE_LOAD(std::vector<float>)
     TOML_ARCHIVE_LOAD(std::vector<std::string>)
+    TOML_ARCHIVE_LOAD(std::vector<std::filesystem::path>)
+    TOML_ARCHIVE_LOAD(std::optional<bool>)
+    TOML_ARCHIVE_LOAD(std::optional<short>)
+    TOML_ARCHIVE_LOAD(std::optional<unsigned short>)
+    TOML_ARCHIVE_LOAD(std::optional<int>)
+    TOML_ARCHIVE_LOAD(std::optional<unsigned int>)
+    TOML_ARCHIVE_LOAD(std::optional<long>)
+    TOML_ARCHIVE_LOAD(std::optional<unsigned long>)
+    TOML_ARCHIVE_LOAD(std::optional<long long>)
+    TOML_ARCHIVE_LOAD(std::optional<unsigned long long>)
+    TOML_ARCHIVE_LOAD(std::optional<double>)
+    TOML_ARCHIVE_LOAD(std::optional<float>)
+    TOML_ARCHIVE_LOAD(std::optional<std::string>)
+    TOML_ARCHIVE_LOAD(std::optional<std::filesystem::path>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<short>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<unsigned short>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<int>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<unsigned int>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<long>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<unsigned long>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<long long>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<unsigned long long>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<double>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<float>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<std::string>>)
+    TOML_ARCHIVE_LOAD(std::optional<std::vector<std::filesystem::path>>)
     #undef TOML_ARCHIVE_LOAD
 }
