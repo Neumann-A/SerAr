@@ -85,12 +85,16 @@ int main()
     {
         Archive ar{ path, {} };
         Eigen::Matrix<double, 3, 2> m{ {1,2},{3,4},{5,6} };
+        Eigen::Matrix<double, 6, 1> v { 1, 2, 3, 4, 5, 6 };
         ar(Archives::createNamedValue("matrix", m));
+        ar(Archives::createNamedValue("vector", v));
     }
     {
         ArchiveRead ar{ path, {} };
         Eigen::Matrix<double, 3, 2> m { {0,0},{0,0},{0,0} };
+        Eigen::Matrix<double, 6, 1> v{0, 0, 0, 0, 0, 0};
         ar(Archives::createNamedValue("matrix", m));
+        ar(Archives::createNamedValue("vector", v));
     }
     //path = "test6.toml"; // Unsupported by TOML
     //{
