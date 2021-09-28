@@ -7,6 +7,7 @@
 
 #include <MyCEL/stdext/is_container.h>
 #include <MyCEL/stdext/is_eigen3_type.h>
+#include <MyCEL/stdext/is_optional.hpp>
 
 #include <SerAr/Core/InputArchive.h>
 
@@ -69,7 +70,7 @@ namespace SerAr
         inline ThisClass& load(NamedValue<T>& nval)
         {
             auto& current_table = value_stack.top();
-            if constexpr(std::is_same_v<std::remove_cvref_t<T>,std::optional<typename std::remove_cvref_t<T>::value_type>>)
+            if constexpr(stdext::IsOptional<std::remove_cvref_t<T>>)
             {
                 if(!current_table.as_table().contains(nval.name)) {
                     nval.val = std::nullopt;

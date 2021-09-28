@@ -110,5 +110,7 @@ namespace SerAr {
     #undef TOML_ARCHIVE_SAVE
 
     static_assert(!TOML::IsTOMLValue<std::filesystem::path>);
+    static_assert(!TOML::IsTOMLNormalValue<std::vector<std::filesystem::path>>);
+    static_assert(!TOML::IsTOMLContainerValue<std::vector<std::filesystem::path>>);
     static_assert(!TOML::IsTOMLValue<std::vector<std::filesystem::path>>);
 }

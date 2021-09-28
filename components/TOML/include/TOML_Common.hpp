@@ -30,8 +30,8 @@ namespace SerAr::TOML {
         stdext::is_container_v<T> 
         && (!stdext::is_container_v<std::remove_cvref_t<typename T::value_type>> 
             || stdext::is_string_v<std::remove_cvref_t<typename T::value_type>> 
-            || !std::is_same_v<std::remove_cvref_t<typename T::value_type>, std::filesystem::path>
             )
+        && !std::is_same_v<std::remove_cvref_t<typename T::value_type>, std::filesystem::path>
         && !stdext::is_string_v<T>
         && requires (T &&value) {
             { toml::value(std::forward<T>(value)) };

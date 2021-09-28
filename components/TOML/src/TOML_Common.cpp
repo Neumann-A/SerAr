@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <filesystem>
+
 namespace SerAr::TOML {
     void throw_runtime_error(std::string_view msg)
     {
@@ -28,5 +30,10 @@ namespace SerAr::TOML {
     static_assert(UseArchiveMemberSave<const std::vector<int> &, Archives::OutputArchive<SerAr::TOML_OutputArchive>::ArchiveType>);
     static_assert(UseArchiveMemberSave<std::vector<int>, Archives::OutputArchive<SerAr::TOML_OutputArchive>::ArchiveType>);
     static_assert(UseArchiveMemberSave<std::vector<std::vector<int> > &, Archives::OutputArchive<SerAr::TOML_OutputArchive>::ArchiveType>);
+
+    static_assert(!TOML::IsTOMLValue<std::filesystem::path>);
+    static_assert(!TOML::IsTOMLNormalValue<std::vector<std::filesystem::path>>);
+    static_assert(!TOML::IsTOMLContainerValue<std::vector<std::filesystem::path>>);
+    static_assert(!TOML::IsTOMLValue<std::vector<std::filesystem::path>>);
 
 }
