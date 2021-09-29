@@ -73,7 +73,7 @@ namespace SerAr {
 #endif
 
 #ifdef SERAR_HAS_MATLAB
-#include <SerAr/MATLAB/Matlab_Archive.h>
+#include <SerAr/MATLAB/Matlab_Archive.hpp>
 namespace SerAr {
     template<>
     struct is_output_archive_available<ArchiveTypeEnum::MATLAB> : std::true_type {};
@@ -82,13 +82,13 @@ namespace SerAr {
 
     template<>
     struct input_archive_traits<ArchiveTypeEnum::MATLAB> {
-        using archive_type = ::Archives::MatlabInputArchive;
-        using option_type = ::Archives::MatlabOptions;
+        using archive_type = ::SerAr::Matlab_InputArchive;
+        using option_type = ::SerAr::MatlabOptions;
     };
     template<>
     struct output_archive_traits<ArchiveTypeEnum::MATLAB> {
-        using archive_type = ::Archives::MatlabOutputArchive;
-        using option_type = ::Archives::MatlabOptions;
+        using archive_type = ::SerAr::Matlab_OutputArchive;
+        using option_type = ::SerAr::MatlabOptions;
         static constexpr auto append_option = option_type::update;
         static constexpr auto overwrite_option = option_type::write_v73;
     };
@@ -100,11 +100,11 @@ namespace SerAr {
     };
 
     template<>
-    struct archive_enum_value_from_type<Archives::MatlabInputArchive> {
+    struct archive_enum_value_from_type<SerAr::Matlab_InputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::MATLAB;
     };
     template<>
-    struct archive_enum_value_from_type<Archives::MatlabOutputArchive> {
+    struct archive_enum_value_from_type<SerAr::Matlab_OutputArchive> {
         static constexpr const ArchiveTypeEnum value = ArchiveTypeEnum::MATLAB;
     };
 
@@ -114,10 +114,10 @@ namespace SerAr {
     }
 }
 #else
-namespace Archives {
+namespace SerAr {
     class MatlabOptions;
-    class MatlabOutputArchive;
-    class MatlabInputArchive;
+    class Matlab_OutputArchive;
+    class Matlab_InputArchive;
 }
 #endif
 

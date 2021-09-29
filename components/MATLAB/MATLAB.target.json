@@ -5,8 +5,13 @@
         "STATIC"
     ],
     "sources" : [
-        "src/Matlab_Archive.cpp",
-        "include/Matlab_Archive.h"
+        "include/Matlab_Archive.hpp",
+        "src/Matlab_Common.cpp",
+        "include/Matlab_Common.hpp",
+        "src/Matlab_InputArchive.cpp",
+        "include/Matlab_InputArchive.hpp",
+        "src/Matlab_OutputArchive.cpp",
+        "include/Matlab_OutputArchive.hpp"
     ],
     "include_directories" : {
         "public" : [ 
@@ -24,11 +29,14 @@
     },
     "compile_features" : {
         "public" : [ 
-            "cxx_std_17"
+            "cxx_std_20"
         ]
     },
     "public_headers": [
-        "include/Matlab_Archive.h"
+        "include/Matlab_Archive.hpp",
+        "include/Matlab_Common.hpp",
+        "include/Matlab_InputArchive.hpp",
+        "include/Matlab_OutputArchive.hpp"
     ],
     "compile_definitions" : {
         "interface" : [
