@@ -282,7 +282,7 @@ namespace SerAr {
         std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options) const;
 
         void checkCurrentField();
-        std::optional<mxArray*> loadNextField(const std::string &str, bool optional);
+        std::optional<mxArray*> loadNextField(const std::string &str, bool optional = false);
         void releaseField() noexcept;
 
         template<typename Container> 

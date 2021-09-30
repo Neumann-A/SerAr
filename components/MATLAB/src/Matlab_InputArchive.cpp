@@ -50,7 +50,7 @@ namespace SerAr
         mFields.pop();
     };
 
-    std::optional<mxArray*> Matlab_InputArchive::loadNextField(const std::string &str, bool optional = false)
+    std::optional<mxArray*> Matlab_InputArchive::loadNextField(const std::string &str, bool optional)
     {
         mxArray * nextarr = nullptr;
 
