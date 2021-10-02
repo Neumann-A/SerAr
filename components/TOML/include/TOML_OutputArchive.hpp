@@ -62,7 +62,7 @@ namespace SerAr
         {
             auto& current_table = value_stack.top();
             if(current_table.is_uninitialized()) {
-                current_table = std::move(toml::value(val));
+                current_table = toml::value(val);
             } else {
                 current_table.push_back(val); //Otherwise assume array or table
             }

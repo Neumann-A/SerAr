@@ -42,6 +42,4 @@ namespace SerAr::TOML {
     concept IsTOMLValue = (IsTOMLNormalValue<T> || IsTOMLContainerValue<T>) 
         && !stdext::is_eigen_type_v<std::remove_cvref_t<T>> 
         && !std::is_same_v<std::remove_cvref_t<T>,std::filesystem::path> ;
-
-
 }

@@ -40,7 +40,7 @@ namespace SerAr {
         assert(value_stack.size()==1);
         if(value_stack.empty())
             return;
-        //std::cout << std::scientific << std::setprecision(7) << std::setw(80) << value_stack.top()  << std::endl;
+        std::cout << std::scientific << std::setprecision(7) << std::setw(80) << value_stack.top()  << std::endl;
         *fileptr  << std::scientific << std::setprecision(7) << std::setw(80) << value_stack.top() << std::flush;
         value_stack.pop();
         fileptr->close();

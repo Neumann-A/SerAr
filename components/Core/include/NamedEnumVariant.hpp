@@ -51,7 +51,7 @@ namespace SerAr {
         //Disallow assignment of NamedValue; 
         //could run in problems with r value typed NamedValue
         NamedEnumVariant& operator=(const NamedEnumVariant&) = delete;
-        BASIC_ALWAYS_INLINE explicit NamedEnumVariant(std::string enumname, std::string nametype, T&& val, bool det_name = false)
+        BASIC_ALWAYS_INLINE explicit NamedEnumVariant(std::string enumname, std::string nametype, T&& val, [[maybe_unused]] bool det_name = false)
             : enum_name(std::move(enumname))
             , type_name(std::move(nametype))
             , value(std::forward<T>(val))
