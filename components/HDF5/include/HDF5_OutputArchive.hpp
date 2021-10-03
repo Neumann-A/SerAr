@@ -327,7 +327,7 @@ namespace Archives
             using namespace HDF5_Wrapper;
             const auto& currentLoc {getCurrentLocation()};
 
-            using EigenType = std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type>;
+            using EigenType = std::remove_cvref_t<typename std::remove_cvref_t<T>>;
             using Scalar = typename EigenType::Scalar;
 
             //Creating the dataset! 
