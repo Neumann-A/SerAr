@@ -15,7 +15,7 @@ namespace SerAr {
     }
 
     TOML_OutputArchive::TOML_OutputArchive( const std::filesystem::path& path, const Options &opt /*, const std::source_location& loc = std::source_location::current()*/)
-        : OutputArchive(this), options(opt)
+        : OutputArchive(this), options(opt) , value_stack()
     {
 
         if (!path.has_filename())
