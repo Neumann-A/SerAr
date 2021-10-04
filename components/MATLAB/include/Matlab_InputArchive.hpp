@@ -140,7 +140,7 @@ namespace SerAr {
             return *valarray;
         }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
 
         template<typename T>
         inline std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>> load(T& value)
@@ -325,7 +325,7 @@ namespace SerAr {
             }
         }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         template<typename EigenType>
         std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<EigenType>>> assignEigenType(EigenType& value, typename EigenType::Scalar * dataposition, const std::size_t& rows, const std::size_t& cols)
         {

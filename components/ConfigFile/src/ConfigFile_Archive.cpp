@@ -609,3 +609,4 @@ CONFIG_ARCHIVE_SAVE(std::optional<std::vector<std::filesystem::path>>)
 
 static_assert(UseArchiveMemberSave<std::vector<double>, ConfigFile_OutputArchive>);
 static_assert(Archives::traits::use_to_string_v<std::vector<double>, ConfigFile::toString, ConfigFile_OutputArchive>);
+

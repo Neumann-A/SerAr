@@ -242,7 +242,7 @@ namespace Archives
             }
         
         }
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         template<typename T>
         std::enable_if_t<stdext::is_eigen_type_v<std::remove_cvref_t<T>>> getData(T& val)
         {

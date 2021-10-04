@@ -185,7 +185,7 @@ namespace SerAr
 //         Qt_EigenMatrixData_Impl() {
 //         }
 //     };
-// #ifdef EIGEN_CORE_H
+// #if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
 
 //     template<typename T> requires (stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
 //     class QtUI_EigenMatrixItem : public QStandardItem
@@ -334,7 +334,7 @@ namespace SerAr
             return *this;
         }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         // class QtUI_Archive_EigenDataType {
         // };
         template<typename T> requires(stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
@@ -386,6 +386,6 @@ namespace SerAr
     #undef QTUI_ARCHIVE_LOAD
 }
 
-// #ifdef EIGEN_CORE_H
+// #if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
 // Q_DECLARE_METATYPE(SerAr::Qt_EigenMatrix);
 // #endif

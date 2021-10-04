@@ -27,7 +27,7 @@
 #include <optional>
 #include <tuple>
 
-//#ifdef EIGEN_CORE_H
+//#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
 //#include <Eigen/Core>
 //#endif
 
@@ -575,7 +575,7 @@ namespace Archives
                 return buildtupletype<0, T>(str);
             }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
             template <typename Derived>
             requires(std::is_base_of_v<Eigen::EigenBase<Derived>, Derived>)
             static inline
@@ -874,7 +874,7 @@ namespace Archives
                 return sstr.str();
             }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
             template <typename Derived>
             static inline std::enable_if_t<std::is_base_of<Eigen::EigenBase<std::remove_cvref_t<Derived>>, std::remove_cvref_t<Derived>>::value, std::string> to_string(const Derived& value)
             {

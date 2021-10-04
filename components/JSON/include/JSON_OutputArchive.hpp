@@ -125,7 +125,7 @@ namespace SerAr
             }
             return *this;
         }
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         template<typename T> requires(stdext::is_eigen_type_v<std::remove_cvref_t<T>>)
             inline ThisClass& save(const Eigen::MatrixBase<T>& value)
         {

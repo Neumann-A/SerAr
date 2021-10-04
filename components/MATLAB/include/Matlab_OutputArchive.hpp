@@ -171,7 +171,7 @@ namespace SerAr {
             return *valarray;
         }
 
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         //Eigen Types 
         template <stdext::IsEigen3Type T>
         mxArray& createMATLABArray(const std::vector<T>& value) const

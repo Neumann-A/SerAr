@@ -270,7 +270,7 @@ namespace Archives
                     stordataspace.setOffset(offset);
                 }	
         }
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         template <stdext::IsEigen3Type T>
         void write(const T& val)
         {

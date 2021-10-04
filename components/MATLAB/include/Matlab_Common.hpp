@@ -129,7 +129,7 @@ namespace SerAr
         template<>
         struct MATLABClassFinder<long long unsigned int> : MATLAB_UInt64Class {};
 #endif
-#ifdef EIGEN_CORE_H
+#if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
         template<typename T>
         struct MATLABClassFinder<Eigen::EigenBase<T>> : MATLABClassFinder<typename T::Scalar> {};
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
