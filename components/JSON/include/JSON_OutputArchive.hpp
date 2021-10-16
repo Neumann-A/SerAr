@@ -92,7 +92,12 @@ namespace SerAr
             const auto current_json = json_stack.top(); // Get filled JSON
             json_stack.pop();
             auto& parrent_json = json_stack.top();
-            parrent_json[nvalue.name] = std::move(current_json); // Insert filled JSON into parrent. 
+            if (parrent_json.contains(nvalue.name)) {
+                parrent_json[nvalue.name].push_back(std::move(current_json));
+            }
+            else {
+                parrent_json[nvalue.name] = std::move(current_json); // Insert filled JSON into parrent. 
+            }
             return *this;
         }
         template<typename T> requires (!JSON::detail::IsJSONStoreable<JSONType, T>
@@ -136,7 +141,7 @@ namespace SerAr
             if constexpr (T::IsVectorAtCompileTime) {
                 std::vector<DataType> tmp(static_cast<typename std::vector<DataType>::size_type>(size));
                 Eigen::Map< T, Eigen::Unaligned>(tmp.data(), value.rows(), value.cols()) = value;
-                parrent_json.push_back(tmp);
+                parrent_json = tmp;
             }
             else {
                 //JSONType matrix{};

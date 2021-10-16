@@ -77,7 +77,12 @@ namespace SerAr
             auto& current_table = value_stack.top();
             value_stack.push(toml::value());
             this->operator()(nval.val);
-            current_table[nval.name] = value_stack.top();
+            if (!current_table.is_uninitialized() && current_table.contains(nval.name)) {
+                current_table.push_back(value_stack.top());
+            }
+            else {
+                current_table[nval.name] = value_stack.top();
+            }
             value_stack.pop();
             return *this;
         }
