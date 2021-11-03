@@ -129,17 +129,6 @@ namespace SerAr {
             }
         }
 
-        template<typename T>
-        requires(stdext::is_container_of_strings_v<T>)
-        mxArray& createMATLABArray(const T& values) const {
-            std::vector<const char*> cstr;
-            std::transform(values.begin(),values.end(),cstr.begin(),[](auto& str) {return str.c_str();});
-            using DataType = std::remove_cvref_t<typename T::value_type>;
-            mxArray *valarray = mxCreateCharMatrixFromStrings(cstr.size(),cstr.data());
-            checkmxArrayPtr(valarray);
-            return *valarray;
-        }
-
 #if defined(EIGEN_CORE_H)|| defined(EIGEN_CORE_MODULE_H)
 
         template<typename T>
