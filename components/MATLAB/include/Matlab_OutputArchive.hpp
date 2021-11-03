@@ -15,6 +15,17 @@ namespace SerAr {
     {
         //TODO: Make the Code for the Matlab_OutputArchive cleaner. The Code for the MatlabInputArchive seems much cleaner than this one!
 
+    private: 
+        inline void setNextFieldname(const std::string &str) noexcept { nextFieldname = str; }
+        inline void clearNextFieldname() noexcept { nextFieldname.clear(); }
+        inline auto getCurrentFieldname() noexcept { return nextFieldname; }
+        inline void checkNextFieldname() {
+            //TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
+            if (getCurrentFieldname().empty()) {
+                throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
+            }
+        }
+
     public:
         using Options = MatlabOptions;
 
@@ -83,21 +94,10 @@ namespace SerAr {
 
         std::unique_ptr<MATFile, void(*)(MATFile*)> getMatlabFile(const std::filesystem::path &fpath, const MatlabOptions &options = MatlabOptions::update) const;
 
-        inline void checkmxArrayPtr(mxArray* ptr ) const {
+        static inline void checkmxArrayPtr(mxArray* ptr ) {
             if(ptr==nullptr)
                 throw std::runtime_error{ fmt::format("Unable create new mxArray! (Out of memory?)") };
         }
-
-        inline void setNextFieldname(const std::string &str) noexcept { nextFieldname = str; }
-        inline void clearNextFieldname() noexcept { nextFieldname.clear(); }
-        inline auto getCurrentFieldname() noexcept { return nextFieldname; }
-        inline void checkNextFieldname() {
-            //TODO: Create proper fieldname and sanitize fieldnames (points, spaces are not allowed!)
-            if (getCurrentFieldname().empty()) {
-                throw std::runtime_error{ "No Fieldname defined! (Invalid behavior right now!)" };
-            }
-        }
-
         //Starting a new field
         template<typename T> requires (!HasCreateMATLAB<Matlab_OutputArchive, std::remove_cvref_t<T>>)
         inline void startMATLABArray(const T& val) {
@@ -121,9 +121,8 @@ namespace SerAr {
             Fields.push(std::make_tuple(getCurrentFieldname(), pStruct));
             clearNextFieldname();
         }
-
         void finishMATLABArray();
-    
+
         //Save all other arithmetics types
         template<typename T> 
         requires(std::is_arithmetic_v<std::remove_cvref_t<T>>)
