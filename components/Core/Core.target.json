@@ -16,7 +16,8 @@
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/NamedEnumVariant.hpp>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/OutputArchive.h>",
             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Serializeable.h>",
-            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/TestIOArchive.h>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/TestIOArchive.h>",
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/MyCEL_MetaInfoSerializer.hpp>"
         ]
     },
     "include_directories" : {
@@ -47,6 +48,7 @@
         "include/NamedEnumVariant.hpp",
         "include/OutputArchive.h",
         "include/Serializeable.h",
-        "include/TestIOArchive.h"
+        "include/TestIOArchive.h",
+        "include/MyCEL_MetaInfoSerializer.hpp"
     ]
 }
