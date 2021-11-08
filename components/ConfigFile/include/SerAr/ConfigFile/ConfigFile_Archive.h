@@ -581,20 +581,33 @@ namespace Archives
             static inline
                 typename Derived::PlainObject from_string(std::string& str)
             {
-                auto tmpvec = from_string<std::vector<typename Derived::PlainObject::Scalar>>(str);
-                
                 typename Derived::PlainObject ret;
-
-                if( (tmpvec.size() != (static_cast<std::size_t>(ret.cols())*static_cast<std::size_t>(ret.rows()))) )
-                {
-                    throw std::runtime_error{"Size of request matrix does not match list of extracted values! Requested: " + 
-                        std::to_string(ret.cols()*ret.rows()) +" Found: " + std::to_string(tmpvec.size()) + " !" };
+                if constexpr (Derived::IsVectorAtCompileTime) {
+                    auto tmpvec = from_string<std::vector<typename Derived::PlainObject::Scalar>>(str);
+                    if( (tmpvec.size() != (static_cast<std::size_t>(ret.cols())*static_cast<std::size_t>(ret.rows()))) )
+                    {
+                        throw std::runtime_error{"Size of request matrix does not match list of extracted values! Requested: " + 
+                            std::to_string(ret.cols()*ret.rows()) +" Found: " + std::to_string(tmpvec.size()) + " !" };
+                    }
+                    ret = Eigen::Map<decltype(ret)>(tmpvec.data(), static_cast<Eigen::Index>(tmpvec.size()));
+                    afterConversionStringCheck(str);
+                } else {
+                    auto tmpvec = from_string<std::vector<std::string>>(str);
+                    std::vector<typename Derived::PlainObject::Scalar> matrix;
+                    rows = tmpvec.size();
+                    for(const auto &elem: tmpvec) {
+                        auto tmpline = from_string<std::vector<typename Derived::PlainObject::Scalar>>(elem);
+                        std::copy(tmpline.begin(), tmpline.end(), std::back_inserter(matrix));
+                    }
+                    if constexpr (Derived::IsRowMajor)
+                    {
+                        ret = Eigen::Map< Derived, Eigen::Unaligned >(matrix.data(), rows, matrix.size() / rows);
+                    }
+                    else
+                    {
+                        ret = Eigen::Map< Derived, Eigen::Unaligned, Eigen::Stride<1, Derived::ColsAtCompileTime>>(matrix.data(), rows, matrix.size() / rows);
+                    }
                 }
-                                
-                ret = Eigen::Map<decltype(ret)>(tmpvec.data(), static_cast<Eigen::Index>(tmpvec.size()));
-
-                afterConversionStringCheck(str);
-
                 return ret;
             }
 #endif
