@@ -594,7 +594,7 @@ namespace Archives
                 } else {
                     auto tmpvec = from_string<std::vector<std::string>>(str);
                     std::vector<typename Derived::PlainObject::Scalar> matrix;
-                    rows = tmpvec.size();
+                    auto rows = tmpvec.size();
                     for(const auto &elem: tmpvec) {
                         auto tmpline = from_string<std::vector<typename Derived::PlainObject::Scalar>>(elem);
                         std::copy(tmpline.begin(), tmpline.end(), std::back_inserter(matrix));
