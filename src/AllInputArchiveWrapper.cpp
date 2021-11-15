@@ -6,6 +6,10 @@
 namespace SerAr {
 
     static file_input_archive_variants getInputArchiveTypeByPath(const std::filesystem::path &path) {
+        if(!std::filesystem::exists(filepath)) {
+            const auto error = fmt::format("Given path '{}' does not exist!", path.string() );
+            throw std::runtime_error{error.c_str()};
+        }
         if(!path.has_extension()) {
             const auto error = fmt::format("Given path '{}' has no extension. Cannot deduce archive type!", path.string() );
             throw std::runtime_error{error.c_str()};
