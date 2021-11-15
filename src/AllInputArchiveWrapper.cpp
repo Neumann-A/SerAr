@@ -6,7 +6,7 @@
 namespace SerAr {
 
     static file_input_archive_variants getInputArchiveTypeByPath(const std::filesystem::path &path) {
-        if(!std::filesystem::exists(filepath)) {
+        if(!std::filesystem::exists(path)) {
             const auto error = fmt::format("Given path '{}' does not exist!", path.string() );
             throw std::runtime_error{error.c_str()};
         }
