@@ -44,7 +44,7 @@
         },
         {
             "name" : "TOML",
-            "description" : "Include and enable TOML archive (requires toml++)",
+            "description" : "Include and enable TOML archive (requires toml11)",
             "default_value" : "ON",
             "dependencies" : [ "toml11" ]
         },
