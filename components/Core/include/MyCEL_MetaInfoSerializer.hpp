@@ -8,14 +8,14 @@ namespace MyCEL {
 
     template<typename Archive>
     void serialize(build_metainfo& info,Archive& ar) {
-        ar(SerAr::createNamedValue("date",std::string(info.date)));
-        ar(SerAr::createNamedValue("time",std::string(info.time)));
+        ar(Archives::createNamedValue("date",std::string(info.date)));
+        ar(Archives::createNamedValue("time",std::string(info.time)));
     }
 
     template<typename Archive>
     void serialize(git_metainfo& info,Archive& ar) {
-        ar(SerAr::createNamedValue("branch",std::string(info.branch)));
-        ar(SerAr::createNamedValue("sha",std::string(info.sha)));
-        ar(SerAr::createNamedValue("description",std::string(info.describe)));
+        ar(Archives::createNamedValue("branch",std::string(info.branch)));
+        ar(Archives::createNamedValue("sha",std::string(info.sha)));
+        ar(Archives::createNamedValue("description",std::string(info.describe)));
     }
 }
