@@ -67,7 +67,7 @@ const std::string ConfigFile::SpecialCharacters::seperator{ ',' };
 const std::string ConfigFile::SpecialCharacters::openbracket{ '{' };
 const std::string ConfigFile::SpecialCharacters::closebracket{ '}' };
 const std::string ConfigFile::SpecialCharacters::stringidentifier{ "'" };
-const std::string ConfigFile::SpecialCharacters::escapestringidentifier{ "\'" };
+const std::string ConfigFile::SpecialCharacters::escapestringidentifier{ "\\'" };
 
 //Section string
 const std::string ConfigFile::SpecialCharacters::section_string{ "(?:^\\s*\\[)([a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*)(?:\\][:space:]*)$" };
