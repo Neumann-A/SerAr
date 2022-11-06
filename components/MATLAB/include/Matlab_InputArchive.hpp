@@ -60,10 +60,12 @@ namespace SerAr {
         requires (HasGetValueMATLAB<Matlab_InputArchive,std::remove_cvref_t<T>>)
         inline void load(T& value)
         {
-            using Type = std::decay_t<T>; // T cannot be const 
             const auto fieldptr = std::get<1>(mFields.top());
             
             //Check Type
+#ifndef NDEBUG
+            using Type = std::decay_t<T>; // T cannot be const 
+#endif
             assert(mxGetClassID(fieldptr) == MATLAB::MATLABClassFinder<Type>::value);
             getValue(value, fieldptr);
         }
@@ -154,7 +156,7 @@ namespace SerAr {
         inline std::enable_if_t<stdext::is_container_with_eigen_type_v<std::remove_cvref_t<T>>> load(T& value)
         {
             using Type = std::remove_cvref_t<T>;
-            using EigenType = std::remove_cvref_t<typename std::remove_cvref_t<T>::value_type>; // T cannot be const
+            using EigenType = std::remove_cvref_t<typename Type::value_type>; // T cannot be const
             using DataType = typename EigenType::Scalar;
             
             const auto fieldptr = std::get<1>(mFields.top());

@@ -109,7 +109,7 @@ namespace SerAr
             }
         } else {
            int num;
-           const char ** field_names = (const char **)matGetDir(m_MatlabFile.get(), &num);
+           char ** field_names = matGetDir(m_MatlabFile.get(), &num);
            for(int i = 0; i < num; i++ )
            {
                auto array = matGetVariable(m_MatlabFile.get(), field_names[0]);
