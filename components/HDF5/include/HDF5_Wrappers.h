@@ -11,6 +11,7 @@
 #ifndef INC_HDF5_FileWrapper_H
 #define INC_HDF5_FileWrapper_H
 ///---------------------------------------------------------------------------------------------------
+#include "MyCEL/stdext/is_eigen3_type.h"
 #pragma once
 
 #include <cassert>
@@ -766,9 +767,13 @@ namespace HDF5_Wrapper
         template<typename T, typename _ = void>
         auto writeData(const T& val, const HDF5_MemoryOptions& memopts = HDF5_MemoryOptions{}, const HDF5_DataspaceWrapper& storespace = HDF5_DataspaceWrapper{}) const
         {
-            if constexpr(stdext::is_memory_sequentiel_container_v<std::decay_t<T>>)
+            if constexpr(stdext::is_memory_sequentiel_container_v<std::remove_reference_t<T>>)
             {
                 return H5Dwrite(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, &val[0]);
+            }
+            else if constexpr(stdext::is_eigen_type_v<std::remove_reference_t<T>>)
+            {
+                return H5Dwrite(*this, memopts.datatype, memopts.dataspace, storespace, mOptions.transfer_propertylist, val.data());
             }
             else
             {

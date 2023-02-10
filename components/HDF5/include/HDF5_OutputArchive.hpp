@@ -275,6 +275,7 @@ namespace Archives
         void write(const T& val)
         {
             using namespace HDF5_Wrapper;
+            using Datatype = typename T::Scalar;
             
             const auto& currentLoc {getCurrentLocation()};
             //Creating the dataset! 
@@ -307,7 +308,7 @@ namespace Archives
             {
                 if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
                 { //Converting from Columnmajor to rowmajor
-                    Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
+                    Eigen::Matrix<Datatype, T::RowsAtCompileTime, T::ColsAtCompileTime, Eigen::RowMajor> TransposedMatrix = val;
                     dataset.writeData(TransposedMatrix, memoryopts);
                 }
                 else
