@@ -24,6 +24,7 @@ namespace HDF5_Wrapper
     class HDF5_AttributeWrapper;
     class HDF5_DatatypeWrapper;
     class HDF5_LocationWrapper;
+    class HDF5_ObjectWrapper;
     template<typename T>
     class HDF5_GeneralType;
     template<typename T>
@@ -37,7 +38,7 @@ namespace HDF5_Wrapper
     //Extra Options without linkage
     struct HDF5_DataspaceOptions;
     struct HDF5_DatatypeOptions;
-
+    struct HDF5_ObjectOptions;
 
     inline bool isTypeImmutable(const hid_t& dtype);
 }

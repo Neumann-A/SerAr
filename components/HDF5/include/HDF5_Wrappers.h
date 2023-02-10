@@ -34,6 +34,7 @@
 #include <hdf5.h>
 //#include <hdf5_hl.h>
 
+#include <H5public.h>
 #include "HDF5_FwdDecl.h"
 #include "HDF5_Type_Selector.h"
 
@@ -64,7 +65,8 @@ namespace HDF5_Wrapper
     struct HDF5_OptionsSelector<HDF5_AttributeWrapper> { using type = HDF5_DummyOptions; };
     template<>
     struct HDF5_OptionsSelector<HDF5_DatatypeWrapper> { using type = HDF5_DatatypeOptions; };
-
+    template<>
+    struct HDF5_OptionsSelector<HDF5_ObjectWrapper> { using type = HDF5_ObjectOptions; };
     
     /// <summary>	Alias declaration for easier access of the HDF5 options selector. </summary>
     template<typename T>
@@ -244,6 +246,10 @@ namespace HDF5_Wrapper
                     return -1;
                 }
             }
+            else if constexpr (std::is_same_v<HDF5_ObjectWrapper, T>)
+            {
+                return H5Oopen(loc,path.string().c_str(),options.access_propertylist);
+            }
             else if constexpr (std::is_same_v<HDF5_DatatypeWrapper, T>)
             {
                 //TODO: Move to different function?
@@ -321,6 +327,10 @@ namespace HDF5_Wrapper
             {
                 return H5Gclose(mLoc);
             }
+            else if constexpr (std::is_same_v<HDF5_ObjectWrapper, T>)
+            {
+                return H5Oclose(mLoc);
+            }
             else if constexpr (std::is_same_v<HDF5_DatasetWrapper, T>)
             {
                 return H5Dclose(mLoc);
@@ -380,15 +390,17 @@ namespace HDF5_Wrapper
         }//Move Constructor
         HDF5_GeneralType& operator=(HDF5_GeneralType&& rhs) 
         {
-            this->mLoc = std::move(const_cast<HDF5_LocationWrapper>(rhs.mLoc));
-            this->mOptions = std::move(const_cast<HDF5_LocationWrapper>(rhs.mOptions));
+            this->mLoc = std::move(rhs.mLoc);
+            this->mOptions = std::move(rhs.mOptions);
             rhs.wasMoved = true;
+            return *this;
         }; //Move Assignment
         HDF5_GeneralType& operator=(const HDF5_GeneralType&& rhs)
         {
-            this->mLoc = std::move(const_cast<HDF5_LocationWrapper>(rhs.mLoc));
-            this->mOptions = std::move(const_cast<HDF5_LocationWrapper>(rhs.mOptions));
+            this->mLoc = std::move(const_cast<HDF5_LocationWrapper&&>(rhs.mLoc));
+            this->mOptions = std::move(const_cast<HDF5_LocationWrapper&&>(rhs.mOptions));
             rhs.wasMoved = true;
+            return *this;
         }; //Move Assignment	
 
         ~HDF5_GeneralType() noexcept
@@ -468,6 +480,57 @@ namespace HDF5_Wrapper
             return access_propertylist;
         };
     };
+
+    struct HDF5_ObjectOptions : HDF5_GeneralOptions
+    {
+        hid_t link_creation_propertylist{ H5P_DEFAULT };
+        hid_t getLinkCreationFlags() const noexcept
+        {
+            return link_creation_propertylist;
+        }
+        hid_t getCreationFlags() const noexcept
+        {
+            return static_cast<hid_t>(creation_propertylist);
+        }
+        hid_t getAccessFlags() const noexcept
+        {
+            return access_propertylist;
+        };
+    };
+
+    class HDF5_ObjectWrapper : public HDF5_GeneralType<HDF5_ObjectWrapper>
+    {
+        using ThisClass = HDF5_ObjectWrapper;
+
+        template<typename T>
+        static HDF5_LocationWrapper openOrCreateFile(const HDF5_GeneralType<T> &loc, const hdf5path &path, const HDF5_ObjectOptions& options = HDF5_ObjectOptions{})
+        {
+            if (path.has_extension())
+                throw ::std::runtime_error{ "Group path should not have an extension!" };
+
+            return HDF5_LocationWrapper(HDF5_OpenCreateCloseWrapper<ThisClass>::openOrCreate(loc, path, options));
+        }
+
+        H5O_type_t getType() {
+            H5O_info_t info;
+            [[maybe_unused]] auto herr = H5Oget_info(*this,&info,H5O_INFO_BASIC);
+            return info.type;
+        }
+
+    public:
+        using HDF5_GeneralType<ThisClass>::HDF5_GeneralType;
+
+        template<typename T, typename _ = std::enable_if_t<std::is_same_v<HDF5_ObjectWrapper, T>>>
+        HDF5_ObjectWrapper(const HDF5_GeneralType<T> &loc, const hdf5path &path, const HDF5_ObjectOptions& options = HDF5_ObjectOptions{})
+            : HDF5_GeneralType<HDF5_ObjectWrapper>(openOrCreateFile(loc, path, options)) {}
+        bool isDataset() {
+            if(getType()==H5O_TYPE_DATASET) {
+                return true;
+            }
+            return false;
+        }
+    };
+
     class HDF5_GroupWrapper : public HDF5_GeneralType<HDF5_GroupWrapper>
     {
         using ThisClass = HDF5_GroupWrapper;
@@ -493,6 +556,7 @@ namespace HDF5_Wrapper
         HDF5_Datatype default_memory_datatyp{ HDF5_Datatype::Native };
         HDF5_Datatype default_storage_datatyp{ HDF5_Datatype::Native };
     };
+
     class HDF5_DatatypeWrapper : public HDF5_GeneralType<HDF5_DatatypeWrapper>
     {
         using ThisClass = HDF5_DatatypeWrapper;
@@ -531,7 +595,6 @@ namespace HDF5_Wrapper
         {
             return H5Tget_size(*this);
         }
-
     };
 
     struct HDF5_DataspaceOptions

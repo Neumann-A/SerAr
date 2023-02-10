@@ -76,15 +76,17 @@ namespace SerAr
     {
         assert(options == MatlabOptions::read || options == MatlabOptions::update);// , "Cannot have a Matlab_InputArchive with write-only access!");
 
-        if (!fpath.has_filename())
+        if (!fpath.has_filename()) {
             throw std::runtime_error{ std::string{ "Could not open file due to missing filename: " } +fpath.string() };
+        }
 
         std::unique_ptr<MATFile, void(*)(MATFile*)> pMat(
             matOpen(fpath.string().c_str(), MatlabHelper::getMatlabMode(options)),
             [](MATFile* mat) {matClose(mat);} );
 
-        if (pMat == nullptr)
+        if (pMat == nullptr) {
             throw std::runtime_error{ std::string{ "Could not open file: " } +fpath.string() };
+        }
 
         return std::move(pMat);
     };

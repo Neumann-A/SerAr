@@ -35,14 +35,17 @@ namespace Archives
         using ThisClass = HDF5_InputArchive;
         friend class OutputArchive<ThisClass>;
         //needed so that the detector idom works with clang-cl (for some unknown reason!)
-        template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
+        //template <class Default, class AlwaysVoid, template<class...> class Op, class... Args> friend struct stdext::DETECTOR;
     private:
         using CurrentGroup = HDF5_Wrapper::HDF5_GroupWrapper;
+        using CurrentDataset = HDF5_Wrapper::HDF5_DatasetWrapper;
         //using LastDataset = HDF5_Wrapper::HDF5_DatasetWrapper;
         using File = HDF5_Wrapper::HDF5_FileWrapper;
 
         File                            mFile;
         std::stack<CurrentGroup>        mGroupStack{};
+        std::optional<CurrentDataset>   mDataset;
+        bool                            isDataset = false;
         std::stack<std::string>         mPathStack{};
 
         HDF5_InputOptions mOptions;
@@ -81,23 +84,38 @@ namespace Archives
             assert(!mPathStack.empty());
             mPathStack.pop();
         }
-        const auto& getCurrentLocation()
+        const HDF5_Wrapper::HDF5_LocationWrapper& getCurrentLocation()
         {
             using namespace HDF5_Wrapper;
+            if(mDataset)
+                return *mDataset;
             return mGroupStack.empty() ? static_cast<const HDF5_LocationWrapper&>(mFile) : mGroupStack.top();
         }
         template<typename T>
-        void openGroup(const T&, const std::string& path)
+        void openObject(const T&, const std::string& path)
         {
             using namespace HDF5_Wrapper;
-            HDF5_GroupOptions opts { HDF5_GeneralOptions{.mode=HDF5_GeneralOptions::HDF5_Mode::Open} };
-            HDF5_GroupWrapper group{ getCurrentLocation(), path, opts };
-            mGroupStack.push(std::move(group));
+            HDF5_ObjectOptions opts { HDF5_GeneralOptions{.mode=HDF5_GeneralOptions::HDF5_Mode::Open} };
+            HDF5_ObjectWrapper object{ getCurrentLocation(), path, opts };
+            if(object.isDataset()) {
+                //HDF5_DatasetOptions dopts { HDF5_GeneralOptions{.mode=HDF5_GeneralOptions::HDF5_Mode::Open} };
+                //HDF5_DatasetWrapper data { getCurrentLocation(), path, dopts };
+                //mDataset = std::move(data);
+                isDataset = true;
+            } else {
+                HDF5_GroupOptions gopts { HDF5_GeneralOptions{.mode=HDF5_GeneralOptions::HDF5_Mode::Open} };
+                HDF5_GroupWrapper group{ getCurrentLocation(), path, gopts };
+                mGroupStack.push(std::move(group));
+            }
         }
-        void closeLastGroup()
+        void closeLastObject()
         {
-            assert(!mGroupStack.empty());
-            mGroupStack.pop(); // Just pop it from the stack. The Destructor will close it!
+            if(isDataset) {
+                isDataset = false;
+            } else {
+                assert(!mGroupStack.empty());
+                mGroupStack.pop(); // Just pop it from the stack. The Destructor will close it!
+            }
         };
 
         template<typename T>
@@ -249,6 +267,7 @@ namespace Archives
             using namespace HDF5_Wrapper;
 
             const auto spacetype = DataspaceTypeSelector<std::remove_cvref_t<T>>::value();
+            using DataType = typename T::Scalar;
             //HDF5_DataspaceOptions spaceopts;
 
             const auto datatypeopts{ mOptions.DefaultDatatypeOptions };
@@ -256,7 +275,7 @@ namespace Archives
             HDF5_DatasetOptions datasetopts{};
             HDF5_DatasetWrapper dataset(getCurrentLocation(), getPath(), std::move(datasetopts));
 
-            HDF5_DatatypeWrapper type(val(0,0), datatypeopts);
+            HDF5_DatatypeWrapper type(DataType {0}, datatypeopts);
             assert(dataset.getDatatype() == type);
 
             const auto& dataspace{ dataset.getDataspace() };
@@ -276,7 +295,7 @@ namespace Archives
             memoryspaceopt.dims[1] = static_cast<hsize_t>(cols);
             memoryspaceopt.maxdims[0] = static_cast<hsize_t>(rows);
             memoryspaceopt.maxdims[1] = static_cast<hsize_t>(cols);
-            HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(val(0,0), datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
+            HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(DataType{0}, datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
 
             //TODO: add code for dynamic sized matrix!
             if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
@@ -401,12 +420,12 @@ namespace Archives
             if (!empty_string) {
                 appendPath(value.getName()); //Sets the name for the next Dataset or Group
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    openGroup(value, getPath());
+                    openObject(value, getPath());
             }
             const auto tmp {list(value.val)};
             if (!empty_string) {
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    closeLastGroup();
+                    closeLastObject();
                 removePath(); //Remove the Last Fieldname
             }
             return tmp;
@@ -443,12 +462,12 @@ namespace Archives
             if (!empty_string) {
                 appendPath(value.getName()); //Sets the name for the next Dataset or Group
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    openGroup(value, getPath());
+                    openObject(value, getPath());
             }
-            this->operator()(value.getValue()); //Write Data to the Group or Dataset
+            this->operator()(value.getValue()); //Load Data from the Group or Dataset
             if (!empty_string) {
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
-                    closeLastGroup();
+                    closeLastObject();
                 removePath(); //Remove the Last Fieldname
             }
         }
