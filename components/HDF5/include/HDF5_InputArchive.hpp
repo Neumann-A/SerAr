@@ -288,7 +288,9 @@ namespace Archives
 
             const std::size_t cols{ dims.at(1) }, rows{ dims.at(0) };
 
-            //Eigen::Matrix<typename T::Scalar, Eigen::Dynamic, Eigen::Dynamic> Storage(cols, rows);
+            if constexpr (T::RowsAtCompileTime == Eigen::Dynamic|| T::ColsAtCompileTime == Eigen::Dynamic){
+                val = Eigen::Matrix<typename T::Scalar, T::RowsAtCompileTime, T::ColsAtCompileTime>(cols,);
+            }
 
             HDF5_DataspaceOptions memoryspaceopt;
             memoryspaceopt.dims[0] = static_cast<hsize_t>(rows);
@@ -298,9 +300,9 @@ namespace Archives
             HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(DataType{0}, datatypeopts), HDF5_DataspaceWrapper(spacetype, memoryspaceopt) };
 
             //TODO: add code for dynamic sized matrix!
+            std::vector<typename T::Scalar> vec(cols*rows);
             if constexpr (!(T::IsRowMajor) && !T::IsVectorAtCompileTime)
             { //Converting from Columnmajor to rowmajor
-                std::vector<typename T::Scalar> vec(cols*rows);
                 //Eigen::Matrix<typename T::Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> TransposedMatrix(dims.at);
                 //HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
                 dataset.readData(vec.data(), memoryopts);
@@ -309,11 +311,10 @@ namespace Archives
                 //val = Eigen::Map<std::decay_t<T>, Eigen::Unaligned, Eigen::Stride<1, std::decay_t<T>::ColsAtCompileTime>>(vec.data(), rows, cols);
                 val = Eigen::Map<std::remove_cvref_t<T>, Eigen::Unaligned, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>(vec.data(), rows, cols, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(1,cols));
                 //Map<MatrixXi, 0, OuterStride<> >(array, 3, 3, OuterStride<>(4)) <_ for dynamic size?
-            }
-            else
-            {
-                //HDF5_MemoryOptions memoryopts{ HDF5_DatatypeWrapper(*val.data(), memorytypeopts), std::move(memoryspace) };
-                dataset.readData(val, memoryopts);
+            } else {
+                dataset.readData(vec.data(), memoryopts);
+                //TODO: Fix this!
+                val = Eigen::Map<std::remove_cvref_t<T>, Eigen::Unaligned, Eigen::Stride<T::RowsAtCompileTime,  T::ColsAtCompileTime>>(vec.data(), rows, cols,Eigen::Stride<T::RowsAtCompileTime,  T::ColsAtCompileTime>(1,1));
             }
         }
 #ifdef EIGEN_CXX11_TENSOR_TENSOR_H
