@@ -5,6 +5,7 @@
 #include <optional>
 
 #include <MyCEL/basics/BasicMacros.h>
+#include <MyCEL/stdext/is_optional.hpp>
 
 #include <SerAr/Core/NamedValue.h>
 #include <SerAr/Core/NamedEnumVariant.hpp>
@@ -427,23 +428,6 @@ namespace Archives
             return tmp;
         }
 
-        template<typename T>
-        inline void load(std::optional<T>& value)
-        {
-            const auto result = H5Lexists(getCurrentLocation(),getPath().c_str(),H5P_LINK_ACCESS);
-            if(result == 0 ) {
-                value = std::nullopt;
-                return;
-            } else if( result < 0) {
-                value = std::nullopt;
-                throw std::runtime_error{ "HDF5_InputArchive failed function call: H5Lexists for std::optional<T>!" };
-                return;
-            }
-            std::remove_cvref_t<T> tmp;
-            this->operator()(tmp);
-            value = tmp;
-        }
-
         inline void load(std::filesystem::path& value)
         {
             std::string tmp;
@@ -452,15 +436,32 @@ namespace Archives
         }
 
         template<typename T>
-        inline void load(Archives::NamedValue<T>& value)
+        inline void load(Archives::NamedValue<T>& value)       
         {
             const bool empty_string = value.getName().empty();
             if (!empty_string) {
                 appendPath(value.getName()); //Sets the name for the next Dataset or Group
+                if constexpr (stdext::IsOptional<std::remove_cvref_t<T>> ) {
+                    auto path = getPath();
+                    if(mPathStack.size()==1) {
+                        path.insert(path.begin(), '/');
+                    }
+                    const auto exists = H5Lexists(getCurrentLocation(),path.c_str(),H5P_LINK_ACCESS_DEFAULT);
+                    if( exists <= 0 ) {
+                            value.val = std::nullopt;
+                            removePath();
+                            return;
+                        }                    
+                }
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
                     openObject(value, getPath());
             }
-            this->operator()(value.getValue()); //Load Data from the Group or Dataset
+            if constexpr (stdext::IsOptional<std::remove_cvref_t<T>> ) {
+                this->operator()(*value.getValue());
+            }
+            else  {
+                this->operator()(value.getValue()); //Load Data from the Group or Dataset
+            }
             if (!empty_string) {
                 if constexpr (!HDF5_ArchiveWriteAble<T, ThisClass>)
                     closeLastObject();
