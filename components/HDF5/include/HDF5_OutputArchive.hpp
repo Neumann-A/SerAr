@@ -284,7 +284,12 @@ namespace Archives
 
             //Settings storage dimensions
             HDF5_DataspaceOptions dataspaceopts;
-            std::array<hsize_t,2> dims { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) };
+            std::array<hsize_t,2> dims;
+            if (mOptions.dontReorderData) {
+                dims = std::array<hsize_t,2>  { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) };
+            } else {
+                dims = std::array<hsize_t,2>  { static_cast<hsize_t>(val.cols()), static_cast<hsize_t>(val.rows()) };
+            }
             std::copy_n(dims.begin(),dims.size(),dataspaceopts.dims.begin()); 
             dataspaceopts.maxdims = dataspaceopts.dims;
 
@@ -298,7 +303,12 @@ namespace Archives
 
             //Settings memory dimensions
             HDF5_DataspaceOptions memoryspaceopt;
-            std::array<hsize_t,2> memdims { static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) };
+            std::array<hsize_t,2> memdims;
+            if (mOptions.dontReorderData) {
+                memdims = std::array<hsize_t,2>{ static_cast<hsize_t>(val.rows()), static_cast<hsize_t>(val.cols()) };
+            } else {
+                memdims = std::array<hsize_t,2>{ static_cast<hsize_t>(val.cols()), static_cast<hsize_t>(val.rows()) };
+            }
             std::copy_n(memdims.begin(),memdims.size(),memoryspaceopt.dims.begin()); 
             memoryspaceopt.maxdims = memoryspaceopt.dims;
 
